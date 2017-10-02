@@ -40,6 +40,7 @@
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/Transforms/Scalar/SimpleLoopUnswitch.h"
 #include "llvm/Transforms/Vectorize.h"
+#include <fstream>
 
 using namespace llvm;
 
@@ -248,6 +249,123 @@ void PassManagerBuilder::addInstructionCombiningPass(
   PM.add(createInstructionCombiningPass(ExpensiveCombines));
 }
 
+void PassManagerBuilder::PassIdxInserter(
+    std::vector<unsigned int> &input_set, 
+    legacy::FunctionPassManager &FPM) {
+  unsigned int pass;
+  while(!input_set.empty()) {
+    pass = input_set.front();
+    input_set.erase(input_set.begin());
+    switch(pass) {
+      case 1:
+        FPM.add(llvm::createPGOMemOPSizeOptLegacyPass());
+        break;
+      case 2:
+        FPM.add(llvm::createInstructionCombiningPass());
+        break;
+      case 3:
+        FPM.add(llvm::createInstructionSimplifierPass());
+        break;
+      case 4:
+        FPM.add(llvm::createLowerSwitchPass());
+        break;
+      case 5:
+        FPM.add(llvm::createPromoteMemoryToRegisterPass());
+        break;
+      case 6:
+        FPM.add(llvm::createBitTrackingDCEPass());
+        break;
+      case 7:
+        FPM.add(llvm::createLoopDataPrefetchPass());
+        break;
+      case 8:
+        FPM.add(llvm::createConstantHoistingPass());
+        break;
+      case 9:
+        FPM.add(llvm::createSROAPass());
+        break;
+      case 10:
+        FPM.add(llvm::createGVNSinkPass());
+        break;
+      case 11:
+        FPM.add(llvm::createSCCPPass());
+        break;
+      case 12:
+        FPM.add(llvm::createScalarizerPass());
+        break;
+      case 13:
+        FPM.add(llvm::createJumpThreadingPass());
+        break;
+      case 14:
+        FPM.add(llvm::createNaryReassociatePass());
+        break;
+      case 15:
+        FPM.add(llvm::createMergedLoadStoreMotionPass());
+        break;
+      case 16:
+        FPM.add(llvm::createDeadStoreEliminationPass());
+        break;
+      case 17:
+        FPM.add(llvm::createSinkingPass());
+        break;
+      case 18:
+        FPM.add(llvm::createEarlyCSEPass());
+        break;
+      case 19:
+        FPM.add(llvm::createFlattenCFGPass());
+        break;
+      case 20:
+        FPM.add(llvm::createDeadCodeEliminationPass());
+        break;
+      case 21:
+        FPM.add(llvm::createDemoteRegisterToMemoryPass());
+        break;
+      case 22:
+        FPM.add(llvm::createPlaceSafepointsPass());
+        break;
+      case 23:
+        FPM.add(llvm::createAlignmentFromAssumptionsPass());
+        break;
+      case 24:
+        FPM.add(llvm::createPartiallyInlineLibCallsPass());
+        break;
+      case 25:
+        FPM.add(llvm::createAggressiveDCEPass());
+        break;
+      case 26:
+        FPM.add(llvm::createStraightLineStrengthReducePass());
+        break;
+      case 27:
+        FPM.add(llvm::createGVNPass());
+        break;
+      case 28:
+        FPM.add(llvm::createTailCallEliminationPass());
+        break;
+      case 29:
+        FPM.add(llvm::createNewGVNPass());
+        break;
+      case 30:
+        FPM.add(llvm::createGVNHoistPass());
+        break;
+      case 31:
+        FPM.add(llvm::createConstantPropagationPass());
+        break;
+      case 32:
+        FPM.add(llvm::createReassociatePass());
+        break;
+      case 33:
+        FPM.add(llvm::createMemCpyOptPass());
+        break;
+      case 34:
+        FPM.add(llvm::createLowerExpectIntrinsicPass());
+        break;
+      default:
+        errs() << "DSOAO: Pass Index:"<< pass << " Insert Failed!";
+        break;
+		}
+  }
+}
+
 void PassManagerBuilder::populateFunctionPassManager(
     legacy::FunctionPassManager &FPM) {
   addExtensionsToPM(EP_EarlyAsPossible, FPM);
@@ -260,10 +378,27 @@ void PassManagerBuilder::populateFunctionPassManager(
 
   addInitialAliasAnalysisPasses(FPM);
 
+  /*
   FPM.add(createCFGSimplificationPass());
   FPM.add(createSROAPass());
   FPM.add(createEarlyCSEPass());
   FPM.add(createLowerExpectIntrinsicPass());
+  */
+  std::vector<unsigned int> RandomPasses;
+  std::fstream fs;
+  std::string path("/home/jrchang/workspace/llvm/experiment/random_select/InputSet");
+  errs() << "Function-Passes path: " << path << "\n";
+  fs.open(path, std::fstream::in);
+  if (fs.is_open()) {
+    unsigned int pass_idx;
+    while(fs >> pass_idx) {
+      RandomPasses.push_back(pass_idx);
+      PassIdxInserter(RandomPasses, FPM);
+    }
+    fs.close();
+  } else {
+    errs() << "Failed to open input_sets\n";
+  }
 }
 
 // Do PGO instrumentation generation or use pass as the option specified.
