@@ -195,6 +195,8 @@ public:
   /// which is expected to be run on each function immediately as it is
   /// generated.  The idea is to reduce the size of the IR in memory.
   void populateFunctionPassManager(legacy::FunctionPassManager &FPM);
+  void PassIdxInserter(std::vector<unsigned int> &input_set,
+              legacy::FunctionPassManager &FPM);
 
   /// populateModulePassManager - This sets up the primary pass manager.
   void populateModulePassManager(legacy::PassManagerBase &MPM);
