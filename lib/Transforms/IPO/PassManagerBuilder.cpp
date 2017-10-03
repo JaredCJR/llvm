@@ -386,7 +386,7 @@ void PassManagerBuilder::populateFunctionPassManager(
   */
   std::vector<unsigned int> RandomPasses;
   std::fstream fs;
-  std::string path("/home/jrchang/workspace/llvm/experiment/random_select/InputSet");
+  std::string path("/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet");
   errs() << "Function-Passes path: " << path << "\n";
   fs.open(path, std::fstream::in);
   if (fs.is_open()) {
