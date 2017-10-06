@@ -8,12 +8,21 @@ from time import gmtime, strftime
 
 class Executer:
     # numbers of random pass set execution
-    repeat = 60
-    #path is relative to "llvm_source/DSOAO/random_select"
-    # ["directory path", "build command", [available benchmarks commands], "clean command"]
+    repeat = 10
+    """ 
+    path is relative to "llvm_source/DSOAO/random_select"
+     ["directory path", "build command", [available benchmarks commands], "clean command"]
+     [available benchmarks commands] can be split into three parts:
+                                    ["label name", "commands", "expected last outputs"]
+    """
     benchmark_build_run_list = [
-        ["benchmark/helloworld" ,"clang -O1 -o hello hello.c", ["./hello", "ls"], "rm hello"],
-        #["benchmark/botan" ,"make -j10", ["./botan-test", ], "make clean"],
+        """
+        ["benchmark/helloworld" ,"clang -O1 -o hello hello.c", 
+            [["hello", "./hello", "function 2"],
+             ["ls","ls", "hello.c"]],
+            "rm hello"],
+        """
+        ["botan", "benchmark/botan" ,"make -j10", [["botan-test", "./botan-test", "all tests ok"], ], "make clean"],
     ]
     def run(self):
         TestingStart = time.perf_counter()
@@ -44,7 +53,6 @@ class Executer:
                 print("build=\"{}\"".format(build_bench[1]))
                 try:
                     p = sp.Popen(shlex.split(build_bench[1]))
-                    p.wait()
                 except:
                     print("Build with this combination error.")
                     file_loc = "/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet"
@@ -53,21 +61,34 @@ class Executer:
                     print("-------------------------")
                     target_file.close()
                     continue
+                p.wait()
                 print("Build End*******************************************")
                 #Run built benchmarks
                 for run_single in build_bench[2]:
                     #run command
                     print("<<<<<<  RUN=\"{}\"  >>>>>>".format(run_single))
-                    start_time = time.perf_counter()
+                    period = 0.0
                     try:
-                        p = sp.Popen(shlex.split(run_single))
+                        start_time = time.perf_counter()
+                        p = sp.Popen(shlex.split(run_single[1]),stdout = sp.PIPE, stderr= sp.PIPE)
+                        out, err = p.communicate()
                         p.wait()
+                        end_time = time.perf_counter()
+                        period = end_time - start_time
+                        #Verify expected output, strip out the newline characters
+                        if out.rstrip().endswith(run_single[2].rstrip().encode('utf-8')):
+                            print("<<<<<<  Verify Success  >>>>>>")
+                        else:
+                            print("Verify Failed:")
+                            print("stdout=\"{}\"\nstderr=\"{}\"".format(
+                                out.decode('utf-8'),err.decode('utf-8')))
+                            print("Expected Last stdout={}".format(run_single[2]))
+                            raise Exception
                     except:
                         print("Run the benchmark={} failed".format(run_single))
-                    end_time = time.perf_counter()
-                    period = end_time - start_time
+                        continue
                     Result_File = open(Result_FileLoc, "a")
-                    Result_File.write("{}\n".format(period))
+                    Result_File.write("{},{}\n".format(run_single[0].rstrip(), period))
                     Result_File.close()
                 os.chdir(prev_cwd)
             print("Iteration End-----------------------------------------")
