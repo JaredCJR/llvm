@@ -8,7 +8,7 @@ from time import gmtime, strftime
 
 class Executer:
     # numbers of random pass set execution
-    repeat = 10
+    repeat = 30
     """ 
     path is relative to "llvm_source/DSOAO/random_select"
      ["directory path", "build command", [available benchmarks commands], "clean command"]
@@ -16,19 +16,16 @@ class Executer:
                                     ["label name", "commands", "expected last outputs"]
     """
     benchmark_build_run_list = [
-        """
-        ["benchmark/helloworld" ,"clang -O1 -o hello hello.c", 
-            [["hello", "./hello", "function 2"],
-             ["ls","ls", "hello.c"]],
-            "rm hello"],
-        """
-        ["botan", "benchmark/botan" ,"make -j10", [["botan-test", "./botan-test", "all tests ok"], ], "make clean"],
+        ["benchmark/helloworld" ,"clang -O1 -o hello hello.c", [["hello", "./hello", "function 2"], ["ls","ls", "hello.c"]], "rm hello"],
+        #["benchmark/botan" ,"make -j14", [["botan-all", "./botan-test", "all tests ok"], ], "make clean"],
     ]
     def run(self):
         TestingStart = time.perf_counter()
         localtime = time.strftime("%m%d-%H:%M", time.localtime())
         prev_cwd = os.getcwd()
+        os.system("mkdir -p results_time")
         Result_FileLoc = prev_cwd + "/results_time/result_" + localtime
+        ErrorResult_FileLoc = Result_FileLoc + "_Error"
         Result_File = open(Result_FileLoc, "w")
         Result_File.close()
         for i in range(self.repeat):
@@ -41,7 +38,7 @@ class Executer:
 
             #build benchmarks for this pass set
             for build_bench in self.benchmark_build_run_list:
-                cwd = prev_cwd + "/" + build_bench[0]
+                cwd = prev_cwd + "/" + build_bench[0].rstrip()
                 os.chdir(cwd)
                 print("Build Start*******************************************")
                 print("clean=\"{}\"".format(build_bench[3]))
@@ -50,18 +47,33 @@ class Executer:
                     p.wait()
                 except:
                     print("Clean the previous built failed. Why?")
+                    Result_File.write("----------------------------------\n")
+                    Result_File = open(ErrorResult_FileLoc, "a")
+                    Result_File.write(
+                            "Clean Error:\"{}\"".format(build_bench[3]))
+                    Result_File.write("----------------------------------\n")
+                    Result_File.close()
+                    
                 print("build=\"{}\"".format(build_bench[1]))
                 try:
                     p = sp.Popen(shlex.split(build_bench[1]))
+                    p.wait()
                 except:
                     print("Build with this combination error.")
                     file_loc = "/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet"
                     target_file = open(file_loc, "r")
                     print(target_file.read())
                     print("-------------------------")
+                    Result_File.write("----------------------------------\n")
+                    Result_File = open(ErrorResult_FileLoc, "a")
+                    Result_File.write(
+                            "Build Error:\"{}\"".format(build_bench[1]))
+                    Result_File.write(
+                            "Build with this combination error:\"{}\"".format(target_file.read()))
+                    Result_File.write("----------------------------------\n")
+                    Result_File.close()
                     target_file.close()
                     continue
-                p.wait()
                 print("Build End*******************************************")
                 #Run built benchmarks
                 for run_single in build_bench[2]:
@@ -86,6 +98,13 @@ class Executer:
                             raise Exception
                     except:
                         print("Run the benchmark={} failed".format(run_single))
+                        Result_File = open(ErrorResult_FileLoc, "a")
+                        Result_File.write("----------------------------------\n")
+                        Result_File.write("Run the benchmark={} failed".format(run_single))
+                        Result_File.write("stdout=\"{}\"\n\n stderr=\"{}\"".format(
+                                out.decode('utf-8'),err.decode('utf-8')))
+                        Result_File.write("----------------------------------\n")
+                        Result_File.close()
                         continue
                     Result_File = open(Result_FileLoc, "a")
                     Result_File.write("{},{}\n".format(run_single[0].rstrip(), period))
