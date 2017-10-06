@@ -38,9 +38,11 @@ class Driver:
             target_file.write("%s " % ps)
         target_file.write("\n")
         target_file.close()
+        """
         target_file = open(file_loc, "r")
         print(target_file.read())
         target_file.close()
+        """
 
 if __name__ == '__main__':
     drv = Driver()
