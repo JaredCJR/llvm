@@ -8,7 +8,7 @@ from time import gmtime, strftime
 
 class Executer:
     # numbers of random pass set execution
-    repeat = 30
+    repeat = 6
     """ 
     path is relative to "llvm_source/DSOAO/random_select"
      ["directory path", "build command", [available benchmarks commands], "clean command"]
@@ -16,25 +16,21 @@ class Executer:
                                     ["label name", "commands", "expected last outputs"]
     """
     benchmark_build_run_list = [
-        ["benchmark/helloworld" ,"clang -O1 -o hello hello.c", [["hello", "./hello", "function 2"], ["ls","ls", "hello.c"]], "rm hello"],
-        #["benchmark/botan" ,"make -j14", [["botan-all", "./botan-test", "all tests ok"], ], "make clean"],
+        #["benchmark/helloworld" ,"clang -O1 -o hello hello.c", [["hello", "./hello", "function 2"], ["ls","ls", "hello.c"]], "rm hello"],
+        ["benchmark/botan" ,"make -j14", [["botan-all", "./botan-test", "all tests ok"], ], "make clean"],
     ]
     def run(self):
         TestingStart = time.perf_counter()
         localtime = time.strftime("%m%d-%H:%M", time.localtime())
         prev_cwd = os.getcwd()
         os.system("mkdir -p results_time")
-        Result_FileLoc = prev_cwd + "/results_time/result_" + localtime
-        ErrorResult_FileLoc = Result_FileLoc + "_Error"
+        Result_FileLoc = prev_cwd + "/results_time/result_" + localtime + "avgSTD"
+        ErrorResult_FileLoc = Result_FileLoc + "_ErrorSTD"
         Result_File = open(Result_FileLoc, "w")
         Result_File.close()
         for i in range(self.repeat):
             print("Iteration Start-----------------------------------------")
-            #generate pass set
-            rg_driver = RG.Driver()
-            #mean should between 0~1
-            mean = (i + 1) / (self.repeat + 1)
-            rg_driver.run(mean)
+            #Skip generating passes set
 
             #build benchmarks for this pass set
             for build_bench in self.benchmark_build_run_list:
