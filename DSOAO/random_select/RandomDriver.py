@@ -8,7 +8,7 @@ from time import gmtime, strftime
 
 class Executer:
     # numbers of random pass set execution
-    repeat = 30
+    repeat = 80
     """ 
     path is relative to "llvm_source/DSOAO/random_select"
      ["directory path", "build command", [available benchmarks commands], "clean command"]
@@ -107,7 +107,11 @@ class Executer:
                         Result_File.close()
                         continue
                     Result_File = open(Result_FileLoc, "a")
-                    Result_File.write("{},{}\n".format(run_single[0].rstrip(), period))
+                    file_loc = "/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet"
+                    target_file = open(file_loc, "r")
+                    Result_File.write("{},{},{}\n".format(run_single[0].rstrip(),
+                        target_file.read().rstrip(), period))
+                    target_file.close()
                     Result_File.close()
                 os.chdir(prev_cwd)
             print("Iteration End-----------------------------------------")
