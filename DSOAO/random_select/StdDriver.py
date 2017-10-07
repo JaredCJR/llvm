@@ -110,5 +110,7 @@ class Executer:
 
 
 if __name__ == '__main__':
+    print("Remember to set 'clang' and 'clang++' to Official build.")
+    print("It will start after 5 secs...")
     execute = Executer()
     execute.run()
