@@ -22,13 +22,13 @@ class BenchmarkList:
         #["../benchmark/helloworld" ,"clang -O1 -o hello hello.c", [ ["hello", "./hello", "function 2"], ["ls","ls", "hello.c"], ] "rm hello"],
 
         #Botan
-        #["../benchmark/botan" , DefaultBuild, [ ["botan-all", "./botan-test", "all tests ok"], ], "make clean"],
+        ["../benchmark/botan" , DefaultBuild, [ ["botan-all", "./botan-test", "all tests ok"], ], "make clean"],
 
         #cpp-serializers
         ["../benchmark/cpp-serializers" , DefaultBuild, [ BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "thrift-binary", "milliseconds"), BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "thrift-compact", "milliseconds"), BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "protobuf", "milliseconds"), BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "boost", "milliseconds"), BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "msgpack", "milliseconds"), BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "cereal", "milliseconds"), BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "avro", "milliseconds"), BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "capnproto", "milliseconds"), BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "flatbuffers", "milliseconds"), BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "yas", "milliseconds"), BenchmarkNameHelper("cpp-serializers", "./build/benchmark", 100000, "yas-compact", "milliseconds"), ], "rm -rf ./build"],
 
         #TastyLib
-        #["../benchmark/TastyLib" , DefaultBuild, [ ["TastyLib-benchmark_AVLTree", "./bin/benchmark_AVLTree", "finished."], ["TastyLib-benchmark_DoublyLinkedList", "./bin/benchmark_DoublyLinkedList", "finished."], ["TastyLib-benchmark_NPuzzle", "./bin/benchmark_NPuzzle", "finished."], ["TastyLib-benchmark_BinaryHeap", "./bin/benchmark_BinaryHeap", "finished."], ["TastyLib-benchmark_MD5", "./bin/benchmark_MD5", "finished."], ["TastyLib-benchmark_Sort", "./bin/benchmark_Sort", "finished."], ], "rm -rf ./build"],
+        ["../benchmark/TastyLib" , DefaultBuild, [ ["TastyLib-benchmark_AVLTree", "./bin/benchmark_AVLTree", "finished."], ["TastyLib-benchmark_DoublyLinkedList", "./bin/benchmark_DoublyLinkedList", "finished."], ["TastyLib-benchmark_NPuzzle", "./bin/benchmark_NPuzzle", "finished."], ["TastyLib-benchmark_BinaryHeap", "./bin/benchmark_BinaryHeap", "finished."], ["TastyLib-benchmark_MD5", "./bin/benchmark_MD5", "finished."], ["TastyLib-benchmark_Sort", "./bin/benchmark_Sort", "finished."], ], "rm -rf ./build"],
     ]
 
     def genList(self):

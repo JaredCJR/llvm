@@ -9,7 +9,7 @@ import BenchmarkList as BL
 class Executer:
     bl = BL.BenchmarkList()
     benchmark_build_run_list = bl.genList()
-    repeat = bl.getRepeat()
+    repeat = 5
 
     def run(self):
         TestingStart = time.perf_counter()
