@@ -47,7 +47,7 @@ class Executer:
                     p = sp.Popen(shlex.split(build_bench[1]))
                     p.wait()
                 except:
-                    print("Build with this combination error.")
+                    print("Build with official LLVM error.")
                     file_loc = "/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet"
                     target_file = open(file_loc, "r")
                     print(target_file.read())
@@ -56,8 +56,7 @@ class Executer:
                     Result_File = open(ErrorResult_FileLoc, "a")
                     Result_File.write(
                             "Build Error:\"{}\"".format(build_bench[1]))
-                    Result_File.write(
-                            "Build with this combination error:\"{}\"".format(target_file.read()))
+                    Result_File.write("Build with official LLVM error.\n")
                     Result_File.write("----------------------------------\n")
                     Result_File.close()
                     target_file.close()
