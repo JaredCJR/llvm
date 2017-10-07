@@ -5,20 +5,12 @@ import subprocess as sp
 import os
 import time
 from time import gmtime, strftime
+import BenchmarkList as BL
 
 class Executer:
-    # numbers of random pass set execution
-    repeat = 80
-    """ 
-    path is relative to "llvm_source/DSOAO/random_select"
-     ["directory path", "build command", [available benchmarks commands], "clean command"]
-     [available benchmarks commands] can be split into three parts:
-                                    ["label name", "commands", "expected last outputs"]
-    """
-    benchmark_build_run_list = [
-        #["benchmark/helloworld" ,"clang -O1 -o hello hello.c", [["hello", "./hello", "function 2"], ["ls","ls", "hello.c"]], "rm hello"],
-        ["benchmark/botan" ,"make -j14", [["botan-all", "./botan-test", "all tests ok"], ], "make clean"],
-    ]
+    bl = BL.BenchmarkList()
+    benchmark_build_run_list = bl.genList()
+    repeat = bl.getRepeat()
     def run(self):
         TestingStart = time.perf_counter()
         localtime = time.strftime("%m%d-%H:%M", time.localtime())
@@ -50,7 +42,7 @@ class Executer:
                     Result_File.write("----------------------------------\n")
                     Result_File = open(ErrorResult_FileLoc, "a")
                     Result_File.write(
-                            "Clean Error:\"{}\"".format(build_bench[3]))
+                            "Clean Error:\"{}\"\n".format(build_bench[3]))
                     Result_File.write("----------------------------------\n")
                     Result_File.close()
                     
@@ -67,9 +59,9 @@ class Executer:
                     Result_File.write("----------------------------------\n")
                     Result_File = open(ErrorResult_FileLoc, "a")
                     Result_File.write(
-                            "Build Error:\"{}\"".format(build_bench[1]))
+                            "Build Error:\"{}\"\n".format(build_bench[1]))
                     Result_File.write(
-                            "Build with this combination error:\"{}\"".format(target_file.read()))
+                            "Build with this combination error:\"{}\"\n".format(target_file.read()))
                     Result_File.write("----------------------------------\n")
                     Result_File.close()
                     target_file.close()
@@ -100,8 +92,8 @@ class Executer:
                         print("Run the benchmark={} failed".format(run_single))
                         Result_File = open(ErrorResult_FileLoc, "a")
                         Result_File.write("----------------------------------\n")
-                        Result_File.write("Run the benchmark={} failed".format(run_single))
-                        Result_File.write("stdout=\"{}\"\n\n stderr=\"{}\"".format(
+                        Result_File.write("Run the benchmark={} failed\n".format(run_single))
+                        Result_File.write("stdout=\"{}\"\n\n stderr=\"{}\"\n".format(
                                 out.decode('utf-8'),err.decode('utf-8')))
                         Result_File.write("----------------------------------\n")
                         Result_File.close()
