@@ -1,24 +1,16 @@
 #!/usr/bin/python3
-import RandomGenerator as RG
 import shlex
 import subprocess as sp
 import os
 import time
 from time import gmtime, strftime
+import BenchmarkList as BL
 
 class Executer:
-    # numbers of random pass set execution
-    repeat = 6
-    """ 
-    path is relative to "llvm_source/DSOAO/random_select"
-     ["directory path", "build command", [available benchmarks commands], "clean command"]
-     [available benchmarks commands] can be split into three parts:
-                                    ["label name", "commands", "expected last outputs"]
-    """
-    benchmark_build_run_list = [
-        #["benchmark/helloworld" ,"clang -O1 -o hello hello.c", [["hello", "./hello", "function 2"], ["ls","ls", "hello.c"]], "rm hello"],
-        ["benchmark/botan" ,"make -j14", [["botan-all", "./botan-test", "all tests ok"], ], "make clean"],
-    ]
+    bl = BL.BenchmarkList()
+    benchmark_build_run_list = bl.genList()
+    repeat = bl.getRepeat()
+
     def run(self):
         TestingStart = time.perf_counter()
         localtime = time.strftime("%m%d-%H:%M", time.localtime())
