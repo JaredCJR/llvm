@@ -39,12 +39,12 @@ class Executer:
                     p.wait()
                 except:
                     print("Clean the previous built failed. Why?")
-                    Result_File.write("----------------------------------\n")
-                    Result_File = open(ErrorResult_FileLoc, "a")
-                    Result_File.write(
+                    Result_FileErr.write("----------------------------------\n")
+                    Result_FileErr = open(ErrorResult_FileLoc, "a")
+                    Result_FileErr.write(
                             "Clean Error:\"{}\"\n".format(build_bench[3]))
-                    Result_File.write("----------------------------------\n")
-                    Result_File.close()
+                    Result_FileErr.write("----------------------------------\n")
+                    Result_FileErr.close()
                     
                 print("build=\"{}\"".format(build_bench[1]))
                 try:
@@ -56,14 +56,14 @@ class Executer:
                     target_file = open(file_loc, "r")
                     print(target_file.read())
                     print("-------------------------")
-                    Result_File.write("----------------------------------\n")
-                    Result_File = open(ErrorResult_FileLoc, "a")
-                    Result_File.write(
+                    Result_FileErr.write("----------------------------------\n")
+                    Result_FileErr = open(ErrorResult_FileLoc, "a")
+                    Result_FileErr.write(
                             "Build Error:\"{}\"\n".format(build_bench[1]))
-                    Result_File.write(
+                    Result_FileErr.write(
                             "Build with this combination error:\"{}\"\n".format(target_file.read()))
-                    Result_File.write("----------------------------------\n")
-                    Result_File.close()
+                    Result_FileErr.write("----------------------------------\n")
+                    Result_FileErr.close()
                     target_file.close()
                     continue
                 print("Build End*******************************************")
@@ -74,6 +74,8 @@ class Executer:
                     period = 0.0
                     try:
                         start_time = time.perf_counter()
+                        out = None
+                        err = None
                         p = sp.Popen(shlex.split(run_single[1]),stdout = sp.PIPE, stderr= sp.PIPE)
                         out, err = p.communicate()
                         p.wait()
@@ -90,13 +92,13 @@ class Executer:
                             raise Exception
                     except:
                         print("Run the benchmark={} failed".format(run_single))
-                        Result_File = open(ErrorResult_FileLoc, "a")
-                        Result_File.write("----------------------------------\n")
-                        Result_File.write("Run the benchmark={} failed\n".format(run_single))
-                        Result_File.write("stdout=\"{}\"\n\n stderr=\"{}\"\n".format(
+                        Result_FileErr = open(ErrorResult_FileLoc, "a")
+                        Result_FileErr.write("----------------------------------\n")
+                        Result_FileErr.write("Run the benchmark={} failed\n".format(run_single))
+                        Result_FileErr.write("stdout=\"{}\"\n\n stderr=\"{}\"\n".format(
                                 out.decode('utf-8'),err.decode('utf-8')))
-                        Result_File.write("----------------------------------\n")
-                        Result_File.close()
+                        Result_FileErr.write("----------------------------------\n")
+                        Result_FileErr.close()
                         continue
                     Result_File = open(Result_FileLoc, "a")
                     file_loc = "/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet"
