@@ -95,8 +95,10 @@ class Executer:
                         Result_FileErr = open(ErrorResult_FileLoc, "a")
                         Result_FileErr.write("----------------------------------\n")
                         Result_FileErr.write("Run the benchmark={} failed\n".format(run_single))
-                        Result_FileErr.write("stdout=\"{}\"\n\n stderr=\"{}\"\n".format(
-                                out.decode('utf-8'),err.decode('utf-8')))
+                        if (out is not None) and (err is not None):
+                            Result_FileErr.write("stdout=\"{}\"\n\n stderr=\"{}\"\n".format(out.decode('utf-8'),err.decode('utf-8')))
+                        else:
+                            Result_FileErr.write("stdout or stderr is None type\n")
                         Result_FileErr.write("----------------------------------\n")
                         Result_FileErr.close()
                         continue
