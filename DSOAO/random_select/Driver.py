@@ -9,8 +9,10 @@ if __name__ == '__main__':
         round = int(sys.argv[1])
     else:
         round = 5 # About 1 day
-    print("Remember to set 'clang' and 'clang++' to customized build.")
-    print("Run {} rounds = about {} days".format(round, round*5.0/24.0))
+    HoursPerRound = 4.5
+    print("Remember to set 'clang' and 'clang++' to \"Customized Release\" build.")
+    print("Run {0} rounds = about {1:5.2f} day(s) --> ({2:7.1f} hours)".format(
+        round, round*HoursPerRound/24.0, round*HoursPerRound))
     print("It will start after 5 secs...")
     time.sleep(5)
     for i in range(round):
