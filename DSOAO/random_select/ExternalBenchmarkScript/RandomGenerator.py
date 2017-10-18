@@ -16,6 +16,7 @@ class RandomPick:
         return res_list
 
 class Driver:
+    InputSetLoc = "/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet"
     def run(self, mean):
         cand = Candidate()
         #l is the ordered candidates
@@ -32,7 +33,7 @@ class Driver:
         print(target_list)
         """
         #open file with buffering, text is not able to get rid of buffering
-        file_loc = "/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet"
+        file_loc = self.InputSetLoc
         target_file = open(file_loc, "w")
         for ps in target_list:
             target_file.write("%s " % ps)

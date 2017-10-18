@@ -1,4 +1,5 @@
 #!/usr/bin/python3
+import RandomGenerator as RG
 import shlex
 import subprocess as sp
 import os
@@ -9,20 +10,23 @@ import BenchmarkList as BL
 class Executer:
     bl = BL.BenchmarkList()
     benchmark_build_run_list = bl.genList()
-    repeat = 5
-
+    repeat = bl.getRepeat()
     def run(self):
         TestingStart = time.perf_counter()
         localtime = time.strftime("%m%d-%H:%M", time.localtime())
         prev_cwd = os.getcwd()
         os.system("mkdir -p results_time")
-        Result_FileLoc = prev_cwd + "/results_time/result_" + localtime + "avgSTD"
-        ErrorResult_FileLoc = Result_FileLoc + "_ErrorSTD"
+        Result_FileLoc = prev_cwd + "/results_time/result_" + localtime
+        ErrorResult_FileLoc = Result_FileLoc + "_Error"
         Result_File = open(Result_FileLoc, "w")
         Result_File.close()
         for i in range(self.repeat):
             print("Iteration Start-----------------------------------------")
-            #Skip generating passes set
+            #generate pass set
+            rg_driver = RG.Driver()
+            #mean should between 0~1
+            mean = (i + 1) / (self.repeat + 1)
+            rg_driver.run(mean)
 
             #build benchmarks for this pass set
             for build_bench in self.benchmark_build_run_list:
@@ -35,30 +39,31 @@ class Executer:
                     p.wait()
                 except:
                     print("Clean the previous built failed. Why?")
-                    Result_File.write("----------------------------------\n")
-                    Result_File = open(ErrorResult_FileLoc, "a")
-                    Result_File.write(
-                            "Clean Error:\"{}\"".format(build_bench[3]))
-                    Result_File.write("----------------------------------\n")
-                    Result_File.close()
+                    Result_FileErr.write("----------------------------------\n")
+                    Result_FileErr = open(ErrorResult_FileLoc, "a")
+                    Result_FileErr.write(
+                            "Clean Error:\"{}\"\n".format(build_bench[3]))
+                    Result_FileErr.write("----------------------------------\n")
+                    Result_FileErr.close()
                     
                 print("build=\"{}\"".format(build_bench[1]))
                 try:
                     p = sp.Popen(shlex.split(build_bench[1]))
                     p.wait()
                 except:
-                    print("Build with official LLVM error.")
-                    file_loc = "/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet"
+                    print("Build with this combination error.")
+                    file_loc = RG.Driver().InputSetLoc
                     target_file = open(file_loc, "r")
                     print(target_file.read())
                     print("-------------------------")
-                    Result_File.write("----------------------------------\n")
-                    Result_File = open(ErrorResult_FileLoc, "a")
-                    Result_File.write(
-                            "Build Error:\"{}\"".format(build_bench[1]))
-                    Result_File.write("Build with official LLVM error.\n")
-                    Result_File.write("----------------------------------\n")
-                    Result_File.close()
+                    Result_FileErr.write("----------------------------------\n")
+                    Result_FileErr = open(ErrorResult_FileLoc, "a")
+                    Result_FileErr.write(
+                            "Build Error:\"{}\"\n".format(build_bench[1]))
+                    Result_FileErr.write(
+                            "Build with this combination error:\"{}\"\n".format(target_file.read()))
+                    Result_FileErr.write("----------------------------------\n")
+                    Result_FileErr.close()
                     target_file.close()
                     continue
                 print("Build End*******************************************")
@@ -69,6 +74,8 @@ class Executer:
                     period = 0.0
                     try:
                         start_time = time.perf_counter()
+                        out = None
+                        err = None
                         p = sp.Popen(shlex.split(run_single[1]),stdout = sp.PIPE, stderr= sp.PIPE)
                         out, err = p.communicate()
                         p.wait()
@@ -85,16 +92,22 @@ class Executer:
                             raise Exception
                     except:
                         print("Run the benchmark={} failed".format(run_single))
-                        Result_File = open(ErrorResult_FileLoc, "a")
-                        Result_File.write("----------------------------------\n")
-                        Result_File.write("Run the benchmark={} failed".format(run_single))
-                        Result_File.write("stdout=\"{}\"\n\n stderr=\"{}\"".format(
-                                out.decode('utf-8'),err.decode('utf-8')))
-                        Result_File.write("----------------------------------\n")
-                        Result_File.close()
+                        Result_FileErr = open(ErrorResult_FileLoc, "a")
+                        Result_FileErr.write("----------------------------------\n")
+                        Result_FileErr.write("Run the benchmark={} failed\n".format(run_single))
+                        if (out is not None) and (err is not None):
+                            Result_FileErr.write("stdout=\"{}\"\n\n stderr=\"{}\"\n".format(out.decode('utf-8'),err.decode('utf-8')))
+                        else:
+                            Result_FileErr.write("stdout or stderr is None type\n")
+                        Result_FileErr.write("----------------------------------\n")
+                        Result_FileErr.close()
                         continue
                     Result_File = open(Result_FileLoc, "a")
-                    Result_File.write("{},{}\n".format(run_single[0].rstrip(), period))
+                    file_loc = RG.Driver().InputSetLoc
+                    target_file = open(file_loc, "r")
+                    Result_File.write("{},{},{}\n".format(run_single[0].rstrip(),
+                        target_file.read().rstrip(), period))
+                    target_file.close()
                     Result_File.close()
                 os.chdir(prev_cwd)
             print("Iteration End-----------------------------------------")
@@ -110,7 +123,5 @@ class Executer:
 
 
 if __name__ == '__main__':
-    print("Remember to set 'clang' and 'clang++' to Official build.")
-    print("It will start after 5 secs...")
     execute = Executer()
     execute.run()
