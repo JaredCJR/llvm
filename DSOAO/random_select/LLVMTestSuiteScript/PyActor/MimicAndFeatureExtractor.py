@@ -17,8 +17,10 @@ class Logger:
 
 class Executer:
     Args = None
-    def __init__(self, args):
+    Stdin = None
+    def __init__(self, args, stdin):
         self.Args = args
+        self.Stdin = stdin.encode('utf-8')
 
     def run(self):
         log = Logger()
@@ -34,8 +36,8 @@ class Executer:
                 err = None
                 os.system("/home/jrchang/workspace/llvm/DSOAO/random_select/LLVMTestSuiteScript/DropCache/drop")
                 StartTime = time.perf_counter()
-                p = sp.Popen(shlex.split(Cmd), stdout = sp.PIPE, stderr= sp.PIPE)
-                out, err = p.communicate()
+                p = sp.Popen(shlex.split(Cmd), stdout = sp.PIPE, stderr = sp.PIPE, stdin = sp.PIPE)
+                out, err = p.communicate(input=self.Stdin)
                 p.wait()
                 EndTime = time.perf_counter()
                 TimeList.append(EndTime - StartTime)
@@ -47,14 +49,16 @@ class Executer:
             return
 
         TimeList.sort()
-
         #Output for "lit"
-        os.system(Cmd)
+        p = sp.Popen(shlex.split(Cmd), stdin = sp.PIPE)
+        p.communicate(input=self.Stdin)
+        p.wait()
 
         #TODO
         LogTime = TimeList[len(TimeList)//2]
 
 
 if __name__ == '__main__':
-    exec = Executer(' '.join(str(arg) for arg in sys.argv[1:]))
+    stdin = sys.stdin.read()
+    exec = Executer(' '.join(str(arg) for arg in sys.argv[1:]), stdin)
     exec.run()
