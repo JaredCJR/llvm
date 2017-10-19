@@ -1,6 +1,6 @@
 TARGET = PyCaller
 LIBS = 
-CC = gcc
+CC = g++
 CFLAGS = -Wall
 
 .PHONY: default all clean
@@ -8,7 +8,7 @@ CFLAGS = -Wall
 default: $(TARGET)
 all: default
 
-OBJECTS = $(patsubst %.c, %.o, $(wildcard *.c))
+OBJECTS = $(patsubst %.cpp, %.o, $(wildcard *.cpp))
 HEADERS = $(wildcard *.h)
 
 %.o: %.c $(HEADERS)
@@ -18,6 +18,7 @@ HEADERS = $(wildcard *.h)
 
 $(TARGET): $(OBJECTS)
 	$(CC) $(OBJECTS) -Wall $(LIBS) -o $@
+	chmod +x ./MimicAndFeatureExtractor.py
 
 clean:
 	rm -f *.o
