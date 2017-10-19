@@ -23,12 +23,15 @@ class Executer:
     def run(self):
         log = Logger()
         elfPath = inspect.getfile(inspect.currentframe())
+        #Remove the postfix ".py"
+        elfPath = elfPath[:-3]
         RealElfPath = elfPath + ".OriElf"
         Cmd = RealElfPath + " " + self.Args
         TimeList = []
-        Repeat = 5
+        Repeat = 7
         try:
             for i in range(Repeat):
+                err = None
                 os.system("/home/jrchang/workspace/llvm/DSOAO/random_select/LLVMTestSuiteScript/DropCache/drop")
                 StartTime = time.perf_counter()
                 p = sp.Popen(shlex.split(Cmd), stdout = sp.PIPE, stderr= sp.PIPE)
