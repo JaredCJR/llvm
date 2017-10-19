@@ -49,7 +49,11 @@ class Executer:
         TimeList.sort()
 
         #Output for "lit"
-        os.system(Cmd)
+        p = sp.Popen(shlex.split(Cmd))
+        ReturnCode = p.wait()
+        with open("./ReturnValue", "w") as file:
+            file.write(str(ReturnCode))
+            file.close()
 
         #TODO
         LogTime = TimeList[len(TimeList)//2]

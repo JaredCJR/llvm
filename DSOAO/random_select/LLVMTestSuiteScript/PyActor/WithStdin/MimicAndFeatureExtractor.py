@@ -21,6 +21,7 @@ class Executer:
     def __init__(self, args, stdin):
         self.Args = args
         self.Stdin = stdin.encode('utf-8')
+        #self.Stdin = stdin #useless
 
     def run(self):
         log = Logger()
@@ -52,7 +53,10 @@ class Executer:
         #Output for "lit"
         p = sp.Popen(shlex.split(Cmd), stdin = sp.PIPE)
         p.communicate(input=self.Stdin)
-        p.wait()
+        ReturnCode = p.wait()
+        with open("./ReturnValue", "w") as file:
+            file.write(str(ReturnCode))
+            file.close()
 
         #TODO
         LogTime = TimeList[len(TimeList)//2]

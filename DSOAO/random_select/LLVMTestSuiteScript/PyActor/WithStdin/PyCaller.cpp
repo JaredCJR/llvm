@@ -7,12 +7,15 @@
 #include <ostream>
 #include <iterator>
 #include <sys/wait.h>
+#include <stdio.h>
 
 int main(int argc, char* argv[])
 {
     std::string Cmd = argv[0];
     char postfix[] = ".py";
     Cmd += postfix;
+    std::string retFileName = "./ReturnValue";
+    system(("rm -f " + retFileName).c_str());
 
     //Pass redirected input
     int pFD[2];
@@ -33,13 +36,21 @@ int main(int argc, char* argv[])
         close(pFD[1]); //close write
         dup2(pFD[0], STDIN_FILENO); // redirect stdin to child
         close(pFD[0]); //close read
-        execv(Cmd.c_str(), &argv[1]);
+        execv(Cmd.c_str(), argv);
     }else {
         //parent
         close(pFD[0]);
         write(pFD[1], results_stdin.c_str(), results_stdin.length());
         close(pFD[1]);
         waitpid(-1, NULL, 0);
+        FILE *pFile = fopen( retFileName.c_str(), "r");
+        if(pFile) {
+            int ret;
+            fread(&ret, sizeof(ret), 1, pFile);
+            return ret - '0';
+        }else {
+            return 87;
+        }
     }
     return 0;
 }
