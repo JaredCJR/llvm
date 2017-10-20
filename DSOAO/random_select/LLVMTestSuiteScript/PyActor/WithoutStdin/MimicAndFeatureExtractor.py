@@ -28,7 +28,7 @@ class Executer:
         RealElfPath = elfPath + ".OriElf"
         Cmd = RealElfPath + " " + self.Args
         TimeList = []
-        Repeat = 7
+        Repeat = 1
         try:
             for i in range(Repeat):
                 err = None

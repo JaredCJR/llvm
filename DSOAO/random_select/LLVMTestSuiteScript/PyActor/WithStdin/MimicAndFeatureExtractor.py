@@ -20,8 +20,7 @@ class Executer:
     Stdin = None
     def __init__(self, args, stdin):
         self.Args = args
-        self.Stdin = stdin.encode('utf-8')
-        #self.Stdin = stdin #useless
+        self.Stdin = stdin
 
     def run(self):
         log = Logger()
@@ -31,7 +30,7 @@ class Executer:
         RealElfPath = elfPath + ".OriElf"
         Cmd = RealElfPath + " " + self.Args
         TimeList = []
-        Repeat = 7
+        Repeat = 1
         try:
             for i in range(Repeat):
                 err = None
@@ -63,6 +62,7 @@ class Executer:
 
 
 if __name__ == '__main__':
-    stdin = sys.stdin.read()
+    #binary stdin
+    stdin = sys.stdin.buffer.read()
     exec = Executer(' '.join(str(arg) for arg in sys.argv[1:]), stdin)
     exec.run()
