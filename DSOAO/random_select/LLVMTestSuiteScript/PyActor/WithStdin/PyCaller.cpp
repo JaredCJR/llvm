@@ -8,6 +8,7 @@
 #include <iterator>
 #include <sys/wait.h>
 #include <stdio.h>
+#include <fstream>
 
 int main(int argc, char* argv[])
 {
@@ -43,13 +44,13 @@ int main(int argc, char* argv[])
         write(pFD[1], results_stdin.c_str(), results_stdin.length());
         close(pFD[1]);
         waitpid(-1, NULL, 0);
-        FILE *pFile = fopen( retFileName.c_str(), "r");
-        if(pFile) {
+        //return value
+        std::ifstream file;
+        file.open(retFileName);
+        if(file) {
             int ret;
-            fread(&ret, sizeof(ret), 1, pFile);
-            return ret - '0';
-        }else {
-            return 87;
+            file >> ret;
+            return ret;
         }
     }
     return 0;

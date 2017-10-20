@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string>
 #include <stdio.h>
+#include <fstream>
 
 int main(int argc, char* argv[]) 
 {
@@ -15,13 +16,14 @@ int main(int argc, char* argv[])
         cmd += argv[i];
     }
     system(cmd.c_str());
-    FILE *pFile = fopen( retFileName.c_str(), "r");
-    if(pFile) {
+
+    //return value
+    std::ifstream file;
+    file.open(retFileName);
+    if(file) {
         int ret;
-        fread(&ret, sizeof(ret), 1, pFile);
-        return ret - '0';
-    }else {
-        return 87;
+        file >> ret;
+        return ret;
     }
     return 0;
 }
