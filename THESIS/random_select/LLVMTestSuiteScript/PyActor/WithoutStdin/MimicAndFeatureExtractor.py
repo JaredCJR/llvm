@@ -33,18 +33,19 @@ class Executer:
             for i in range(Repeat):
                 err = None
                 DropLoc = os.getenv('LLVM_THESIS_RandomHome')
-                os.system(DropLoc + "LLVMTestSuiteScript/DropCache/drop")
+                os.system(DropLoc + "/LLVMTestSuiteScript/DropCache/drop")
                 StartTime = time.perf_counter()
                 p = sp.Popen(shlex.split(Cmd), stdout = sp.PIPE, stderr= sp.PIPE)
                 out, err = p.communicate()
                 p.wait()
                 EndTime = time.perf_counter()
                 TimeList.append(EndTime - StartTime)
-        except:
+        except Exception as ex:
             if err is not None:
                 log.err(err.decode('utf-8'))
             else:
                 log.err("Why exception happend, and err is None?\n")
+                log.err(str(ex) + "\n")
             return
 
         TimeList.sort()

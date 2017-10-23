@@ -5,16 +5,6 @@ This file will replace the real elf with PyActor to extract features
 import os
 import shutil
 
-
-class TargetBenchmarks:
-    #The last character in BuiltPath must be '/'
-    BuiltPath = "/home/jrchang/workspace/llvm/test-suite/build/"
-    #Target dir lists, format: ["First level dir in BuiltPath", ["List of second level dir"]]
-    SingleSource = ["SingleSource", ["Benchmarks", ]]
-    MultiSource = ["MultiSource", ["Applications", "Benchmarks", ]]
-    #Add all source together
-    TargetDirLists = [SingleSource, MultiSource, ]
-
 class Logger:
     def out(self, msg):
         print(msg)
@@ -22,9 +12,41 @@ class Logger:
     def err(self, msg):
         print(msg)
 
+class TargetBenchmarks:
+    LLVMTestSuiteBuildPath = None
+    SingleSource = None
+    MultiSource = None
+    TargetDirLists = None
+    SkipDirList = None
+
+    def init(self):
+        #The last character in BuiltPath must be '/'
+        self.LLVMTestSuiteBuildPath = os.getenv('LLVM_THESIS_TestSuite', "Error")
+        if self.LLVMTestSuiteBuildPath == "Error":
+            log = Logger()
+            log.err("Please setup related environment variable.\n")
+            return -1
+        #Target dir lists, format: ["First level dir in BuiltPath", ["List of second level dir"]]
+        self.SingleSource = ["SingleSource", ["Benchmarks", ]]
+        self.MultiSource = ["MultiSource", ["Applications", "Benchmarks", ]]
+        #Add all source together
+        self.TargetDirLists = [self.SingleSource, self.MultiSource, ]
+        #Currently, the PyActor cannot handle it, and skip it.
+        self.SkipDirList = ["MultiSource/Applications/ALAC/decode",
+                   "MultiSource/Applications/ALAC/encode",
+                   "MultiSource/Benchmarks/mafft",
+                      ]
+        return 0
+
+    def __init__(self):
+        if self.init() == -1:
+            sys.exit(-1)
+
+
 class LitMimic:
     BuiltPath = None
     TargetDirLists = None
+    SkipDirList = None
     #Make sure that the elf already exists
     PyActorLoc_withStdin = "./PyActor/WithStdin/MimicAndFeatureExtractor.py"
     PyActorLoc_withoutStdin = "./PyActor/WithoutStdin/MimicAndFeatureExtractor.py"
@@ -33,8 +55,9 @@ class LitMimic:
 
     def __init__(self):
         target = TargetBenchmarks()
-        self.BuiltPath = target.BuiltPath
+        self.BuiltPath = target.LLVMTestSuiteBuildPath
         self.TargetDirLists = target.TargetDirLists
+        self.SkipDirList = target.SkipDirList
 
     def run(self):
         CombinedPath = []
@@ -42,13 +65,22 @@ class LitMimic:
         log = Logger()
         for Dir in self.TargetDirLists:
             for SubDir in Dir[1]:
-                path = self.BuiltPath + Dir[0] + "/" + SubDir + "/"
+                path = self.BuiltPath + "/" + Dir[0] + "/" + SubDir + "/"
                 CombinedPath.append(path)
         for RootPath in CombinedPath:
             for root, dirs, files in os.walk(RootPath):
                 for file in files:
                     test_pattern = '.test'
                     if file.endswith(test_pattern):
+                        #Skip this dir?
+                        SkipFlag = False
+                        for skip in self.SkipDirList:
+                            if root.endswith(skip):
+                                log.out("Skip dir={}".format(skip))
+                                SkipFlag = True
+                                continue
+                        if SkipFlag:
+                            continue
                         #Does this benchmark need stdin?
                         NeedStdin = False
                         TestFilePath = os.path.join(os.path.abspath(root), file)
