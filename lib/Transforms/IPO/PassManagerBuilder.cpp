@@ -41,6 +41,7 @@
 #include "llvm/Transforms/Scalar/SimpleLoopUnswitch.h"
 #include "llvm/Transforms/Vectorize.h"
 #include <fstream>
+#include <stdlib.h>
 
 using namespace llvm;
 
@@ -386,7 +387,9 @@ void PassManagerBuilder::populateFunctionPassManager(
   */
   std::vector<unsigned int> RandomPasses;
   std::fstream fs;
-  std::string path("/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet");
+  const char *path_env = getenv("LLVM_THESIS_RandomHome");
+  std::string path(path_env ? path_env : "/tmp/");
+  path += std::string("InputSet");
   errs() << "Function-Passes path: " << path << "\n";
   fs.open(path, std::fstream::in);
   if (fs.is_open()) {

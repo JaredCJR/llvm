@@ -34,7 +34,8 @@ class Executer:
         try:
             for i in range(Repeat):
                 err = None
-                os.system("/home/jrchang/workspace/llvm/DSOAO/random_select/LLVMTestSuiteScript/DropCache/drop")
+                DropLoc = os.getenv('LLVM_THESIS_RandomHome')
+                os.system(DropLoc + "LLVMTestSuiteScript/DropCache/drop")
                 StartTime = time.perf_counter()
                 p = sp.Popen(shlex.split(Cmd), stdout = sp.PIPE, stderr = sp.PIPE, stdin = sp.PIPE)
                 out, err = p.communicate(input=self.Stdin)
