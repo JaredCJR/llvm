@@ -16,7 +16,10 @@ class RandomPick:
         return res_list
 
 class Driver:
-    InputSetLoc = "/home/jrchang/workspace/llvm/DSOAO/random_select/InputSet"
+    InputSetLoc = None
+    def __init__(self):
+        self.InputSetLoc = os.getenv('LLVM_THESIS_RandomHome', '/tmp/')
+        self.InputSetLoc += 'InputSet'
     def run(self, mean):
         cand = Candidate()
         #l is the ordered candidates
