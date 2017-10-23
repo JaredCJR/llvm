@@ -18,8 +18,8 @@ class RandomPick:
 class Driver:
     InputSetLoc = None
     def __init__(self):
-        self.InputSetLoc = os.getenv('LLVM_THESIS_RandomHome', '/tmp/')
-        self.InputSetLoc += 'InputSet'
+        self.InputSetLoc = os.getenv('LLVM_THESIS_RandomHome', '/tmp')
+        self.InputSetLoc += '/InputSet' #relative path
     def run(self, mean):
         cand = Candidate()
         #l is the ordered candidates
