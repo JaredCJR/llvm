@@ -9,7 +9,7 @@ import subprocess as sp
 
 class Logger:
     def out(self, msg):
-        print(msg)
+        print(msg, end="")
 
     def err(self, msg):
         #no newline
@@ -71,7 +71,7 @@ class LitMimic:
                         SkipFlag = False
                         for skip in target.SkipDirList:
                             if root.endswith(skip):
-                                log.out("Skip dir={}".format(skip))
+                                log.out("Skip dir={}\n".format(skip))
                                 SkipFlag = True
                                 break
                         if SkipFlag:
