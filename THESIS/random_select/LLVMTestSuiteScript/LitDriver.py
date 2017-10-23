@@ -84,7 +84,7 @@ class LitRunner:
         for idx, LitTargetDir in enumerate(SuccessBuiltPath):
             os.chdir(LitTargetDir)
             cmd = lit + " -j1 -q ./"
-            Log.out("Run: {}".format(LitTargetDir))
+            Log.out("Run: {}\n".format(LitTargetDir))
             bar.update((idx / len(SuccessBuiltPath)) * 100)
             self.ExecCmd(cmd, ShellMode=False, NeedPrintStdout=True, NeedPrintStderr=True)
         os.chdir(pwd)
