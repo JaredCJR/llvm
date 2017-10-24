@@ -8,6 +8,7 @@ import subprocess as sp
 import progressbar
 import smtplib
 from time import gmtime, strftime, localtime
+from datetime import datetime, date, timedelta
 
 class EmailService:
     def send(self, To, Subject, Msg):
@@ -36,6 +37,14 @@ class EmailService:
             log.err('Error sending mail\n')
         server.quit()
 
+class TimeService:
+    def GetCurrentLocalTime(self):
+        return strftime("%Y-%m-%d %H:%M:%S", localtime())
+    def GetDeltaTimeInDate(self, prev, post):
+        t1 = datetime.strptime(prev, "%Y-%m-%d %H:%M:%S")
+        t2 = datetime.strptime(post, "%Y-%m-%d %H:%M:%S")
+        delta = t2 - t1
+        return delta
 
 class LitRunner:
     def ExecCmd(self, cmd, ShellMode=False, NeedPrintStdout=False,
@@ -58,6 +67,8 @@ class LitRunner:
             log.err("----------------------------------------------------------\n")
 
     def run(self):
+        time = TimeService()
+        StartDateTime = time.GetCurrentLocalTime()
         Target = lm.TargetBenchmarks()
         Log = lm.Logger()
 
@@ -89,11 +100,17 @@ class LitRunner:
             self.ExecCmd(cmd, ShellMode=False, NeedPrintStdout=True, NeedPrintStderr=True)
         os.chdir(pwd)
 
+
+        #calculate used time
+        EndDateTime = time.GetCurrentLocalTime()
+        DeltaDateTime = time.GetDeltaTimeInDate(StartDateTime, EndDateTime)
+
         #Send notification
         mail = EmailService()
         MailSubject = "LitDriver Done."
-        Now = strftime("%Y-%m-%d %H:%M:%S", localtime())
-        Content = "Finish time: " + Now + "\n"
+        Content = "Start date time: " + StartDateTime + "\n"
+        Content += "Finish date time: " + EndDateTime + "\n"
+        Content += "Whole procedure takes \"{}\"\n".format(DeltaDateTime)
         mail.send(To="jaredcjr.tw@gmail.com", Subject=MailSubject, Msg=Content)
 
 
