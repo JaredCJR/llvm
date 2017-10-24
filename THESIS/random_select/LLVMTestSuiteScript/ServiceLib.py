@@ -4,6 +4,7 @@ import sys
 from time import gmtime, strftime, localtime
 from datetime import datetime, date, timedelta
 import LitMimic as lm
+import smtplib
 
 class TimeService:
     DateTimeFormat = "%Y%m%d_%H-%M-%S"
@@ -25,7 +26,8 @@ class Singleton(type):
 
 #Singletonn
 class LogService(metaclass=Singleton):
-    ErrorFilePath = None
+    StderrFilePath = None
+    StdoutFilePath = None
     RecordFilePath = None
     time = None
     def __init__(self):
@@ -49,17 +51,23 @@ class LogService(metaclass=Singleton):
         else:
             os.system("mkdir -p "+ Loc)
 
-        self.RecordFilePath = Loc + '/' + self.time
+        self.StdoutFilePath = Loc + '/' + self.time + "_STDOUT"
+        self.out("Record Stdout to {}\n".format(self.StdoutFilePath))
+        self.StderrFilePath = Loc + '/' + self.time + "_STDERR"
+        self.out("Record Stderr to {}\n".format(self.StderrFilePath))
+        self.RecordFilePath = Loc + '/' + self.time + "_Time"
         self.out("Record Results to {}\n".format(self.RecordFilePath))
-        self.ErrorFilePath = Loc + '/' + self.time + "_Error"
-        self.out("Record Error to {}\n".format(self.ErrorFilePath))
 
     def out(self, msg):
         print(msg, end="")
+        #save to same file for every instance
+        with open(self.StdoutFilePath, "a") as file:
+            file.write(msg)
+            file.close()
 
     def err(self, msg):
         #save to same error file for every instance
-        with open(self.ErrorFilePath, "a") as file:
+        with open(self.StderrFilePath, "a") as file:
             file.write(msg)
             file.close()
 
@@ -87,13 +95,13 @@ class EmailService:
                             'From: %s' % gmail_sender,
                             'Subject: %s' % SUBJECT,
                             '', TEXT])
-        log = lm.Logger()
+        Log = LogService()
         try:
             server.sendmail(gmail_sender, [TO], BODY)
-            log.out('Email sent!\n')
+            Log.out('Email sent!\n')
         except:
-            log.out('Error sending mail\n')
-            log.err('Error sending mail\n')
+            Log.out('Error sending mail\n')
+            Log.err('Error sending mail\n')
         server.quit()
 
     def SignificantNotification(self, To, Msg):
@@ -120,5 +128,42 @@ class BenchmarkNameService:
         if ret.startswith("./"):
             ret = ret["./"]
         return self.ReplaceWithDash(ret)
+
+    def RemoveFailureRecords(self, StdoutFile, RecordFile):
+        Log = LogService()
+        FailList = []
+        TargetPrefix = "    test-suite :: "
+        with open(StdoutFile, 'r') as file:
+            for line in file:
+                if line.startswith(TargetPrefix) :
+                    FailList.append(line[len(TargetPrefix):])
+            file.close()
+        #get the targets
+        FailNameList = []
+        for line in FailList:
+            PathPrefix = line[:line.rfind('/')]
+            PathPostfix = line[line.rfind('/') + 1:]
+            NamePostfix = PathPrefix[PathPrefix.rfind('/') + 1:] + '-' + PathPostfix
+            #remove .test
+            NamePostfix = NamePostfix[:-(len(".test") + 1)]
+            FailNameList.append(NamePostfix.rstrip())
+        #remove form records
+        NewRecord = ""
+        with open(RecordFile, 'r') as file:
+            for line in file:
+                line = line[:line.find(',')]
+                RmFlag = False
+                for RemoveTarget in FailNameList:
+                    if line.endswith(RemoveTarget):
+                        RmFlag = True
+                        break
+                if RmFlag == False:
+                    NewRecord += line
+            file.close()
+
+        #replace the original one
+        with open(RecordFile, 'w') as file:
+            file.write(NewRecord)
+            file.close()
 
 

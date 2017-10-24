@@ -68,25 +68,49 @@ class LitRunner:
             self.ExecCmd(cmd, ShellMode=False, NeedPrintStdout=True, NeedPrintStderr=True)
         os.chdir(pwd)
 
-
         #calculate used time
         EndDateTime = time.GetCurrentLocalTime()
         DeltaDateTime = time.GetDeltaTimeInDate(StartDateTime, EndDateTime)
 
+        #Remove failed records
+        RmRec = sv.BenchmarkNameService()
+        RmRec.RemoveFailureRecords(StdoutFile=Log.StdoutFilePath, RecordFile=Log.RecordFilePath)
+
         #Send notification
         mail = sv.EmailService()
-        MailSubject = "LitDriver Done."
+        MailSubject = "LitDriver One Round Done."
         Content = "Start date time: " + StartDateTime + "\n"
         Content += "Finish date time: " + EndDateTime + "\n"
         Content += "Whole procedure takes \"{}\"\n".format(DeltaDateTime)
         Content += "-------------------------------------------------------\n"
-        Content += "Error Msg:\n"
+        Content += "Stdout Msg:\n"
         try:
-            with open(Log.ErrorFilePath, 'r') as file:
+            with open(Log.StdoutFilePath, 'r') as file:
                 Content += file.read()
                 file.close()
         except Exception as e:
-            Content += "Nothing wrong!\n"
+            Content += "Read Stdout Exception={}\n".format(str(e))
+
+        Content += "-------------------------------------------------------\n"
+        Content += "Stderr Msg:\n"
+        try:
+            with open(Log.StderrFilePath, 'r') as file:
+                Content += file.read()
+                file.close()
+        except Exception as e:
+            Content += "Read Stderr Exception={}\n".format(str(e))
+            Content += "Usually, this means no stderr\n"
+
+        Content += "-------------------------------------------------------\n"
+        Content += "Record Time Msg:\n"
+        try:
+            with open(Log.RecordFilePath, 'r') as file:
+                Content += file.read()
+                file.close()
+        except Exception as e:
+            Content += "Read Record Time Exception={}\n".format(str(e))
+            Content += "Usually, this means something happens...\n"
+
 
         mail.send(To="jaredcjr.tw@gmail.com", Subject=MailSubject, Msg=Content)
 
