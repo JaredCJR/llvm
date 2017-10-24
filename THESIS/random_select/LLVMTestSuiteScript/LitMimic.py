@@ -6,16 +6,18 @@ import os
 import shutil
 import shlex
 import subprocess as sp
+import LitDriver as drv
+import ServiceLib as sv
 
-class Logger:
-    def out(self, msg):
-        print(msg, end="")
+class Singleton(type):
+    _instances = {}
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
 
-    def err(self, msg):
-        #no newline
-        print(msg, end="")
-
-class TargetBenchmarks:
+#Singleton
+class TargetBenchmarks(metaclass=Singleton):
     LLVMTestSuiteBuildPath = None
     TargetPathList = []
     SkipDirList = []
@@ -24,8 +26,8 @@ class TargetBenchmarks:
         #The last character in BuiltPath must be '/'
         self.LLVMTestSuiteBuildPath = os.getenv('LLVM_THESIS_TestSuite', "Error")
         if self.LLVMTestSuiteBuildPath == "Error":
-            log = Logger()
-            log.err("Please setup related environment variable.\n")
+            Log = sv.LogService()
+            Log.err("Please setup related environment variable.\n")
             return -1
         #Target dir lists, format: ["First level dir in BuiltPath", ["List of second level dir"]]
         SingleSource = ["SingleSource", ["Benchmarks", ]]
@@ -60,7 +62,7 @@ class LitMimic:
 
     def run(self):
         target = TargetBenchmarks()
-        log = Logger()
+        Log = sv.LogService()
         SuccessBuiltPath = []
         for RootPath in target.TargetPathList:
             for root, dirs, files in os.walk(RootPath):
@@ -71,7 +73,7 @@ class LitMimic:
                         SkipFlag = False
                         for skip in target.SkipDirList:
                             if root.endswith(skip):
-                                log.out("Skip dir={}\n".format(skip))
+                                Log.out("Skip dir={}\n".format(skip))
                                 SkipFlag = True
                                 break
                         if SkipFlag:
@@ -108,10 +110,10 @@ class LitMimic:
                                 if root not in SuccessBuiltPath:
                                     SuccessBuiltPath.append(root)
                             else:
-                                log.err("Please \"$ make\" to get PyCaller in {}\n".format(PyCallerLoc))
+                                Log.err("Please \"$ make\" to get PyCaller in {}\n".format(PyCallerLoc))
                                 return
                         else:
-                            log.err("This elf={} filed to build?\n".format(ElfPath))
+                            Log.err("This elf={} filed to build?\n".format(ElfPath))
 
         return SuccessBuiltPath
 

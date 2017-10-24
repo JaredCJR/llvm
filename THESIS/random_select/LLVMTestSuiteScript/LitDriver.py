@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 import LitMimic as lm
+import ServiceLib as sv
 import os
 import sys
 import multiprocessing
@@ -7,70 +8,37 @@ import shlex
 import subprocess as sp
 import progressbar
 import smtplib
-from time import gmtime, strftime, localtime
-from datetime import datetime, date, timedelta
-
-class EmailService:
-    def send(self, To, Subject, Msg):
-        TO = To
-        SUBJECT = Subject
-        TEXT = Msg
-        # Gmail Sign In
-        gmail_sender = 'sslab.cs.nctu@gmail.com'
-        gmail_passwd = 'sslabasdgh'
-
-        server = smtplib.SMTP('smtp.gmail.com', 587)
-        server.ehlo()
-        server.starttls()
-        server.login(gmail_sender, gmail_passwd)
-
-        BODY = '\r\n'.join(['To: %s' % TO,
-                            'From: %s' % gmail_sender,
-                            'Subject: %s' % SUBJECT,
-                            '', TEXT])
-        log = lm.Logger()
-        try:
-            server.sendmail(gmail_sender, [TO], BODY)
-            log.out('Email sent!\n')
-        except:
-            log.out('Error sending mail\n')
-            log.err('Error sending mail\n')
-        server.quit()
-
-class TimeService:
-    def GetCurrentLocalTime(self):
-        return strftime("%Y-%m-%d %H:%M:%S", localtime())
-    def GetDeltaTimeInDate(self, prev, post):
-        t1 = datetime.strptime(prev, "%Y-%m-%d %H:%M:%S")
-        t2 = datetime.strptime(post, "%Y-%m-%d %H:%M:%S")
-        delta = t2 - t1
-        return delta
 
 class LitRunner:
     def ExecCmd(self, cmd, ShellMode=False, NeedPrintStdout=False,
             NeedPrintStderr=True):
-        log = lm.Logger()
+        Log = sv.LogService()
         try:
             #Execute cmd
             p = sp.Popen(shlex.split(cmd), shell=ShellMode, stdout=sp.PIPE, stderr= sp.PIPE)
             out, err = p.communicate()
             p.wait()
             if NeedPrintStdout and out is not None:
-                log.out(out.decode('utf-8'))
+                Log.out(out.decode('utf-8'))
             if NeedPrintStderr and err is not None:
-                log.out(err.decode('utf-8'))
+                Log.out(err.decode('utf-8'))
         except Exception as e:
-            log.err("Exception= {}".format(str(e)) + "\n")
-            log.err("Command error: {}\n".format(cmd))
+            Log.err("----------------------------------------------------------\n")
+            Log.err("Exception= {}".format(str(e)) + "\n")
+            Log.err("Command error: {}\n".format(cmd))
             if err is not None:
-                log.err("Error Msg= {}\n".format(err.decode('utf-8')))
-            log.err("----------------------------------------------------------\n")
+                Log.err("Error Msg= {}\n".format(err.decode('utf-8')))
+            Log.err("----------------------------------------------------------\n")
 
     def run(self):
-        time = TimeService()
+        timeFile = os.getenv('LLVM_THESIS_Random_LLVMTestSuite_Results') + "/TimeStamp"
+        if os.path.isfile(timeFile):
+            os.remove(timeFile)
+
+        time = sv.TimeService()
         StartDateTime = time.GetCurrentLocalTime()
         Target = lm.TargetBenchmarks()
-        Log = lm.Logger()
+        Log = sv.LogService()
 
         #build target tests
         pwd = os.getcwd()
@@ -106,11 +74,20 @@ class LitRunner:
         DeltaDateTime = time.GetDeltaTimeInDate(StartDateTime, EndDateTime)
 
         #Send notification
-        mail = EmailService()
+        mail = sv.EmailService()
         MailSubject = "LitDriver Done."
         Content = "Start date time: " + StartDateTime + "\n"
         Content += "Finish date time: " + EndDateTime + "\n"
         Content += "Whole procedure takes \"{}\"\n".format(DeltaDateTime)
+        Content += "-------------------------------------------------------\n"
+        Content += "Error Msg:\n"
+        try:
+            with open(Log.ErrorFilePath, 'r') as file:
+                Content += file.read()
+                file.close()
+        except Exception as e:
+            Content += "Nothing wrong!\n"
+
         mail.send(To="jaredcjr.tw@gmail.com", Subject=MailSubject, Msg=Content)
 
 
