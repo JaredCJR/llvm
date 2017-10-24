@@ -27,7 +27,9 @@ class TestingConfig:
                      'SANITIZER_IGNORE_CVE_2016_2143', 'TMPDIR', 'TMP', 'TEMP',
                      'TEMPDIR', 'AVRLIT_BOARD', 'AVRLIT_PORT',
                      'LLVM_THESIS_HOME', 'LLVM_THESIS_RandomHome',
-                     'LLVM_THESIS_TestSuite', 'LLVM_THESIS_Random_LLVMTestSuiteScript']
+                     'LLVM_THESIS_TestSuite', 'LLVM_THESIS_Random_LLVMTestSuiteScript',
+                     'LLVM_THESIS_Random_LLVMTestSuite_Results', 'LLVM_THESIS_lit',
+                     'PYTHONPATH', ]
         for var in pass_vars:
             val = os.environ.get(var, '')
             # Check for empty string as some variables such as LD_PRELOAD cannot be empty
