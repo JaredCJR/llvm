@@ -47,7 +47,7 @@ class LogService(metaclass=Singleton):
         Loc = os.getenv('LLVM_THESIS_Random_LLVMTestSuite_Results', "/tmp")
         if(Loc == "/tmp"):
             mail = drv.EmailService()
-            mail.SignificantNotification(To="jaredcjr.tw@gmail.com", Msg="Log dir=\"{}\"\n".format(Loc))
+            mail.SignificantNotification(Msg="Log dir=\"{}\"\n".format(Loc))
         else:
             os.system("mkdir -p "+ Loc)
 
@@ -78,7 +78,7 @@ class LogService(metaclass=Singleton):
             file.close()
 
 class EmailService:
-    def send(self, To, Subject, Msg):
+    def send(self, To="jaredcjr.tw@gmail.com", Subject, Msg):
         TO = To
         SUBJECT = Subject
         TEXT = Msg
