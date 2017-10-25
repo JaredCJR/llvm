@@ -151,10 +151,10 @@ class BenchmarkNameService:
         NewRecord = ""
         with open(RecordFile, 'r') as file:
             for line in file:
-                line = line[:line.find(',')]
+                LinePrefix = line[:line.find(',')]
                 RmFlag = False
                 for RemoveTarget in FailNameList:
-                    if line.endswith(RemoveTarget):
+                    if LinePrefix.endswith(RemoveTarget):
                         RmFlag = True
                         break
                 if RmFlag == False:
