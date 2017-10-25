@@ -134,7 +134,7 @@ class CommonDriver:
         print("Done.\n")
 
     def run(self):
-        CleanAllResults()
+        self.CleanAllResults()
         #How many iteration in one round?
         repeat = 4
         #How many round do we need?
@@ -145,7 +145,7 @@ class CommonDriver:
                 #generate pass set
                 rg_driver = RG.Driver()
                 #mean should between 0~1
-                mean = (j + 1) / (self.repeat + 1)
+                mean = (j + 1) / (repeat + 1)
                 rg_driver.run(mean)
 
                 #Build and Execute
