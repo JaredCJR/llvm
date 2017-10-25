@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from random import SystemRandom
+import os
 import random
 
 class Candidate:
@@ -11,7 +12,7 @@ class RandomPick:
         res_list = []
         res_list.append(list[0])
         for num in list[1:]:
-            if random.uniform(0, 1) < mean:
+            if random.uniform(0, 1) < float(mean):
                 res_list.append(num)
         return res_list
 
@@ -35,6 +36,7 @@ class Driver:
         """
         print(target_list)
         """
+
         #open file with buffering, text is not able to get rid of buffering
         file_loc = self.InputSetLoc
         target_file = open(file_loc, "w")
