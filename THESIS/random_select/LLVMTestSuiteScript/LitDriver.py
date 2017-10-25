@@ -6,6 +6,7 @@ import sys
 import glob
 import multiprocessing
 import shlex
+import shutil
 import subprocess as sp
 import progressbar
 import smtplib
@@ -133,13 +134,30 @@ class CommonDriver:
             print("Leave it as usual.")
         print("Done.\n")
 
+    def CmakeTestSuite(self):
+        pwd = os.getcwd()
+        path = os.getenv('LLVM_THESIS_TestSuite', 'Err')
+        if path == 'Err':
+            sys.exit("Error with get env: $LLVM_THESIS_TestSuite\n")
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+        os.makedirs(path)
+        os.chdir(path)
+        os.system("CC=clang CXX=clang++ cmake ../")
+        os.chdir(pwd)
+        print("Cmake at {}\n".format(path))
+
+
     def run(self):
         self.CleanAllResults()
+        self.CmakeTestSuite()
         #How many iteration in one round?
         repeat = 4
         #How many round do we need?
         round = 2
-
+        time = sv.TimeService()
+        StartTime = time.GetCurrentLocalTime()
         for i in range(round):
             for j in range(repeat):
                 #generate pass set
@@ -153,8 +171,14 @@ class CommonDriver:
                 msg = "{}/{} Iteration For {}/{} Round.\n".format(j, repeat, i, round)
                 lit.run(MailMsg=msg)
 
+        EndTime = time.GetCurrentLocalTime()
+        TotalTime = time.GetDeltaTimeInDate(StartTime, EndTime)
+
         mail = sv.EmailService()
-        mail.send(Subject="All Rounds Done.", Msg="Please save the results, if necessary.\n")
+        TimeMsg = "Start: {};\nEnd: {}\nTotal: {}\n\n".format(StartTime, EndTime, TotalTime)
+        msg = TimeMsg + "Please save the results, if necessary.\n"
+        mail.send(Subject="All {}x{} Iterations Done.".format(repeat, round),
+                Msg=msg)
         print("Done All Rounds\n")
 
 
