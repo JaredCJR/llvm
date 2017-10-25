@@ -78,7 +78,7 @@ class LogService(metaclass=Singleton):
             file.close()
 
 class EmailService:
-    def send(self, To="jaredcjr.tw@gmail.com", Subject, Msg):
+    def send(self, Subject, Msg, To="jaredcjr.tw@gmail.com"):
         TO = To
         SUBJECT = Subject
         TEXT = Msg
