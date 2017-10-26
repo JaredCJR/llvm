@@ -156,7 +156,7 @@ class CommonDriver:
         self.CleanAllResults()
         self.CmakeTestSuite()
         #How many iteration in one round?
-        repeat = 2 #On Intel 8700K 4.3GHz, this is about one day.
+        repeat = 2 #On Intel 8700K 4.3GHz, 25 is about one day.
         #How many round do we need?
         round = 2
         time = sv.TimeService()
