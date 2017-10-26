@@ -79,6 +79,7 @@ class LitRunner:
         RmRec = sv.BenchmarkNameService()
         RmRec.RemoveFailureRecords(StdoutFile=Log.StdoutFilePath, RecordFile=Log.RecordFilePath)
 
+
         #Send notification
         mail = sv.EmailService()
         MailSubject = "LitDriver One Iteration Done."
@@ -117,12 +118,14 @@ class LitRunner:
 
 
         mail.send(Subject=MailSubject, Msg=Content)
+        Log.NewLogFiles()
+
 
 class CommonDriver:
     def CleanAllResults(self):
         response = "Yes, I want."
         print("Do you want to remove all the files in the \"results\" directory?")
-        print("[Enter]\"{}\" to do this.".format(response))
+        print("[Enter] \"{}\" to do this.".format(response))
         print("Other response will not remove the files.")
         answer = input("Your turn:\n")
         if answer == response:
@@ -153,7 +156,7 @@ class CommonDriver:
         self.CleanAllResults()
         self.CmakeTestSuite()
         #How many iteration in one round?
-        repeat = 4
+        repeat = 2 #On Intel 8700K 4.3GHz, this is about one day.
         #How many round do we need?
         round = 2
         time = sv.TimeService()
@@ -168,8 +171,9 @@ class CommonDriver:
 
                 #Build and Execute
                 lit = LitRunner()
-                msg = "{}/{} Iteration For {}/{} Round.\n".format(j, repeat, i, round)
+                msg = "{}/{} Iteration For {}/{} Round.\n".format(j+1, repeat, i+1, round)
                 lit.run(MailMsg=msg)
+
 
         EndTime = time.GetCurrentLocalTime()
         TotalTime = time.GetDeltaTimeInDate(StartTime, EndTime)
