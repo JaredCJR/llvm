@@ -24,39 +24,53 @@ class Singleton(type):
             cls._instances[cls] = super(Singleton, cls).__call__(*args, **kwargs)
         return cls._instances[cls]
 
-#Singletonn
-class LogService(metaclass=Singleton):
+class LogService():
     StderrFilePath = None
     StdoutFilePath = None
     RecordFilePath = None
     time = None
+    TimeStamp = None
     def __init__(self):
-        timeFile = os.getenv('LLVM_THESIS_Random_LLVMTestSuite_Results') + "/TimeStamp"
-        if self.time is None:
-            if os.path.isfile(timeFile):
-                with open(timeFile, 'r') as file:
-                    self.time = file.read()
-                    file.close()
-            else:
-                time = TimeService()
-                self.time = time.GetCurrentLocalTime()
-                with open(timeFile, 'w') as file:
-                    file.write(self.time)
-                    file.close()
+        self.TimeStamp = os.getenv('LLVM_THESIS_Random_LLVMTestSuite_Results') + "/TimeStamp"
+        if os.path.isfile(self.TimeStamp):
+            #later enter
+            with open(self.TimeStamp, 'r') as file:
+                self.time = file.read()
+                file.close()
+        else:
+            #first enter
+            time = TimeService()
+            self.time = time.GetCurrentLocalTime()
+            with open(self.TimeStamp, 'w') as file:
+                file.write(self.time)
+                file.close()
 
         Loc = os.getenv('LLVM_THESIS_Random_LLVMTestSuite_Results', "/tmp")
         if(Loc == "/tmp"):
             mail = drv.EmailService()
-            mail.SignificantNotification(To="jaredcjr.tw@gmail.com", Msg="Log dir=\"{}\"\n".format(Loc))
+            mail.SignificantNotification(Msg="Log dir=\"{}\"\n".format(Loc))
         else:
             os.system("mkdir -p "+ Loc)
 
         self.StdoutFilePath = Loc + '/' + self.time + "_STDOUT"
-        self.out("Record Stdout to {}\n".format(self.StdoutFilePath))
         self.StderrFilePath = Loc + '/' + self.time + "_STDERR"
-        self.out("Record Stderr to {}\n".format(self.StderrFilePath))
         self.RecordFilePath = Loc + '/' + self.time + "_Time"
+        '''
+        self.out("Record Stdout to {}\n".format(self.StdoutFilePath))
+        self.out("Record Stderr to {}\n".format(self.StderrFilePath))
         self.out("Record Results to {}\n".format(self.RecordFilePath))
+        '''
+
+    def NewLogFiles(self):
+        self.time = None
+        self.StdoutFilePath = None
+        self.StderrFilePath = None
+        self.RecordFilePath = None
+        time = TimeService()
+        self.time = time.GetCurrentLocalTime()
+        with open(self.TimeStamp, 'w') as file:
+            file.write(self.time)
+            file.close()
 
     def out(self, msg):
         print(msg, end="")
@@ -78,7 +92,7 @@ class LogService(metaclass=Singleton):
             file.close()
 
 class EmailService:
-    def send(self, To, Subject, Msg):
+    def send(self, Subject, Msg, To="jaredcjr.tw@gmail.com"):
         TO = To
         SUBJECT = Subject
         TEXT = Msg

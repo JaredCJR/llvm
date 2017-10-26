@@ -3,11 +3,14 @@ import LitMimic as lm
 import ServiceLib as sv
 import os
 import sys
+import glob
 import multiprocessing
 import shlex
+import shutil
 import subprocess as sp
 import progressbar
 import smtplib
+import RandomGenerator as RG
 
 class LitRunner:
     def ExecCmd(self, cmd, ShellMode=False, NeedPrintStdout=False,
@@ -30,7 +33,7 @@ class LitRunner:
                 Log.err("Error Msg= {}\n".format(err.decode('utf-8')))
             Log.err("----------------------------------------------------------\n")
 
-    def run(self):
+    def run(self, MailMsg=""):
         timeFile = os.getenv('LLVM_THESIS_Random_LLVMTestSuite_Results') + "/TimeStamp"
         if os.path.isfile(timeFile):
             os.remove(timeFile)
@@ -76,10 +79,12 @@ class LitRunner:
         RmRec = sv.BenchmarkNameService()
         RmRec.RemoveFailureRecords(StdoutFile=Log.StdoutFilePath, RecordFile=Log.RecordFilePath)
 
+
         #Send notification
         mail = sv.EmailService()
-        MailSubject = "LitDriver One Round Done."
-        Content = "Start date time: " + StartDateTime + "\n"
+        MailSubject = "LitDriver One Iteration Done."
+        Content = MailMsg + "\n\n\n"
+        Content += "Start date time: " + StartDateTime + "\n"
         Content += "Finish date time: " + EndDateTime + "\n"
         Content += "Whole procedure takes \"{}\"\n".format(DeltaDateTime)
         Content += "-------------------------------------------------------\n"
@@ -112,9 +117,75 @@ class LitRunner:
             Content += "Usually, this means something happens...\n"
 
 
-        mail.send(To="jaredcjr.tw@gmail.com", Subject=MailSubject, Msg=Content)
+        mail.send(Subject=MailSubject, Msg=Content)
+        Log.NewLogFiles()
+
+
+class CommonDriver:
+    def CleanAllResults(self):
+        response = "Yes, I want."
+        print("Do you want to remove all the files in the \"results\" directory?")
+        print("[Enter] \"{}\" to do this.".format(response))
+        print("Other response will not remove the files.")
+        answer = input("Your turn:\n")
+        if answer == response:
+            files = glob.glob('./results/*')
+            for f in files:
+                os.remove(f)
+            print("The directory is clean now.")
+        else:
+            print("Leave it as usual.")
+        print("Done.\n")
+
+    def CmakeTestSuite(self):
+        pwd = os.getcwd()
+        path = os.getenv('LLVM_THESIS_TestSuite', 'Err')
+        if path == 'Err':
+            sys.exit("Error with get env: $LLVM_THESIS_TestSuite\n")
+        if os.path.exists(path):
+            shutil.rmtree(path)
+
+        os.makedirs(path)
+        os.chdir(path)
+        os.system("CC=clang CXX=clang++ cmake ../")
+        os.chdir(pwd)
+        print("Cmake at {}\n".format(path))
+
+
+    def run(self):
+        self.CleanAllResults()
+        self.CmakeTestSuite()
+        #How many iteration in one round?
+        repeat = 25 #On Intel 8700K 4.3GHz, 25 is about one day.
+        #How many round do we need?
+        round = 5
+        time = sv.TimeService()
+        StartTime = time.GetCurrentLocalTime()
+        for i in range(round):
+            for j in range(repeat):
+                #generate pass set
+                rg_driver = RG.Driver()
+                #mean should between 0~1
+                mean = (j + 1) / (repeat + 1)
+                rg_driver.run(mean)
+
+                #Build and Execute
+                lit = LitRunner()
+                msg = "{}/{} Iteration For {}/{} Round.\n".format(j+1, repeat, i+1, round)
+                lit.run(MailMsg=msg)
+
+
+        EndTime = time.GetCurrentLocalTime()
+        TotalTime = time.GetDeltaTimeInDate(StartTime, EndTime)
+
+        mail = sv.EmailService()
+        TimeMsg = "Start: {};\nEnd: {}\nTotal: {}\n\n".format(StartTime, EndTime, TotalTime)
+        msg = TimeMsg + "Please save the results, if necessary.\n"
+        mail.send(Subject="All {}x{} Iterations Done.".format(repeat, round),
+                Msg=msg)
+        print("Done All Rounds\n")
 
 
 if __name__ == '__main__':
-    lit = LitRunner()
-    lit.run()
+    driver = CommonDriver()
+    driver.run()
