@@ -58,6 +58,10 @@ class LogService(metaclass=Singleton):
         self.RecordFilePath = Loc + '/' + self.time + "_Time"
         self.out("Record Results to {}\n".format(self.RecordFilePath))
 
+    def NewLogFiles(self):
+        self.time = None
+        self.__init__()
+
     def out(self, msg):
         print(msg, end="")
         #save to same file for every instance
