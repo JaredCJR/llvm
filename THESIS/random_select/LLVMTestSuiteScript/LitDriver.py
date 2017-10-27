@@ -174,7 +174,7 @@ class CommonDriver:
         #How many iteration in one round?
         repeat = 25 #On Intel 8700K 4.3GHz, 25 is about one day.
         #How many round do we need?
-        round = 5
+        round = 4
         time = sv.TimeService()
         StartTime = time.GetCurrentLocalTime()
         for i in range(round):
