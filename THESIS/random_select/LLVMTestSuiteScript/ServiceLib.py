@@ -180,4 +180,21 @@ class BenchmarkNameService:
             file.write(NewRecord)
             file.close()
 
+class ReadPassSetService:
+    def ReadCorrespondingSet(self, elfPath):
+        RandomSetLoc = os.getenv('LLVM_THESIS_RandomHome') + "/InputSetAll"
+        RandomSets = []
+        with open(RandomSetLoc, "r") as file:
+            for line in file:
+                RandomSets.append(line.split(","))
+            file.close()
 
+        RandomSet = "Error"
+        for Set in RandomSets:
+            if elfPath.startswith(Set[0]):
+                RandomSet = Set[1].lstrip().rstrip()
+        if RandomSet == "Error":
+            mail = EmailService()
+            mail.send(Subject="Error Logging PassSet", Msg="Check it:\n{}\n".format(elfPath))
+
+        return RandomSet
