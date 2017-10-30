@@ -1,3 +1,7 @@
 [submodule "ThesisTools"]
 	path = ThesisTools
 	url = https://github.com/JaredCJR/ThesisTools
+[submodule "test-suite"]
+	path = test-suite
+    url = https://github.com/JaredCJR/test-suite
+    branch = release_50
