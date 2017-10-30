@@ -56,10 +56,8 @@ class Executer:
             file.write(str(ReturnCode))
             file.close()
 
-        RandomSetLoc = os.getenv('LLVM_THESIS_RandomHome') + "/InputSet"
-        with open(RandomSetLoc, "r") as file:
-            RandomSet = file.read().rstrip()
-            file.close()
+        ss = sv.ReadPassSetService()
+        RandomSet = ss.ReadCorrespondingSet(elfPath)
 
         BenchmarkName = sv.BenchmarkNameService()
         BenchmarkName = BenchmarkName.GetFormalName(elfPath)

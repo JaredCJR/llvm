@@ -33,7 +33,7 @@ class LitRunner:
                 Log.err("Error Msg= {}\n".format(err.decode('utf-8')))
             Log.err("----------------------------------------------------------\n")
 
-    def run(self, MailMsg=""):
+    def run(self, MailMsg="", RandomMean=0.5):
         timeFile = os.getenv('LLVM_THESIS_Random_LLVMTestSuite_Results') + "/TimeStamp"
         if os.path.isfile(timeFile):
             os.remove(timeFile)
@@ -45,12 +45,28 @@ class LitRunner:
 
         #build target tests
         pwd = os.getcwd()
+        #Remove the previous record
+        RandomSetAllLoc = os.getenv('LLVM_THESIS_RandomHome') + "/InputSetAll"
+        if os.path.isfile(RandomSetAllLoc):
+            os.remove(RandomSetAllLoc)
+
         CoreNum = str(multiprocessing.cpu_count())
         for RootPath in Target.TargetPathList:
+            #generate pass set
+            rg_driver = RG.Driver()
+            #mean should between 0~1
+            RetSet = rg_driver.run(RandomMean)
+            #build
             os.chdir(RootPath)
             self.ExecCmd("make clean", ShellMode=True)
             self.ExecCmd("make -j" + CoreNum, ShellMode=True,
                     NeedPrintStdout=True, NeedPrintStderr=True)
+            #record input set
+            RandomSetAllLoc = os.getenv('LLVM_THESIS_RandomHome') + "/InputSetAll"
+            with open(RandomSetAllLoc, "a") as file:
+                file.write(RootPath + ", " + RetSet + "\n")
+                file.close()
+
         os.chdir(pwd)
 
         #place the corresponding feature extractor
@@ -158,21 +174,17 @@ class CommonDriver:
         #How many iteration in one round?
         repeat = 25 #On Intel 8700K 4.3GHz, 25 is about one day.
         #How many round do we need?
-        round = 5
+        round = 4
         time = sv.TimeService()
         StartTime = time.GetCurrentLocalTime()
         for i in range(round):
             for j in range(repeat):
-                #generate pass set
-                rg_driver = RG.Driver()
-                #mean should between 0~1
+                #RandomMeanNumber
                 mean = (j + 1) / (repeat + 1)
-                rg_driver.run(mean)
-
                 #Build and Execute
                 lit = LitRunner()
                 msg = "{}/{} Iteration For {}/{} Round.\n".format(j+1, repeat, i+1, round)
-                lit.run(MailMsg=msg)
+                lit.run(MailMsg=msg, RandomMean=mean)
 
 
         EndTime = time.GetCurrentLocalTime()

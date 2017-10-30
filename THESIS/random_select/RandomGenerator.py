@@ -39,9 +39,11 @@ class Driver:
 
         #open file with buffering, text is not able to get rid of buffering
         file_loc = self.InputSetLoc
+        RetList = ""
         target_file = open(file_loc, "w")
         for ps in target_list:
             target_file.write("%s " % ps)
+            RetList += str(ps) + " "
         target_file.write("\n")
         target_file.close()
         """
@@ -49,6 +51,8 @@ class Driver:
         print(target_file.read())
         target_file.close()
         """
+        return RetList
+
 
 if __name__ == '__main__':
     drv = Driver()
