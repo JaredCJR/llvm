@@ -1,2 +1,0 @@
-$ make clean && make
-Make sure the .py has executable permission(chmod)
