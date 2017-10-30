@@ -361,9 +361,9 @@ void PassManagerBuilder::PassIdxInserter(
         FPM.add(llvm::createLowerExpectIntrinsicPass());
         break;
       default:
-        errs() << "DSOAO: Pass Index:"<< pass << " Insert Failed!";
+        errs() << "Thesis: Pass Index:"<< pass << " Insert Failed!";
         break;
-		}
+    }
   }
 }
 
@@ -385,6 +385,8 @@ void PassManagerBuilder::populateFunctionPassManager(
   FPM.add(createEarlyCSEPass());
   FPM.add(createLowerExpectIntrinsicPass());
   */
+  /*
+  //Benchmark-Level
   std::vector<unsigned int> RandomPasses;
   std::fstream fs;
   const char *path_env = getenv("LLVM_THESIS_RandomHome");
@@ -402,6 +404,7 @@ void PassManagerBuilder::populateFunctionPassManager(
   } else {
     errs() << "Failed to open input_sets\n";
   }
+  */
 }
 
 // Do PGO instrumentation generation or use pass as the option specified.
