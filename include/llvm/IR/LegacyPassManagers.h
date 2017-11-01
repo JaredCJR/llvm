@@ -331,6 +331,12 @@ public:
   /// AvailableAnalysis appropriately if ProcessAnalysis is true.
   void add(Pass *P, bool ProcessAnalysis = true);
 
+  /// Thesis: Populate a predicted set of passes for function
+  void populatePredictedPasses(Function &F);
+
+  /// Thesis: Remove the predicted set of passes from populatePredictedPasses()
+  void removePredictedPasses(Function &F);
+
   /// Add RequiredPass into list of lower level passes required by pass P.
   /// RequiredPass is run on the fly by Pass Manager when P requests it
   /// through getAnalysis interface.

@@ -30,6 +30,11 @@
 #include <algorithm>
 #include <map>
 #include <unordered_set>
+#include <python3.5/Python.h>
+#include <vector>
+#include <string>
+#include <sstream>
+#include <ctime>
 using namespace llvm;
 using namespace llvm::legacy;
 
@@ -579,7 +584,7 @@ AnalysisUsage *PMTopLevelManager::findAnalysisUsage(Pass *P) {
     // of dependencies.
     AnalysisUsage AU;
     P->getAnalysisUsage(AU);
-    
+
     AUFoldingSetNode* Node = nullptr;
     FoldingSetNodeID ID;
     AUFoldingSetNode::Profile(ID, AU);
@@ -1035,6 +1040,64 @@ void PMDataManager::add(Pass *P, bool ProcessAnalysis) {
   // Add pass
   PassVector.push_back(P);
 }
+
+static PyObject * Str2PyObj(std::string str) {
+    return PyUnicode_Decode(str.c_str(), str.size(), "utf-8", "Error to decode as Unicode");;
+}
+
+static std::string PyObj2Str(PyObject* obj) {
+    PyObject* UnicodeObj = PyObject_Repr(obj);
+    PyObject* pyStr = PyUnicode_AsEncodedString(UnicodeObj, "utf-8",
+            "Error to encode as Unicode");
+    return std::string(PyBytes_AS_STRING(pyStr));
+}
+
+/// Thesis: Populate a predicted set of passes for Function
+void PMDataManager::populatePredictedPasses(Function &F) {
+    errs() << "populatePredictedPasses() executed in " << F.getName() << "\n";
+    if(Py_IsInitialized() == 0) {
+        clock_t begin = clock();
+        Py_Initialize();
+        clock_t end = clock();
+        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
+        errs() << "Py_Initialize() takes " << elapsed_secs << "\n";
+    }
+    PyObject *pModule,*pRet, *pInstance;
+    /// import
+    pModule = PyImport_Import(Str2PyObj("RandomGenerator"));
+    /// Get instance
+    pInstance = PyObject_GetAttrString(pModule, (const char*)"FunctionLevelPredictor");
+    /// Get method from instance
+    pRet = PyObject_CallMethod(pInstance, "RandomPassSet", NULL); // no arguments
+    if(!pRet) {
+        errs() << "Error:No pRet" << "\n";
+    }
+    std::string Ret = PyObj2Str(pRet);
+    /// remove the python string ' at the begining and end.
+    Ret = Ret.substr(1, Ret.size()-2);
+    ///split string into vector
+    std::string buf;
+    std::stringstream ss(Ret);
+    std::vector< unsigned int> PassSet;
+    while(ss >> buf) {
+        unsigned int pass = -1;
+        pass = std::stoi(buf, nullptr);
+        PassSet.push_back(pass);
+    }
+
+    /// print PassSet
+    for(unsigned int i = 0;i < PassSet.size(); i++) {
+        errs() << PassSet[i] << " ";
+    }
+    errs() << "\n";
+
+}
+
+/// Thesis: Remove the predicted set of passes from populatePredictedPasses()
+void PMDataManager::removePredictedPasses(Function &F) {
+    errs() << "removePredictedPasses() executed in " << F.getName() << "\n";
+}
+
 
 
 /// Populate UP with analysis pass that are used or required by
@@ -1498,6 +1561,9 @@ bool FPPassManager::runOnFunction(Function &F) {
   // Collect inherited analysis from Module level pass manager.
   populateInheritedAnalysis(TPM->activeStack);
 
+  // Get a new set of Function Passes for each function
+  populatePredictedPasses(F);
+
   for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
     FunctionPass *FP = getContainedPass(Index);
     bool LocalChanged = false;
@@ -1525,6 +1591,9 @@ bool FPPassManager::runOnFunction(Function &F) {
     recordAvailableAnalysis(FP);
     removeDeadPasses(FP, F.getName(), ON_FUNCTION_MSG);
   }
+
+  // Restore the required Passes and remove the predicted passes
+  removePredictedPasses(F);
   return Changed;
 }
 

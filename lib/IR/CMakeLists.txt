@@ -2,6 +2,7 @@ set(LLVM_TARGET_DEFINITIONS AttributesCompatFunc.td)
 tablegen(LLVM AttributesCompatFunc.inc -gen-attrs)
 add_public_tablegen_target(AttributeCompatFuncTableGen)
 
+
 add_llvm_library(LLVMCore
   AsmWriter.cpp
   Attributes.cpp
@@ -58,6 +59,12 @@ add_llvm_library(LLVMCore
   ADDITIONAL_HEADER_DIRS
   ${LLVM_MAIN_INCLUDE_DIR}/llvm/IR
 
+  ADDITIONAL_HEADER_DIRS
+  /usr/include/python3.5m
+
+  LINK_LIBS python3.5m
+
   DEPENDS
   intrinsics_gen
   )
+
