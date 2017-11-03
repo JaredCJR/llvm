@@ -35,6 +35,7 @@
 #include <string>
 #include <sstream>
 #include <ctime>
+
 using namespace llvm;
 using namespace llvm::legacy;
 
@@ -1054,15 +1055,11 @@ static std::string PyObj2Str(PyObject* obj) {
 
 /// Thesis: Populate a predicted set of passes for Function
 void PMDataManager::populatePredictedPasses(Function &F) {
-    errs() << "populatePredictedPasses() executed in " << F.getName() << "\n";
+    //errs() << "populatePredictedPasses() executed in " << F.getName() << "\n";
     if(Py_IsInitialized() == 0) {
-        clock_t begin = clock();
         Py_Initialize();
-        clock_t end = clock();
-        double elapsed_secs = double(end - begin) / CLOCKS_PER_SEC;
-        errs() << "Py_Initialize() takes " << elapsed_secs << "\n";
     }
-    PyObject *pModule,*pRet, *pInstance;
+    PyObject *pModule, *pRet, *pInstance;
     /// import
     pModule = PyImport_Import(Str2PyObj("RandomGenerator"));
     /// Get instance
@@ -1086,16 +1083,18 @@ void PMDataManager::populatePredictedPasses(Function &F) {
     }
 
     /// print PassSet
+    /*
     for(unsigned int i = 0;i < PassSet.size(); i++) {
         errs() << PassSet[i] << " ";
     }
     errs() << "\n";
-
+    */
+    //errs() << "Before: pass size = " << (unsigned)PassVector.size() << "\n";
 }
 
 /// Thesis: Remove the predicted set of passes from populatePredictedPasses()
 void PMDataManager::removePredictedPasses(Function &F) {
-    errs() << "removePredictedPasses() executed in " << F.getName() << "\n";
+    //errs() << "removePredictedPasses() executed in " << F.getName() << "\n";
 }
 
 
@@ -1523,7 +1522,7 @@ bool FunctionPassManagerImpl::run(Function &F) {
 
   initializeAllAnalysisInfo();
   for (unsigned Index = 0; Index < getNumContainedManagers(); ++Index) {
-    Changed |= getContainedManager(Index)->runOnFunction(F);
+    Changed |= getContainedManager(Index)->runOnFunctionPredictedPasses(F);
     F.getContext().yield();
   }
 
@@ -1552,7 +1551,8 @@ void FPPassManager::dumpPassStructure(unsigned Offset) {
 /// Execute all of the passes scheduled for execution by invoking
 /// runOnFunction method.  Keep track of whether any of the passes modifies
 /// the function, and if so, return true.
-bool FPPassManager::runOnFunction(Function &F) {
+/// This is the modified version for Funtion-Level Optimization
+bool FPPassManager::runOnFunctionPredictedPasses(Function &F) {
   if (F.isDeclaration())
     return false;
 
@@ -1596,6 +1596,50 @@ bool FPPassManager::runOnFunction(Function &F) {
   removePredictedPasses(F);
   return Changed;
 }
+
+
+/// Execute all of the passes scheduled for execution by invoking
+/// runOnFunction method.  Keep track of whether any of the passes modifies
+/// the function, and if so, return true.
+bool FPPassManager::runOnFunction(Function &F) {
+  if (F.isDeclaration())
+    return false;
+
+  bool Changed = false;
+
+  // Collect inherited analysis from Module level pass manager.
+  populateInheritedAnalysis(TPM->activeStack);
+
+  for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
+    FunctionPass *FP = getContainedPass(Index);
+    bool LocalChanged = false;
+
+    dumpPassInfo(FP, EXECUTION_MSG, ON_FUNCTION_MSG, F.getName());
+    dumpRequiredSet(FP);
+
+    initializeAnalysisImpl(FP);
+
+    {
+      PassManagerPrettyStackEntry X(FP, F);
+      TimeRegion PassTimer(getPassTimer(FP));
+
+      LocalChanged |= FP->runOnFunction(F);
+    }
+
+    Changed |= LocalChanged;
+    if (LocalChanged)
+      dumpPassInfo(FP, MODIFICATION_MSG, ON_FUNCTION_MSG, F.getName());
+    dumpPreservedSet(FP);
+    dumpUsedSet(FP);
+
+    verifyPreservedAnalysis(FP);
+    removeNotPreservedAnalysis(FP);
+    recordAvailableAnalysis(FP);
+    removeDeadPasses(FP, F.getName(), ON_FUNCTION_MSG);
+  }
+  return Changed;
+}
+
 
 bool FPPassManager::runOnModule(Module &M) {
   bool Changed = false;

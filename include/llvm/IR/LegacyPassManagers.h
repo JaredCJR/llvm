@@ -459,6 +459,8 @@ public:
   /// whether any of the passes modifies the module, and if so, return true.
   bool runOnFunction(Function &F);
   bool runOnModule(Module &M) override;
+  ///Add by the thesis: Add and run the predicted passes
+  bool runOnFunctionPredictedPasses(Function &F);
 
   /// cleanup - After running all passes, clean up pass manager cache.
   void cleanup();
