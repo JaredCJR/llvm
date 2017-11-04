@@ -26,6 +26,7 @@ class ModuleSummaryIndex;
 class ModulePass;
 class Pass;
 class Function;
+class FunctionPass;
 class BasicBlock;
 class GlobalValue;
 class raw_ostream;
@@ -267,6 +268,8 @@ ModulePass *createSampleProfileLoaderPass(StringRef Name);
 ModulePass *createWriteThinLTOBitcodePass(raw_ostream &Str,
                                           raw_ostream *ThinLinkOS = nullptr);
 
+/// Add by thesis
+FunctionPass *createPassPredictionPass();
 } // End llvm namespace
 
 #endif

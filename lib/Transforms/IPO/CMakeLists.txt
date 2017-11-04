@@ -30,10 +30,14 @@ add_llvm_library(LLVMipo
   StripSymbols.cpp
   ThinLTOBitcodeWriter.cpp
   WholeProgramDevirt.cpp
+  PassPrediction.cpp
 
   ADDITIONAL_HEADER_DIRS
   ${LLVM_MAIN_INCLUDE_DIR}/llvm/Transforms
   ${LLVM_MAIN_INCLUDE_DIR}/llvm/Transforms/IPO
+  /usr/include/python3.5m
+
+  LINK_LIBS python3.5m
 
   DEPENDS
   intrinsics_gen

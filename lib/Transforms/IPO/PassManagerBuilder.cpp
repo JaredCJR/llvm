@@ -251,7 +251,7 @@ void PassManagerBuilder::addInstructionCombiningPass(
 }
 
 void PassManagerBuilder::PassIdxInserter(
-    std::vector<unsigned int> &input_set, 
+    std::vector<unsigned int> &input_set,
     legacy::FunctionPassManager &FPM) {
   unsigned int pass;
   while(!input_set.empty()) {
