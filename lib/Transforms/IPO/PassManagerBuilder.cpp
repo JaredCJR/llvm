@@ -390,7 +390,8 @@ void PassManagerBuilder::populateFunctionPassManager(
   const char *path_env = getenv("LLVM_THESIS_RandomHome");
   std::string path(path_env ? path_env : "/tmp");
   path += std::string("/InputSet"); //relative path
-  errs() << "Function-Passes path: " << path << "\n";
+  //errs() << "Function-Passes path: " << path << "\n";
+  errs() << "."; //Reduce the above messages
   fs.open(path, std::fstream::in);
   if (fs.is_open()) {
     unsigned int pass_idx;
