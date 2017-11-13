@@ -4,4 +4,4 @@
 [submodule "test-suite"]
 	path = test-suite
     url = https://github.com/JaredCJR/test-suite
-    branch = release_50
+    branch = thesis_50
