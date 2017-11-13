@@ -1562,11 +1562,13 @@ bool FPPassManager::runOnFunctionPredictedPasses(Function &F) {
   populateInheritedAnalysis(TPM->activeStack);
 
   // Get a new set of Function Passes for each function
-  populatePredictedPasses(F);
+  //populatePredictedPasses(F);//FIXME:This should become feature extractor and predictor
 
   for (unsigned Index = 0; Index < getNumContainedPasses(); ++Index) {
     FunctionPass *FP = getContainedPass(Index);
     bool LocalChanged = false;
+
+    //errs() << F.getName() << "() : " << FP->getPassName() << "\n";
 
     dumpPassInfo(FP, EXECUTION_MSG, ON_FUNCTION_MSG, F.getName());
     dumpRequiredSet(FP);
@@ -1593,7 +1595,7 @@ bool FPPassManager::runOnFunctionPredictedPasses(Function &F) {
   }
 
   // Restore the required Passes and remove the predicted passes
-  removePredictedPasses(F);
+  //removePredictedPasses(F);//FIXME:This is useless? or do some cleanup
   return Changed;
 }
 
