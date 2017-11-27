@@ -269,7 +269,7 @@ ModulePass *createWriteThinLTOBitcodePass(raw_ostream &Str,
                                           raw_ostream *ThinLinkOS = nullptr);
 
 /// Add by thesis
-FunctionPass *createPassPredictionPass();
+FunctionPass *createFeatureExtractorPass();
 } // End llvm namespace
 
 #endif

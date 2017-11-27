@@ -1,5 +1,5 @@
-#ifndef LLVM_TRANSFORMS_IPO_PassPrediction_H
-#define LLVM_TRANSFORMS_IPO_PassPrediction_H
+#ifndef LLVM_TRANSFORMS_IPO_FeatureExtractor_H
+#define LLVM_TRANSFORMS_IPO_FeatureExtractor_H
 
 #include <functional>
 #include <python3.5/Python.h>

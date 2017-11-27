@@ -377,7 +377,7 @@ void initializeWriteBitcodePassPass(PassRegistry&);
 void initializeWriteThinLTOBitcodePass(PassRegistry&);
 void initializeXRayInstrumentationPass(PassRegistry&);
 /// Thesis added
-void initializePassPredictionPass(PassRegistry&);
+void initializeFeatureExtractorPass(PassRegistry&);
 }
 
 #endif

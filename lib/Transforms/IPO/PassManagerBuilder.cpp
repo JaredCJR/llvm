@@ -387,8 +387,8 @@ void PassManagerBuilder::populateFunctionPassManager(
   FPM.add(createEarlyCSEPass());
   FPM.add(createLowerExpectIntrinsicPass());
   */
-  FPM.add(createPassPredictionPass());
-  errs() << "Add PassPredictionPass" << "\n";
+  FPM.add(createFeatureExtractorPass());
+  errs() << "Add FeatureExtractorPass" << "\n";
   /*
   //Benchmark-Level
   std::vector<unsigned int> RandomPasses;
