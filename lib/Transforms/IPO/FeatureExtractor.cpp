@@ -36,8 +36,8 @@ FunctionPass *llvm::createFeatureExtractorPass() {
 
 bool FeatureExtractor::runOnFunction(Function &F) {
   ++FeatureExtractorCounter;
-  errs() << "FeatureExtractorPass: ";
-  errs().write_escaped(F.getName()) << '\n';
+  //errs() << "FeatureExtractorPass: ";
+  //errs().write_escaped(F.getName()) << '\n';
 
   ///try add analysis pass ?
   //PMTopLevelManager PM;
