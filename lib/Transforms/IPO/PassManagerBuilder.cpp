@@ -361,7 +361,7 @@ void PassManagerBuilder::PassIdxInserter(
         FPM.add(llvm::createLowerExpectIntrinsicPass());
         break;
       default:
-        errs() << "DSOAO: Pass Index:"<< pass << " Insert Failed!";
+        errs() << "Pass Index:"<< pass << " Insert Failed!";
         break;
 		}
   }
