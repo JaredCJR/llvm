@@ -1,8 +1,13 @@
 #include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
-#include <iostream>
+#include "llvm/ADT/StringRef.h"
+#include "llvm/Support/raw_ostream.h"
 
 namespace PassPrediction {
   void PassPeeper(const std::string& file, int line) {
-    std::cerr << file << " - " << line << "\n";
+    FeatureRecorder &InstrumentRec = FeatureRecorder::getInstance();
+    if (InstrumentRec.isInstrumentationActivated())
+      llvm::errs() << InstrumentRec.getCurrFuncName() << " " << file << " - " << line << "\n";
+    else
+      llvm::errs() << "Instrumentation Disabled\n";
   }
 }
