@@ -3,7 +3,7 @@
 #include <string>
 
 namespace PassPrediction {
-  void PassPeeper(const std::string& file, int line);
+  void PassPeeper(const std::string& file, int line, unsigned InsertId);
   class FeatureRecorder {
     public:
       // singleton
@@ -29,7 +29,9 @@ namespace PassPrediction {
     private:
       bool ActivateInstrumentation;
       std::string CurrFuncName;
-      FeatureRecorder() {};// Prevent construction
+      FeatureRecorder() { // Prevent construction
+        ActivateInstrumentation = false;
+      };
   };
 }
 
