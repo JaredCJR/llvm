@@ -387,7 +387,7 @@ void PassManagerBuilder::populateFunctionPassManager(
   FPM.add(createEarlyCSEPass());
   FPM.add(createLowerExpectIntrinsicPass());
   */
-  FPM.add(createFeatureExtractorPass());
+  //FPM.add(createFeatureExtractorPass());
   //errs() << "Add FeatureExtractorPass" << "\n";
   /*
   //Benchmark-Level

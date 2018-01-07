@@ -26,7 +26,6 @@ char FeatureExtractor::ID = 0;
 /// (passName, arg, name, cfg, analysis)
 INITIALIZE_PASS_BEGIN(FeatureExtractor, "Feature-Extractor",
                 "PassPrediction Pass", false, false)
-//INITIALIZE_PASS_DEPENDENCY(TargetLibraryInfoWrapperPass)
 INITIALIZE_PASS_END(FeatureExtractor, "Feature-Extractor",
                 "PassPrediction Pass", false, false)
 
@@ -36,12 +35,8 @@ FunctionPass *llvm::createFeatureExtractorPass() {
 
 bool FeatureExtractor::runOnFunction(Function &F) {
   ++FeatureExtractorCounter;
-  //errs() << "FeatureExtractorPass: ";
-  //errs().write_escaped(F.getName()) << '\n';
-
-  ///try add analysis pass ?
-  //PMTopLevelManager PM;
-  //PM.schedulePass(createDeadCodeEliminationPass());
+  // This pass is a useless and legacy pass for thesis
+  // This will be removed when we are available =)
   return false;
 }
 
