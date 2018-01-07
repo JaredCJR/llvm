@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===- FlattenCFGPass.cpp - CFG Flatten Pass ----------------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -36,7 +37,7 @@ public:
 private:
   AliasAnalysis *AA;
 };
-}
+} // namespace
 
 char FlattenCFGPass::ID = 0;
 INITIALIZE_PASS_BEGIN(FlattenCFGPass, "flattencfg", "Flatten the CFG", false,
@@ -54,12 +55,15 @@ static bool iterativelyFlattenCFG(Function &F, AliasAnalysis *AA) {
   bool Changed = false;
   bool LocalChange = true;
   while (LocalChange) {
+    PassPrediction::PassPeeper(__FILE__, 2306); // while
     LocalChange = false;
 
     // Loop over all of the basic blocks and remove them if they are unneeded...
     //
     for (Function::iterator BBIt = F.begin(); BBIt != F.end();) {
+      PassPrediction::PassPeeper(__FILE__, 2307); // for
       if (FlattenCFG(&*BBIt++, AA)) {
+        PassPrediction::PassPeeper(__FILE__, 2308); // if
         LocalChange = true;
       }
     }
@@ -73,6 +77,7 @@ bool FlattenCFGPass::runOnFunction(Function &F) {
   bool EverChanged = false;
   // iterativelyFlattenCFG can make some blocks dead.
   while (iterativelyFlattenCFG(F, AA)) {
+    PassPrediction::PassPeeper(__FILE__, 2309); // while
     removeUnreachableBlocks(F);
     EverChanged = true;
   }

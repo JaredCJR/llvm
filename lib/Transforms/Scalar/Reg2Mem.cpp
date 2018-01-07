@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===- Reg2Mem.cpp - Convert registers to allocas -------------------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -35,41 +36,46 @@ STATISTIC(NumRegsDemoted, "Number of registers demoted");
 STATISTIC(NumPhisDemoted, "Number of phi-nodes demoted");
 
 namespace {
-  struct RegToMem : public FunctionPass {
-    static char ID; // Pass identification, replacement for typeid
-    RegToMem() : FunctionPass(ID) {
-      initializeRegToMemPass(*PassRegistry::getPassRegistry());
-    }
+struct RegToMem : public FunctionPass {
+  static char ID; // Pass identification, replacement for typeid
+  RegToMem() : FunctionPass(ID) {
+    initializeRegToMemPass(*PassRegistry::getPassRegistry());
+  }
 
-    void getAnalysisUsage(AnalysisUsage &AU) const override {
-      AU.addRequiredID(BreakCriticalEdgesID);
-      AU.addPreservedID(BreakCriticalEdgesID);
-    }
+  void getAnalysisUsage(AnalysisUsage &AU) const override {
+    AU.addRequiredID(BreakCriticalEdgesID);
+    AU.addPreservedID(BreakCriticalEdgesID);
+  }
 
-    bool valueEscapes(const Instruction *Inst) const {
-      const BasicBlock *BB = Inst->getParent();
-      for (const User *U : Inst->users()) {
-        const Instruction *UI = cast<Instruction>(U);
-        if (UI->getParent() != BB || isa<PHINode>(UI))
-          return true;
+  bool valueEscapes(const Instruction *Inst) const {
+    const BasicBlock *BB = Inst->getParent();
+    for (const User *U : Inst->users()) {
+      PassPrediction::PassPeeper(__FILE__, 2323); // for-range
+      const Instruction *UI = cast<Instruction>(U);
+      if (UI->getParent() != BB || isa<PHINode>(UI)) {
+        PassPrediction::PassPeeper(__FILE__, 2324); // if
+        return true;
       }
-      return false;
     }
+    return false;
+  }
 
-    bool runOnFunction(Function &F) override;
-  };
-}
+  bool runOnFunction(Function &F) override;
+};
+} // namespace
 
 char RegToMem::ID = 0;
 INITIALIZE_PASS_BEGIN(RegToMem, "reg2mem", "Demote all values to stack slots",
-                false, false)
+                      false, false)
 INITIALIZE_PASS_DEPENDENCY(BreakCriticalEdges)
 INITIALIZE_PASS_END(RegToMem, "reg2mem", "Demote all values to stack slots",
-                false, false)
+                    false, false)
 
 bool RegToMem::runOnFunction(Function &F) {
-  if (F.isDeclaration() || skipFunction(F))
+  if (F.isDeclaration() || skipFunction(F)) {
+    PassPrediction::PassPeeper(__FILE__, 2325); // if
     return false;
+  }
 
   // Insert all new allocas into entry block.
   BasicBlock *BBEntry = &F.getEntryBlock();
@@ -80,7 +86,10 @@ bool RegToMem::runOnFunction(Function &F) {
   // safe if block is well-formed: it always have terminator, otherwise
   // we'll get and assertion.
   BasicBlock::iterator I = BBEntry->begin();
-  while (isa<AllocaInst>(I)) ++I;
+  while (isa<AllocaInst>(I)) {
+    PassPrediction::PassPeeper(__FILE__, 2326); // while
+    ++I;
+  }
 
   CastInst *AllocaInsertionPoint = new BitCastInst(
       Constant::getNullValue(Type::getInt32Ty(F.getContext())),
@@ -88,38 +97,51 @@ bool RegToMem::runOnFunction(Function &F) {
 
   // Find the escaped instructions. But don't create stack slots for
   // allocas in entry block.
-  std::list<Instruction*> WorkList;
-  for (BasicBlock &ibb : F)
+  std::list<Instruction *> WorkList;
+  for (BasicBlock &ibb : F) {
+    PassPrediction::PassPeeper(__FILE__, 2327); // for-range
     for (BasicBlock::iterator iib = ibb.begin(), iie = ibb.end(); iib != iie;
          ++iib) {
+      PassPrediction::PassPeeper(__FILE__, 2328); // for
       if (!(isa<AllocaInst>(iib) && iib->getParent() == BBEntry) &&
           valueEscapes(&*iib)) {
+        PassPrediction::PassPeeper(__FILE__, 2329); // if
         WorkList.push_front(&*iib);
       }
     }
+  }
 
   // Demote escaped instructions
   NumRegsDemoted += WorkList.size();
-  for (Instruction *ilb : WorkList)
+  for (Instruction *ilb : WorkList) {
+    PassPrediction::PassPeeper(__FILE__, 2330); // for-range
     DemoteRegToStack(*ilb, false, AllocaInsertionPoint);
+  }
 
   WorkList.clear();
 
   // Find all phi's
-  for (BasicBlock &ibb : F)
+  for (BasicBlock &ibb : F) {
+    PassPrediction::PassPeeper(__FILE__, 2331); // for-range
     for (BasicBlock::iterator iib = ibb.begin(), iie = ibb.end(); iib != iie;
-         ++iib)
-      if (isa<PHINode>(iib))
+         ++iib) {
+      PassPrediction::PassPeeper(__FILE__, 2332); // for
+      if (isa<PHINode>(iib)) {
+        PassPrediction::PassPeeper(__FILE__, 2333); // if
         WorkList.push_front(&*iib);
+      }
+    }
+  }
 
   // Demote phi nodes
   NumPhisDemoted += WorkList.size();
-  for (Instruction *ilb : WorkList)
+  for (Instruction *ilb : WorkList) {
+    PassPrediction::PassPeeper(__FILE__, 2334); // for-range
     DemotePHIToStack(cast<PHINode>(ilb), AllocaInsertionPoint);
+  }
 
   return true;
 }
-
 
 // createDemoteRegisterToMemory - Provide an entry point to create this pass.
 char &llvm::DemoteRegisterToMemoryID = RegToMem::ID;

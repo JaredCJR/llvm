@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===------ SimplifyInstructions.cpp - Remove redundant instructions ------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -14,7 +15,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Transforms/Utils/SimplifyInstructions.h"
 #include "llvm/ADT/DepthFirstIterator.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/Statistic.h"
@@ -29,6 +29,7 @@
 #include "llvm/Pass.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Utils/Local.h"
+#include "llvm/Transforms/Utils/SimplifyInstructions.h"
 using namespace llvm;
 
 #define DEBUG_TYPE "instsimplify"
@@ -41,23 +42,32 @@ static bool runImpl(Function &F, const SimplifyQuery &SQ,
   bool Changed = false;
 
   do {
+    PassPrediction::PassPeeper(__FILE__, 522); // do-while
     for (BasicBlock *BB : depth_first(&F.getEntryBlock())) {
       // Here be subtlety: the iterator must be incremented before the loop
       // body (not sure why), so a range-for loop won't work here.
+      PassPrediction::PassPeeper(__FILE__, 523); // for-range
       for (BasicBlock::iterator BI = BB->begin(), BE = BB->end(); BI != BE;) {
+        PassPrediction::PassPeeper(__FILE__, 524); // for
         Instruction *I = &*BI++;
         // The first time through the loop ToSimplify is empty and we try to
         // simplify all instructions.  On later iterations ToSimplify is not
         // empty and we only bother simplifying instructions that are in it.
-        if (!ToSimplify->empty() && !ToSimplify->count(I))
+        if (!ToSimplify->empty() && !ToSimplify->count(I)) {
+          PassPrediction::PassPeeper(__FILE__, 525); // if
           continue;
+        }
 
         // Don't waste time simplifying unused instructions.
         if (!I->use_empty()) {
+          PassPrediction::PassPeeper(__FILE__, 526); // if
           if (Value *V = SimplifyInstruction(I, SQ, ORE)) {
             // Mark all uses for resimplification next time round the loop.
-            for (User *U : I->users())
+            PassPrediction::PassPeeper(__FILE__, 527); // if
+            for (User *U : I->users()) {
+              PassPrediction::PassPeeper(__FILE__, 528); // for-range
               Next->insert(cast<Instruction>(U));
+            }
             I->replaceAllUsesWith(V);
             ++NumSimplified;
             Changed = true;
@@ -67,6 +77,7 @@ static bool runImpl(Function &F, const SimplifyQuery &SQ,
           // RecursivelyDeleteTriviallyDeadInstruction can remove more than one
           // instruction, so simply incrementing the iterator does not work.
           // When instructions get deleted re-iterate instead.
+          PassPrediction::PassPeeper(__FILE__, 529); // if
           BI = BB->begin();
           BE = BB->end();
           Changed = true;
@@ -84,39 +95,41 @@ static bool runImpl(Function &F, const SimplifyQuery &SQ,
 }
 
 namespace {
-  struct InstSimplifier : public FunctionPass {
-    static char ID; // Pass identification, replacement for typeid
-    InstSimplifier() : FunctionPass(ID) {
-      initializeInstSimplifierPass(*PassRegistry::getPassRegistry());
+struct InstSimplifier : public FunctionPass {
+  static char ID; // Pass identification, replacement for typeid
+  InstSimplifier() : FunctionPass(ID) {
+    initializeInstSimplifierPass(*PassRegistry::getPassRegistry());
+  }
+
+  void getAnalysisUsage(AnalysisUsage &AU) const override {
+    AU.setPreservesCFG();
+    AU.addRequired<DominatorTreeWrapperPass>();
+    AU.addRequired<AssumptionCacheTracker>();
+    AU.addRequired<TargetLibraryInfoWrapperPass>();
+    AU.addRequired<OptimizationRemarkEmitterWrapperPass>();
+  }
+
+  /// runOnFunction - Remove instructions that simplify.
+  bool runOnFunction(Function &F) override {
+    if (skipFunction(F)) {
+      PassPrediction::PassPeeper(__FILE__, 530); // if
+      return false;
     }
 
-    void getAnalysisUsage(AnalysisUsage &AU) const override {
-      AU.setPreservesCFG();
-      AU.addRequired<DominatorTreeWrapperPass>();
-      AU.addRequired<AssumptionCacheTracker>();
-      AU.addRequired<TargetLibraryInfoWrapperPass>();
-      AU.addRequired<OptimizationRemarkEmitterWrapperPass>();
-    }
-
-    /// runOnFunction - Remove instructions that simplify.
-    bool runOnFunction(Function &F) override {
-      if (skipFunction(F))
-        return false;
-
-      const DominatorTree *DT =
-          &getAnalysis<DominatorTreeWrapperPass>().getDomTree();
-      const TargetLibraryInfo *TLI =
-          &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
-      AssumptionCache *AC =
-          &getAnalysis<AssumptionCacheTracker>().getAssumptionCache(F);
-      OptimizationRemarkEmitter *ORE =
-          &getAnalysis<OptimizationRemarkEmitterWrapperPass>().getORE();
-      const DataLayout &DL = F.getParent()->getDataLayout();
-      const SimplifyQuery SQ(DL, TLI, DT, AC);
-      return runImpl(F, SQ, ORE);
-    }
-  };
-}
+    const DominatorTree *DT =
+        &getAnalysis<DominatorTreeWrapperPass>().getDomTree();
+    const TargetLibraryInfo *TLI =
+        &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
+    AssumptionCache *AC =
+        &getAnalysis<AssumptionCacheTracker>().getAssumptionCache(F);
+    OptimizationRemarkEmitter *ORE =
+        &getAnalysis<OptimizationRemarkEmitterWrapperPass>().getORE();
+    const DataLayout &DL = F.getParent()->getDataLayout();
+    const SimplifyQuery SQ(DL, TLI, DT, AC);
+    return runImpl(F, SQ, ORE);
+  }
+};
+} // namespace
 
 char InstSimplifier::ID = 0;
 INITIALIZE_PASS_BEGIN(InstSimplifier, "instsimplify",
@@ -135,7 +148,7 @@ FunctionPass *llvm::createInstructionSimplifierPass() {
 }
 
 PreservedAnalyses InstSimplifierPass::run(Function &F,
-                                      FunctionAnalysisManager &AM) {
+                                          FunctionAnalysisManager &AM) {
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
   auto &AC = AM.getResult<AssumptionAnalysis>(F);
@@ -143,8 +156,10 @@ PreservedAnalyses InstSimplifierPass::run(Function &F,
   const DataLayout &DL = F.getParent()->getDataLayout();
   const SimplifyQuery SQ(DL, &TLI, &DT, &AC);
   bool Changed = runImpl(F, SQ, &ORE);
-  if (!Changed)
+  if (!Changed) {
+    PassPrediction::PassPeeper(__FILE__, 531); // if
     return PreservedAnalyses::all();
+  }
 
   PreservedAnalyses PA;
   PA.preserveSet<CFGAnalyses>();

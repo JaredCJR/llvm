@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===- LowerSwitch.cpp - Eliminate Switch instructions --------------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -32,100 +33,105 @@ using namespace llvm;
 #define DEBUG_TYPE "lower-switch"
 
 namespace {
-  struct IntRange {
-    int64_t Low, High;
-  };
-  // Return true iff R is covered by Ranges.
-  static bool IsInRanges(const IntRange &R,
-                         const std::vector<IntRange> &Ranges) {
-    // Note: Ranges must be sorted, non-overlapping and non-adjacent.
+struct IntRange {
+  int64_t Low, High;
+};
+// Return true iff R is covered by Ranges.
+static bool IsInRanges(const IntRange &R, const std::vector<IntRange> &Ranges) {
+  // Note: Ranges must be sorted, non-overlapping and non-adjacent.
 
-    // Find the first range whose High field is >= R.High,
-    // then check if the Low field is <= R.Low. If so, we
-    // have a Range that covers R.
-    auto I = std::lower_bound(
-        Ranges.begin(), Ranges.end(), R,
-        [](const IntRange &A, const IntRange &B) { return A.High < B.High; });
-    return I != Ranges.end() && I->Low <= R.Low;
-  }
-
-  /// Replace all SwitchInst instructions with chained branch instructions.
-  class LowerSwitch : public FunctionPass {
-  public:
-    static char ID; // Pass identification, replacement for typeid
-    LowerSwitch() : FunctionPass(ID) {
-      initializeLowerSwitchPass(*PassRegistry::getPassRegistry());
-    } 
-
-    bool runOnFunction(Function &F) override;
-
-    struct CaseRange {
-      ConstantInt* Low;
-      ConstantInt* High;
-      BasicBlock* BB;
-
-      CaseRange(ConstantInt *low, ConstantInt *high, BasicBlock *bb)
-          : Low(low), High(high), BB(bb) {}
-    };
-
-    typedef std::vector<CaseRange> CaseVector;
-    typedef std::vector<CaseRange>::iterator CaseItr;
-  private:
-    void processSwitchInst(SwitchInst *SI, SmallPtrSetImpl<BasicBlock*> &DeleteList);
-
-    BasicBlock *switchConvert(CaseItr Begin, CaseItr End,
-                              ConstantInt *LowerBound, ConstantInt *UpperBound,
-                              Value *Val, BasicBlock *Predecessor,
-                              BasicBlock *OrigBlock, BasicBlock *Default,
-                              const std::vector<IntRange> &UnreachableRanges);
-    BasicBlock *newLeafBlock(CaseRange &Leaf, Value *Val, BasicBlock *OrigBlock,
-                             BasicBlock *Default);
-    unsigned Clusterify(CaseVector &Cases, SwitchInst *SI);
-  };
-
-  /// The comparison function for sorting the switch case values in the vector.
-  /// WARNING: Case ranges should be disjoint!
-  struct CaseCmp {
-    bool operator () (const LowerSwitch::CaseRange& C1,
-                      const LowerSwitch::CaseRange& C2) {
-
-      const ConstantInt* CI1 = cast<const ConstantInt>(C1.Low);
-      const ConstantInt* CI2 = cast<const ConstantInt>(C2.High);
-      return CI1->getValue().slt(CI2->getValue());
-    }
-  };
+  // Find the first range whose High field is >= R.High,
+  // then check if the Low field is <= R.Low. If so, we
+  // have a Range that covers R.
+  auto I = std::lower_bound(
+      Ranges.begin(), Ranges.end(), R,
+      [](const IntRange &A, const IntRange &B) { return A.High < B.High; });
+  return I != Ranges.end() && I->Low <= R.Low;
 }
 
+/// Replace all SwitchInst instructions with chained branch instructions.
+class LowerSwitch : public FunctionPass {
+public:
+  static char ID; // Pass identification, replacement for typeid
+  LowerSwitch() : FunctionPass(ID) {
+    initializeLowerSwitchPass(*PassRegistry::getPassRegistry());
+  }
+
+  bool runOnFunction(Function &F) override;
+
+  struct CaseRange {
+    ConstantInt *Low;
+    ConstantInt *High;
+    BasicBlock *BB;
+
+    CaseRange(ConstantInt *low, ConstantInt *high, BasicBlock *bb)
+        : Low(low), High(high), BB(bb) {}
+  };
+
+  typedef std::vector<CaseRange> CaseVector;
+  typedef std::vector<CaseRange>::iterator CaseItr;
+
+private:
+  void processSwitchInst(SwitchInst *SI,
+                         SmallPtrSetImpl<BasicBlock *> &DeleteList);
+
+  BasicBlock *switchConvert(CaseItr Begin, CaseItr End, ConstantInt *LowerBound,
+                            ConstantInt *UpperBound, Value *Val,
+                            BasicBlock *Predecessor, BasicBlock *OrigBlock,
+                            BasicBlock *Default,
+                            const std::vector<IntRange> &UnreachableRanges);
+  BasicBlock *newLeafBlock(CaseRange &Leaf, Value *Val, BasicBlock *OrigBlock,
+                           BasicBlock *Default);
+  unsigned Clusterify(CaseVector &Cases, SwitchInst *SI);
+};
+
+/// The comparison function for sorting the switch case values in the vector.
+/// WARNING: Case ranges should be disjoint!
+struct CaseCmp {
+  bool operator()(const LowerSwitch::CaseRange &C1,
+                  const LowerSwitch::CaseRange &C2) {
+
+    const ConstantInt *CI1 = cast<const ConstantInt>(C1.Low);
+    const ConstantInt *CI2 = cast<const ConstantInt>(C2.High);
+    return CI1->getValue().slt(CI2->getValue());
+  }
+};
+} // namespace
+
 char LowerSwitch::ID = 0;
-INITIALIZE_PASS(LowerSwitch, "lowerswitch",
-                "Lower SwitchInst's to branches", false, false)
+INITIALIZE_PASS(LowerSwitch, "lowerswitch", "Lower SwitchInst's to branches",
+                false, false)
 
 // Publicly exposed interface to pass...
 char &llvm::LowerSwitchID = LowerSwitch::ID;
 // createLowerSwitchPass - Interface to this file...
-FunctionPass *llvm::createLowerSwitchPass() {
-  return new LowerSwitch();
-}
+FunctionPass *llvm::createLowerSwitchPass() { return new LowerSwitch(); }
 
 bool LowerSwitch::runOnFunction(Function &F) {
   bool Changed = false;
-  SmallPtrSet<BasicBlock*, 8> DeleteList;
+  SmallPtrSet<BasicBlock *, 8> DeleteList;
 
-  for (Function::iterator I = F.begin(), E = F.end(); I != E; ) {
-    BasicBlock *Cur = &*I++; // Advance over block so we don't traverse new blocks
+  for (Function::iterator I = F.begin(), E = F.end(); I != E;) {
+    PassPrediction::PassPeeper(__FILE__, 532); // for
+    BasicBlock *Cur =
+        &*I++; // Advance over block so we don't traverse new blocks
 
     // If the block is a dead Default block that will be deleted later, don't
     // waste time processing it.
-    if (DeleteList.count(Cur))
+    if (DeleteList.count(Cur)) {
+      PassPrediction::PassPeeper(__FILE__, 533); // if
       continue;
+    }
 
     if (SwitchInst *SI = dyn_cast<SwitchInst>(Cur->getTerminator())) {
+      PassPrediction::PassPeeper(__FILE__, 534); // if
       Changed = true;
       processSwitchInst(SI, DeleteList);
     }
   }
 
-  for (BasicBlock* BB: DeleteList) {
+  for (BasicBlock *BB : DeleteList) {
+    PassPrediction::PassPeeper(__FILE__, 535); // for-range
     DeleteDeadBlock(BB);
   }
 
@@ -133,17 +139,20 @@ bool LowerSwitch::runOnFunction(Function &F) {
 }
 
 /// Used for debugging purposes.
-static raw_ostream& operator<<(raw_ostream &O,
-                               const LowerSwitch::CaseVector &C)
+static raw_ostream &operator<<(raw_ostream &O, const LowerSwitch::CaseVector &C)
     LLVM_ATTRIBUTE_USED;
-static raw_ostream& operator<<(raw_ostream &O,
+static raw_ostream &operator<<(raw_ostream &O,
                                const LowerSwitch::CaseVector &C) {
   O << "[";
 
-  for (LowerSwitch::CaseVector::const_iterator B = C.begin(),
-         E = C.end(); B != E; ) {
+  for (LowerSwitch::CaseVector::const_iterator B = C.begin(), E = C.end();
+       B != E;) {
+    PassPrediction::PassPeeper(__FILE__, 536); // for
     O << *B->Low << " -" << *B->High;
-    if (++B != E) O << ", ";
+    if (++B != E) {
+      PassPrediction::PassPeeper(__FILE__, 537); // if
+      O << ", ";
+    }
   }
 
   return O << "]";
@@ -164,14 +173,18 @@ static void fixPhis(BasicBlock *SuccBB, BasicBlock *OrigBB, BasicBlock *NewBB,
   for (BasicBlock::iterator I = SuccBB->begin(),
                             IE = SuccBB->getFirstNonPHI()->getIterator();
        I != IE; ++I) {
+    PassPrediction::PassPeeper(__FILE__, 538); // for
     PHINode *PN = cast<PHINode>(I);
 
     // Only update the first occurrence.
     unsigned Idx = 0, E = PN->getNumIncomingValues();
     unsigned LocalNumMergedCases = NumMergedCases;
     for (; Idx != E; ++Idx) {
+      PassPrediction::PassPeeper(__FILE__, 539); // for
       if (PN->getIncomingBlock(Idx) == OrigBB) {
+        PassPrediction::PassPeeper(__FILE__, 540); // if
         PN->setIncomingBlock(Idx, NewBB);
+        PassPrediction::PassPeeper(__FILE__, 541); // break
         break;
       }
     }
@@ -179,15 +192,20 @@ static void fixPhis(BasicBlock *SuccBB, BasicBlock *OrigBB, BasicBlock *NewBB,
     // Remove additional occurrences coming from condensed cases and keep the
     // number of incoming values equal to the number of branches to SuccBB.
     SmallVector<unsigned, 8> Indices;
-    for (++Idx; LocalNumMergedCases > 0 && Idx < E; ++Idx)
+    for (++Idx; LocalNumMergedCases > 0 && Idx < E; ++Idx) {
+      PassPrediction::PassPeeper(__FILE__, 542); // for
       if (PN->getIncomingBlock(Idx) == OrigBB) {
+        PassPrediction::PassPeeper(__FILE__, 543); // if
         Indices.push_back(Idx);
         LocalNumMergedCases--;
       }
+    }
     // Remove incoming values in the reverse order to prevent invalidating
     // *successive* index.
-    for (unsigned III : reverse(Indices))
+    for (unsigned III : reverse(Indices)) {
+      PassPrediction::PassPeeper(__FILE__, 544); // for-range
       PN->removeIncomingValue(III);
+    }
   }
 }
 
@@ -209,11 +227,15 @@ LowerSwitch::switchConvert(CaseItr Begin, CaseItr End, ConstantInt *LowerBound,
     // already checked Upper and Lower bounds. If it is then we can avoid
     // emitting the code that checks if the value actually falls in the range
     // because the bounds already tell us so.
+    PassPrediction::PassPeeper(__FILE__, 545); // if
     if (Begin->Low == LowerBound && Begin->High == UpperBound) {
+      PassPrediction::PassPeeper(__FILE__, 546); // if
       unsigned NumMergedCases = 0;
-      if (LowerBound && UpperBound)
+      if (LowerBound && UpperBound) {
+        PassPrediction::PassPeeper(__FILE__, 547); // if
         NumMergedCases =
             UpperBound->getSExtValue() - LowerBound->getSExtValue();
+      }
       fixPhis(Begin->BB, OrigBlock, Predecessor, NumMergedCases);
       return Begin->BB;
     }
@@ -227,9 +249,8 @@ LowerSwitch::switchConvert(CaseItr Begin, CaseItr End, ConstantInt *LowerBound,
   DEBUG(dbgs() << "RHS: " << RHS << "\n");
 
   CaseRange &Pivot = *(Begin + Mid);
-  DEBUG(dbgs() << "Pivot ==> "
-               << Pivot.Low->getValue()
-               << " -" << Pivot.High->getValue() << "\n");
+  DEBUG(dbgs() << "Pivot ==> " << Pivot.Low->getValue() << " -"
+               << Pivot.High->getValue() << "\n");
 
   // NewLowerBound here should never be the integer minimal value.
   // This is because it is computed from a case range that is never
@@ -244,42 +265,38 @@ LowerSwitch::switchConvert(CaseItr Begin, CaseItr End, ConstantInt *LowerBound,
 
   if (!UnreachableRanges.empty()) {
     // Check if the gap between LHS's highest and NewLowerBound is unreachable.
+    PassPrediction::PassPeeper(__FILE__, 548); // if
     int64_t GapLow = LHS.back().High->getSExtValue() + 1;
     int64_t GapHigh = NewLowerBound->getSExtValue() - 1;
-    IntRange Gap = { GapLow, GapHigh };
-    if (GapHigh >= GapLow && IsInRanges(Gap, UnreachableRanges))
+    IntRange Gap = {GapLow, GapHigh};
+    if (GapHigh >= GapLow && IsInRanges(Gap, UnreachableRanges)) {
+      PassPrediction::PassPeeper(__FILE__, 549); // if
       NewUpperBound = LHS.back().High;
+    }
   }
 
-  DEBUG(dbgs() << "LHS Bounds ==> ";
-        if (LowerBound) {
-          dbgs() << LowerBound->getSExtValue();
-        } else {
-          dbgs() << "NONE";
-        }
-        dbgs() << " - " << NewUpperBound->getSExtValue() << "\n";
+  DEBUG(dbgs() << "LHS Bounds ==> "; if (LowerBound) {
+    dbgs() << LowerBound->getSExtValue();
+  } else { dbgs() << "NONE"; } dbgs() << " - "
+                                      << NewUpperBound->getSExtValue() << "\n";
         dbgs() << "RHS Bounds ==> ";
-        dbgs() << NewLowerBound->getSExtValue() << " - ";
-        if (UpperBound) {
+        dbgs() << NewLowerBound->getSExtValue() << " - "; if (UpperBound) {
           dbgs() << UpperBound->getSExtValue() << "\n";
-        } else {
-          dbgs() << "NONE\n";
-        });
+        } else { dbgs() << "NONE\n"; });
 
   // Create a new node that checks if the value is < pivot. Go to the
   // left branch if it is and right branch if not.
-  Function* F = OrigBlock->getParent();
-  BasicBlock* NewNode = BasicBlock::Create(Val->getContext(), "NodeBlock");
+  Function *F = OrigBlock->getParent();
+  BasicBlock *NewNode = BasicBlock::Create(Val->getContext(), "NodeBlock");
 
-  ICmpInst* Comp = new ICmpInst(ICmpInst::ICMP_SLT,
-                                Val, Pivot.Low, "Pivot");
+  ICmpInst *Comp = new ICmpInst(ICmpInst::ICMP_SLT, Val, Pivot.Low, "Pivot");
 
-  BasicBlock *LBranch = switchConvert(LHS.begin(), LHS.end(), LowerBound,
-                                      NewUpperBound, Val, NewNode, OrigBlock,
-                                      Default, UnreachableRanges);
-  BasicBlock *RBranch = switchConvert(RHS.begin(), RHS.end(), NewLowerBound,
-                                      UpperBound, Val, NewNode, OrigBlock,
-                                      Default, UnreachableRanges);
+  BasicBlock *LBranch =
+      switchConvert(LHS.begin(), LHS.end(), LowerBound, NewUpperBound, Val,
+                    NewNode, OrigBlock, Default, UnreachableRanges);
+  BasicBlock *RBranch =
+      switchConvert(RHS.begin(), RHS.end(), NewLowerBound, UpperBound, Val,
+                    NewNode, OrigBlock, Default, UnreachableRanges);
 
   F->getBasicBlockList().insert(++OrigBlock->getIterator(), NewNode);
   NewNode->getInstList().push_back(Comp);
@@ -292,36 +309,39 @@ LowerSwitch::switchConvert(CaseItr Begin, CaseItr End, ConstantInt *LowerBound,
 /// switch's value == the case's value. If not, then it jumps to the default
 /// branch. At this point in the tree, the value can't be another valid case
 /// value, so the jump to the "default" branch is warranted.
-BasicBlock* LowerSwitch::newLeafBlock(CaseRange& Leaf, Value* Val,
-                                      BasicBlock* OrigBlock,
-                                      BasicBlock* Default)
-{
-  Function* F = OrigBlock->getParent();
-  BasicBlock* NewLeaf = BasicBlock::Create(Val->getContext(), "LeafBlock");
+BasicBlock *LowerSwitch::newLeafBlock(CaseRange &Leaf, Value *Val,
+                                      BasicBlock *OrigBlock,
+                                      BasicBlock *Default) {
+  Function *F = OrigBlock->getParent();
+  BasicBlock *NewLeaf = BasicBlock::Create(Val->getContext(), "LeafBlock");
   F->getBasicBlockList().insert(++OrigBlock->getIterator(), NewLeaf);
 
   // Emit comparison
-  ICmpInst* Comp = nullptr;
+  ICmpInst *Comp = nullptr;
   if (Leaf.Low == Leaf.High) {
     // Make the seteq instruction...
-    Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_EQ, Val,
-                        Leaf.Low, "SwitchLeaf");
+    PassPrediction::PassPeeper(__FILE__, 550); // if
+    Comp =
+        new ICmpInst(*NewLeaf, ICmpInst::ICMP_EQ, Val, Leaf.Low, "SwitchLeaf");
   } else {
     // Make range comparison
+    PassPrediction::PassPeeper(__FILE__, 551); // else
     if (Leaf.Low->isMinValue(true /*isSigned*/)) {
       // Val >= Min && Val <= Hi --> Val <= Hi
+      PassPrediction::PassPeeper(__FILE__, 552); // if
       Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_SLE, Val, Leaf.High,
                           "SwitchLeaf");
     } else if (Leaf.Low->isZero()) {
       // Val >= 0 && Val <= Hi --> Val <=u Hi
+      PassPrediction::PassPeeper(__FILE__, 553); // if
       Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_ULE, Val, Leaf.High,
-                          "SwitchLeaf");      
+                          "SwitchLeaf");
     } else {
       // Emit V-Lo <=u Hi-Lo
-      Constant* NegLo = ConstantExpr::getNeg(Leaf.Low);
-      Instruction* Add = BinaryOperator::CreateAdd(Val, NegLo,
-                                                   Val->getName()+".off",
-                                                   NewLeaf);
+      PassPrediction::PassPeeper(__FILE__, 554); // else
+      Constant *NegLo = ConstantExpr::getNeg(Leaf.Low);
+      Instruction *Add = BinaryOperator::CreateAdd(
+          Val, NegLo, Val->getName() + ".off", NewLeaf);
       Constant *UpperBound = ConstantExpr::getAdd(NegLo, Leaf.High);
       Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_ULE, Add, UpperBound,
                           "SwitchLeaf");
@@ -329,20 +349,21 @@ BasicBlock* LowerSwitch::newLeafBlock(CaseRange& Leaf, Value* Val,
   }
 
   // Make the conditional branch...
-  BasicBlock* Succ = Leaf.BB;
+  BasicBlock *Succ = Leaf.BB;
   BranchInst::Create(Succ, Default, Comp, NewLeaf);
 
   // If there were any PHI nodes in this successor, rewrite one entry
   // from OrigBlock to come from NewLeaf.
   for (BasicBlock::iterator I = Succ->begin(); isa<PHINode>(I); ++I) {
-    PHINode* PN = cast<PHINode>(I);
+    PassPrediction::PassPeeper(__FILE__, 555); // for
+    PHINode *PN = cast<PHINode>(I);
     // Remove all but one incoming entries from the cluster
-    uint64_t Range = Leaf.High->getSExtValue() -
-                     Leaf.Low->getSExtValue();
+    uint64_t Range = Leaf.High->getSExtValue() - Leaf.Low->getSExtValue();
     for (uint64_t j = 0; j < Range; ++j) {
+      PassPrediction::PassPeeper(__FILE__, 556); // for
       PN->removeIncomingValue(OrigBlock);
     }
-    
+
     int BlockIdx = PN->getBasicBlockIndex(OrigBlock);
     assert(BlockIdx != -1 && "Switch didn't go to this successor??");
     PN->setIncomingBlock((unsigned)BlockIdx, NewLeaf);
@@ -352,42 +373,51 @@ BasicBlock* LowerSwitch::newLeafBlock(CaseRange& Leaf, Value* Val,
 }
 
 /// Transform simple list of Cases into list of CaseRange's.
-unsigned LowerSwitch::Clusterify(CaseVector& Cases, SwitchInst *SI) {
+unsigned LowerSwitch::Clusterify(CaseVector &Cases, SwitchInst *SI) {
   unsigned numCmps = 0;
 
   // Start with "simple" cases
-  for (auto Case : SI->cases())
+  for (auto Case : SI->cases()) {
+    PassPrediction::PassPeeper(__FILE__, 557); // for-range
     Cases.push_back(CaseRange(Case.getCaseValue(), Case.getCaseValue(),
                               Case.getCaseSuccessor()));
+  }
 
   std::sort(Cases.begin(), Cases.end(), CaseCmp());
 
   // Merge case into clusters
   if (Cases.size() >= 2) {
+    PassPrediction::PassPeeper(__FILE__, 558); // if
     CaseItr I = Cases.begin();
     for (CaseItr J = std::next(I), E = Cases.end(); J != E; ++J) {
+      PassPrediction::PassPeeper(__FILE__, 559); // for
       int64_t nextValue = J->Low->getSExtValue();
       int64_t currentValue = I->High->getSExtValue();
-      BasicBlock* nextBB = J->BB;
-      BasicBlock* currentBB = I->BB;
+      BasicBlock *nextBB = J->BB;
+      BasicBlock *currentBB = I->BB;
 
       // If the two neighboring cases go to the same destination, merge them
       // into a single case.
       assert(nextValue > currentValue && "Cases should be strictly ascending");
       if ((nextValue == currentValue + 1) && (currentBB == nextBB)) {
+        PassPrediction::PassPeeper(__FILE__, 560); // if
         I->High = J->High;
         // FIXME: Combine branch weights.
       } else if (++I != J) {
+        PassPrediction::PassPeeper(__FILE__, 561); // if
         *I = *J;
       }
     }
     Cases.erase(std::next(I), Cases.end());
   }
 
-  for (CaseItr I=Cases.begin(), E=Cases.end(); I!=E; ++I, ++numCmps) {
-    if (I->Low != I->High)
+  for (CaseItr I = Cases.begin(), E = Cases.end(); I != E; ++I, ++numCmps) {
+    PassPrediction::PassPeeper(__FILE__, 562); // for
+    if (I->Low != I->High) {
       // A range counts double, since it requires two compares.
+      PassPrediction::PassPeeper(__FILE__, 563); // if
       ++numCmps;
+    }
   }
 
   return numCmps;
@@ -396,23 +426,25 @@ unsigned LowerSwitch::Clusterify(CaseVector& Cases, SwitchInst *SI) {
 /// Replace the specified switch instruction with a sequence of chained if-then
 /// insts in a balanced binary search.
 void LowerSwitch::processSwitchInst(SwitchInst *SI,
-                                    SmallPtrSetImpl<BasicBlock*> &DeleteList) {
+                                    SmallPtrSetImpl<BasicBlock *> &DeleteList) {
   BasicBlock *CurBlock = SI->getParent();
   BasicBlock *OrigBlock = CurBlock;
   Function *F = CurBlock->getParent();
-  Value *Val = SI->getCondition();  // The value we are switching on...
-  BasicBlock* Default = SI->getDefaultDest();
+  Value *Val = SI->getCondition(); // The value we are switching on...
+  BasicBlock *Default = SI->getDefaultDest();
 
   // Don't handle unreachable blocks. If there are successors with phis, this
   // would leave them behind with missing predecessors.
   if ((CurBlock != &F->getEntryBlock() && pred_empty(CurBlock)) ||
       CurBlock->getSinglePredecessor() == CurBlock) {
+    PassPrediction::PassPeeper(__FILE__, 564); // if
     DeleteList.insert(CurBlock);
     return;
   }
 
   // If there is only the default destination, just branch.
   if (!SI->getNumCases()) {
+    PassPrediction::PassPeeper(__FILE__, 565); // if
     BranchInst::Create(Default, CurBlock);
     SI->eraseFromParent();
     return;
@@ -442,15 +474,17 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
     unsigned MaxPop = 0;
     BasicBlock *PopSucc = nullptr;
 
-    IntRange R = { INT64_MIN, INT64_MAX };
+    IntRange R = {INT64_MIN, INT64_MAX};
     UnreachableRanges.push_back(R);
     for (const auto &I : Cases) {
+      PassPrediction::PassPeeper(__FILE__, 566); // for-range
       int64_t Low = I.Low->getSExtValue();
       int64_t High = I.High->getSExtValue();
 
       IntRange &LastRange = UnreachableRanges.back();
       if (LastRange.Low == Low) {
         // There is nothing left of the previous range.
+        PassPrediction::PassPeeper(__FILE__, 567); // if
         UnreachableRanges.pop_back();
       } else {
         // Terminate the previous range.
@@ -458,7 +492,8 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
         LastRange.High = Low - 1;
       }
       if (High != INT64_MAX) {
-        IntRange R = { High + 1, INT64_MAX };
+        PassPrediction::PassPeeper(__FILE__, 568); // if
+        IntRange R = {High + 1, INT64_MAX};
         UnreachableRanges.push_back(R);
       }
 
@@ -466,6 +501,7 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
       int64_t N = High - Low + 1;
       unsigned &Pop = Popularity[I.BB];
       if ((Pop += N) > MaxPop) {
+        PassPrediction::PassPeeper(__FILE__, 569); // if
         MaxPop = Pop;
         PopSucc = I.BB;
       }
@@ -493,6 +529,7 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
 
     // If there are no cases left, just branch.
     if (Cases.empty()) {
+      PassPrediction::PassPeeper(__FILE__, 570); // if
       BranchInst::Create(Default, CurBlock);
       SI->eraseFromParent();
       return;
@@ -508,6 +545,7 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
   // If there is an entry in any PHI nodes for the default edge, make sure
   // to update them as well.
   for (BasicBlock::iterator I = Default->begin(); isa<PHINode>(I); ++I) {
+    PassPrediction::PassPeeper(__FILE__, 571); // for
     PHINode *PN = cast<PHINode>(I);
     int BlockIdx = PN->getBasicBlockIndex(OrigBlock);
     assert(BlockIdx != -1 && "Switch didn't go to this successor??");
@@ -526,6 +564,8 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
   CurBlock->getInstList().erase(SI);
 
   // If the Default block has no more predecessors just add it to DeleteList.
-  if (pred_begin(OldDefault) == pred_end(OldDefault))
+  if (pred_begin(OldDefault) == pred_end(OldDefault)) {
+    PassPrediction::PassPeeper(__FILE__, 572); // if
     DeleteList.insert(OldDefault);
+  }
 }

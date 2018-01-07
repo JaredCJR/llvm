@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===- MergedLoadStoreMotion.cpp - merge and hoist/sink load/stores -------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -74,7 +75,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Transforms/Scalar/MergedLoadStoreMotion.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Analysis/AliasAnalysis.h"
 #include "llvm/Analysis/CFG.h"
@@ -88,6 +88,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar/MergedLoadStoreMotion.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 
 using namespace llvm;
@@ -135,10 +136,14 @@ private:
 void MergedLoadStoreMotion::removeInstruction(Instruction *Inst) {
   // Notify the memory dependence analysis.
   if (MD) {
+    PassPrediction::PassPeeper(__FILE__, 2018); // if
     MD->removeInstruction(Inst);
-    if (auto *LI = dyn_cast<LoadInst>(Inst))
+    if (auto *LI = dyn_cast<LoadInst>(Inst)) {
+      PassPrediction::PassPeeper(__FILE__, 2019); // if
       MD->invalidateCachedPointerInfo(LI->getPointerOperand());
+    }
     if (Inst->getType()->isPtrOrPtrVectorTy()) {
+      PassPrediction::PassPeeper(__FILE__, 2020); // if
       MD->invalidateCachedPointerInfo(Inst);
     }
   }
@@ -157,28 +162,37 @@ BasicBlock *MergedLoadStoreMotion::getDiamondTail(BasicBlock *BB) {
 /// \brief True when BB is the head of a diamond (hammock)
 ///
 bool MergedLoadStoreMotion::isDiamondHead(BasicBlock *BB) {
-  if (!BB)
+  if (!BB) {
+    PassPrediction::PassPeeper(__FILE__, 2021); // if
     return false;
+  }
   auto *BI = dyn_cast<BranchInst>(BB->getTerminator());
-  if (!BI || !BI->isConditional())
+  if (!BI || !BI->isConditional()) {
+    PassPrediction::PassPeeper(__FILE__, 2022); // if
     return false;
+  }
 
   BasicBlock *Succ0 = BI->getSuccessor(0);
   BasicBlock *Succ1 = BI->getSuccessor(1);
 
-  if (!Succ0->getSinglePredecessor())
+  if (!Succ0->getSinglePredecessor()) {
+    PassPrediction::PassPeeper(__FILE__, 2023); // if
     return false;
-  if (!Succ1->getSinglePredecessor())
+  }
+  if (!Succ1->getSinglePredecessor()) {
+    PassPrediction::PassPeeper(__FILE__, 2024); // if
     return false;
+  }
 
   BasicBlock *Succ0Succ = Succ0->getSingleSuccessor();
   BasicBlock *Succ1Succ = Succ1->getSingleSuccessor();
   // Ignore triangles.
-  if (!Succ0Succ || !Succ1Succ || Succ0Succ != Succ1Succ)
+  if (!Succ0Succ || !Succ1Succ || Succ0Succ != Succ1Succ) {
+    PassPrediction::PassPeeper(__FILE__, 2025); // if
     return false;
+  }
   return true;
 }
-
 
 ///
 /// \brief True when instruction is a sink barrier for a store
@@ -192,9 +206,13 @@ bool MergedLoadStoreMotion::isStoreSinkBarrierInRange(const Instruction &Start,
                                                       const Instruction &End,
                                                       MemoryLocation Loc) {
   for (const Instruction &Inst :
-       make_range(Start.getIterator(), End.getIterator()))
-    if (Inst.mayThrow())
+       make_range(Start.getIterator(), End.getIterator())) {
+    PassPrediction::PassPeeper(__FILE__, 2026); // for-range
+    if (Inst.mayThrow()) {
+      PassPrediction::PassPeeper(__FILE__, 2027); // if
       return true;
+    }
+  }
   return AA->canInstructionRangeModRef(Start, End, Loc, MRI_ModRef);
 }
 
@@ -208,15 +226,19 @@ StoreInst *MergedLoadStoreMotion::canSinkFromBlock(BasicBlock *BB1,
   DEBUG(dbgs() << "can Sink? : "; Store0->dump(); dbgs() << "\n");
   BasicBlock *BB0 = Store0->getParent();
   for (Instruction &Inst : reverse(*BB1)) {
+    PassPrediction::PassPeeper(__FILE__, 2028); // for-range
     auto *Store1 = dyn_cast<StoreInst>(&Inst);
-    if (!Store1)
+    if (!Store1) {
+      PassPrediction::PassPeeper(__FILE__, 2029); // if
       continue;
+    }
 
     MemoryLocation Loc0 = MemoryLocation::get(Store0);
     MemoryLocation Loc1 = MemoryLocation::get(Store1);
     if (AA->isMustAlias(Loc0, Loc1) && Store0->isSameOperationAs(Store1) &&
         !isStoreSinkBarrierInRange(*Store1->getNextNode(), BB1->back(), Loc1) &&
         !isStoreSinkBarrierInRange(*Store0->getNextNode(), BB0->back(), Loc0)) {
+      PassPrediction::PassPeeper(__FILE__, 2030); // if
       return Store1;
     }
   }
@@ -231,15 +253,19 @@ PHINode *MergedLoadStoreMotion::getPHIOperand(BasicBlock *BB, StoreInst *S0,
   // Create a phi if the values mismatch.
   Value *Opd1 = S0->getValueOperand();
   Value *Opd2 = S1->getValueOperand();
-  if (Opd1 == Opd2)
+  if (Opd1 == Opd2) {
+    PassPrediction::PassPeeper(__FILE__, 2031); // if
     return nullptr;
+  }
 
   auto *NewPN = PHINode::Create(Opd1->getType(), 2, Opd2->getName() + ".sink",
                                 &BB->front());
   NewPN->addIncoming(Opd1, S0->getParent());
   NewPN->addIncoming(Opd2, S1->getParent());
-  if (MD && NewPN->getType()->isPtrOrPtrVectorTy())
+  if (MD && NewPN->getType()->isPtrOrPtrVectorTy()) {
+    PassPrediction::PassPeeper(__FILE__, 2032); // if
     MD->invalidateCachedPointerInfo(NewPN);
+  }
   return NewPN;
 }
 
@@ -275,8 +301,10 @@ bool MergedLoadStoreMotion::sinkStore(BasicBlock *BB, StoreInst *S0,
     assert(S1->getParent() == A1->getParent());
 
     // New PHI operand? Use it.
-    if (PHINode *NewPN = getPHIOperand(BB, S0, S1))
+    if (PHINode *NewPN = getPHIOperand(BB, S0, S1)) {
+      PassPrediction::PassPeeper(__FILE__, 2033); // if
       SNew->setOperand(0, NewPN);
+    }
     removeInstruction(S0);
     removeInstruction(S1);
     A0->replaceAllUsesWith(ANew);
@@ -306,10 +334,14 @@ bool MergedLoadStoreMotion::mergeStores(BasicBlock *T) {
   BasicBlock *Pred1 = *PI;
   ++PI;
   // tail block  of a diamond/hammock?
-  if (Pred0 == Pred1)
-    return false; // No.
-  if (PI != E)
-    return false; // No. More than 2 predecessors.
+  if (Pred0 == Pred1) {
+    PassPrediction::PassPeeper(__FILE__, 2034); // if
+    return false;                               // No.
+  }
+  if (PI != E) {
+    PassPrediction::PassPeeper(__FILE__, 2035); // if
+    return false;                               // No. More than 2 predecessors.
+  }
 
   // #Instructions in Succ1 for Compile Time Control
   int Size1 = Pred1->size();
@@ -318,26 +350,34 @@ bool MergedLoadStoreMotion::mergeStores(BasicBlock *T) {
   for (BasicBlock::reverse_iterator RBI = Pred0->rbegin(), RBE = Pred0->rend();
        RBI != RBE;) {
 
+    PassPrediction::PassPeeper(__FILE__, 2036); // for
     Instruction *I = &*RBI;
     ++RBI;
 
     // Don't sink non-simple (atomic, volatile) stores.
     auto *S0 = dyn_cast<StoreInst>(I);
-    if (!S0 || !S0->isSimple())
+    if (!S0 || !S0->isSimple()) {
+      PassPrediction::PassPeeper(__FILE__, 2037); // if
       continue;
+    }
 
     ++NStores;
-    if (NStores * Size1 >= MagicCompileTimeControl)
+    if (NStores * Size1 >= MagicCompileTimeControl) {
+      PassPrediction::PassPeeper(__FILE__, 2038); // if
       break;
+    }
     if (StoreInst *S1 = canSinkFromBlock(Pred1, S0)) {
+      PassPrediction::PassPeeper(__FILE__, 2039); // if
       bool Res = sinkStore(T, S0, S1);
       MergedStores |= Res;
       // Don't attempt to sink below stores that had to stick around
       // But after removal of a store and some of its feeding
       // instruction search again from the beginning since the iterator
       // is likely stale at this point.
-      if (!Res)
+      if (!Res) {
+        PassPrediction::PassPeeper(__FILE__, 2040); // if
         break;
+      }
       RBI = Pred0->rbegin();
       RBE = Pred0->rend();
       DEBUG(dbgs() << "Search again\n"; Instruction *I = &*RBI; I->dump());
@@ -357,11 +397,13 @@ bool MergedLoadStoreMotion::run(Function &F, MemoryDependenceResults *MD,
   // Merge unconditional branches, allowing PRE to catch more
   // optimization opportunities.
   for (Function::iterator FI = F.begin(), FE = F.end(); FI != FE;) {
+    PassPrediction::PassPeeper(__FILE__, 2041); // for
     BasicBlock *BB = &*FI++;
 
     // Hoist equivalent loads and sink stores
     // outside diamonds when possible
     if (isDiamondHead(BB)) {
+      PassPrediction::PassPeeper(__FILE__, 2042); // if
       Changed |= mergeStores(getDiamondTail(BB));
     }
   }
@@ -381,8 +423,10 @@ public:
   /// \brief Run the transformation for each function
   ///
   bool runOnFunction(Function &F) override {
-    if (skipFunction(F))
+    if (skipFunction(F)) {
+      PassPrediction::PassPeeper(__FILE__, 2043); // if
       return false;
+    }
     MergedLoadStoreMotion Impl;
     auto *MDWP = getAnalysisIfAvailable<MemoryDependenceWrapperPass>();
     return Impl.run(F, MDWP ? &MDWP->getMemDep() : nullptr,
@@ -415,13 +459,15 @@ INITIALIZE_PASS_DEPENDENCY(AAResultsWrapperPass)
 INITIALIZE_PASS_END(MergedLoadStoreMotionLegacyPass, "mldst-motion",
                     "MergedLoadStoreMotion", false, false)
 
-PreservedAnalyses
-MergedLoadStoreMotionPass::run(Function &F, FunctionAnalysisManager &AM) {
+PreservedAnalyses MergedLoadStoreMotionPass::run(Function &F,
+                                                 FunctionAnalysisManager &AM) {
   MergedLoadStoreMotion Impl;
   auto *MD = AM.getCachedResult<MemoryDependenceAnalysis>(F);
   auto &AA = AM.getResult<AAManager>(F);
-  if (!Impl.run(F, MD, AA))
+  if (!Impl.run(F, MD, AA)) {
+    PassPrediction::PassPeeper(__FILE__, 2044); // if
     return PreservedAnalyses::all();
+  }
 
   PreservedAnalyses PA;
   PA.preserveSet<CFGAnalyses>();

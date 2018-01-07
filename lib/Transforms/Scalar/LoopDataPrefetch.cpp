@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===-------- LoopDataPrefetch.cpp - Loop Data Prefetching Pass -----------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -42,9 +43,9 @@ using namespace llvm;
 
 // By default, we limit this to creating 16 PHIs (which is a little over half
 // of the allocatable register set).
-static cl::opt<bool>
-PrefetchWrites("loop-prefetch-writes", cl::Hidden, cl::init(false),
-               cl::desc("Prefetch write addresses"));
+static cl::opt<bool> PrefetchWrites("loop-prefetch-writes", cl::Hidden,
+                                    cl::init(false),
+                                    cl::desc("Prefetch write addresses"));
 
 static cl::opt<unsigned>
     PrefetchDistance("prefetch-distance",
@@ -81,20 +82,26 @@ private:
   bool isStrideLargeEnough(const SCEVAddRecExpr *AR);
 
   unsigned getMinPrefetchStride() {
-    if (MinPrefetchStride.getNumOccurrences() > 0)
+    if (MinPrefetchStride.getNumOccurrences() > 0) {
+      PassPrediction::PassPeeper(__FILE__, 591); // if
       return MinPrefetchStride;
+    }
     return TTI->getMinPrefetchStride();
   }
 
   unsigned getPrefetchDistance() {
-    if (PrefetchDistance.getNumOccurrences() > 0)
+    if (PrefetchDistance.getNumOccurrences() > 0) {
+      PassPrediction::PassPeeper(__FILE__, 592); // if
       return PrefetchDistance;
+    }
     return TTI->getPrefetchDistance();
   }
 
   unsigned getMaxPrefetchIterationsAhead() {
-    if (MaxPrefetchIterationsAhead.getNumOccurrences() > 0)
+    if (MaxPrefetchIterationsAhead.getNumOccurrences() > 0) {
+      PassPrediction::PassPeeper(__FILE__, 593); // if
       return MaxPrefetchIterationsAhead;
+    }
     return TTI->getMaxPrefetchIterationsAhead();
   }
 
@@ -127,8 +134,8 @@ public:
   }
 
   bool runOnFunction(Function &F) override;
-  };
-}
+};
+} // namespace
 
 char LoopDataPrefetchLegacyPass::ID = 0;
 INITIALIZE_PASS_BEGIN(LoopDataPrefetchLegacyPass, "loop-data-prefetch",
@@ -148,14 +155,18 @@ FunctionPass *llvm::createLoopDataPrefetchPass() {
 bool LoopDataPrefetch::isStrideLargeEnough(const SCEVAddRecExpr *AR) {
   unsigned TargetMinStride = getMinPrefetchStride();
   // No need to check if any stride goes.
-  if (TargetMinStride <= 1)
+  if (TargetMinStride <= 1) {
+    PassPrediction::PassPeeper(__FILE__, 594); // if
     return true;
+  }
 
   const auto *ConstStride = dyn_cast<SCEVConstant>(AR->getStepRecurrence(*SE));
   // If MinStride is set, don't prefetch unless we can ensure that stride is
   // larger.
-  if (!ConstStride)
+  if (!ConstStride) {
+    PassPrediction::PassPeeper(__FILE__, 595); // if
     return false;
+  }
 
   unsigned AbsStride = std::abs(ConstStride->getAPInt().getSExtValue());
   return TargetMinStride <= AbsStride;
@@ -174,6 +185,7 @@ PreservedAnalyses LoopDataPrefetchPass::run(Function &F,
   bool Changed = LDP.run();
 
   if (Changed) {
+    PassPrediction::PassPeeper(__FILE__, 596); // if
     PreservedAnalyses PA;
     PA.preserve<DominatorTreeAnalysis>();
     PA.preserve<LoopAnalysis>();
@@ -184,8 +196,10 @@ PreservedAnalyses LoopDataPrefetchPass::run(Function &F,
 }
 
 bool LoopDataPrefetchLegacyPass::runOnFunction(Function &F) {
-  if (skipFunction(F))
+  if (skipFunction(F)) {
+    PassPrediction::PassPeeper(__FILE__, 597); // if
     return false;
+  }
 
   LoopInfo *LI = &getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
   ScalarEvolution *SE = &getAnalysis<ScalarEvolutionWrapperPass>().getSE();
@@ -204,15 +218,21 @@ bool LoopDataPrefetch::run() {
   // If PrefetchDistance is not set, don't run the pass.  This gives an
   // opportunity for targets to run this pass for selected subtargets only
   // (whose TTI sets PrefetchDistance).
-  if (getPrefetchDistance() == 0)
+  if (getPrefetchDistance() == 0) {
+    PassPrediction::PassPeeper(__FILE__, 598); // if
     return false;
+  }
   assert(TTI->getCacheLineSize() && "Cache line size is not set for target");
 
   bool MadeChange = false;
 
-  for (Loop *I : *LI)
-    for (auto L = df_begin(I), LE = df_end(I); L != LE; ++L)
+  for (Loop *I : *LI) {
+    PassPrediction::PassPeeper(__FILE__, 599); // for-range
+    for (auto L = df_begin(I), LE = df_end(I); L != LE; ++L) {
+      PassPrediction::PassPeeper(__FILE__, 600); // for
       MadeChange |= runOnLoop(*L);
+    }
+  }
 
   return MadeChange;
 }
@@ -221,8 +241,10 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
   bool MadeChange = false;
 
   // Only prefetch in the inner-most loop
-  if (!L->empty())
+  if (!L->empty()) {
+    PassPrediction::PassPeeper(__FILE__, 601); // if
     return MadeChange;
+  }
 
   SmallPtrSet<const Value *, 32> EphValues;
   CodeMetrics::collectEphemeralValues(L, AC, EphValues);
@@ -232,24 +254,39 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
   for (const auto BB : L->blocks()) {
     // If the loop already has prefetches, then assume that the user knows
     // what they are doing and don't add any more.
-    for (auto &I : *BB)
-      if (CallInst *CI = dyn_cast<CallInst>(&I))
-        if (Function *F = CI->getCalledFunction())
-          if (F->getIntrinsicID() == Intrinsic::prefetch)
+    PassPrediction::PassPeeper(__FILE__, 602); // for-range
+    for (auto &I : *BB) {
+      PassPrediction::PassPeeper(__FILE__, 603); // for-range
+      if (CallInst *CI = dyn_cast<CallInst>(&I)) {
+        PassPrediction::PassPeeper(__FILE__, 604); // if
+        if (Function *F = CI->getCalledFunction()) {
+          PassPrediction::PassPeeper(__FILE__, 605); // if
+          if (F->getIntrinsicID() == Intrinsic::prefetch) {
+            PassPrediction::PassPeeper(__FILE__, 606); // if
             return MadeChange;
+          }
+        }
+      }
+    }
 
     Metrics.analyzeBasicBlock(BB, *TTI, EphValues);
   }
   unsigned LoopSize = Metrics.NumInsts;
-  if (!LoopSize)
+  if (!LoopSize) {
+    PassPrediction::PassPeeper(__FILE__, 607); // if
     LoopSize = 1;
+  }
 
   unsigned ItersAhead = getPrefetchDistance() / LoopSize;
-  if (!ItersAhead)
+  if (!ItersAhead) {
+    PassPrediction::PassPeeper(__FILE__, 608); // if
     ItersAhead = 1;
+  }
 
-  if (ItersAhead > getMaxPrefetchIterationsAhead())
+  if (ItersAhead > getMaxPrefetchIterationsAhead()) {
+    PassPrediction::PassPeeper(__FILE__, 609); // if
     return MadeChange;
+  }
 
   DEBUG(dbgs() << "Prefetching " << ItersAhead
                << " iterations ahead (loop size: " << LoopSize << ") in "
@@ -257,59 +294,85 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
 
   SmallVector<std::pair<Instruction *, const SCEVAddRecExpr *>, 16> PrefLoads;
   for (const auto BB : L->blocks()) {
+    PassPrediction::PassPeeper(__FILE__, 610); // for-range
     for (auto &I : *BB) {
+      PassPrediction::PassPeeper(__FILE__, 611); // for-range
       Value *PtrValue;
       Instruction *MemI;
 
       if (LoadInst *LMemI = dyn_cast<LoadInst>(&I)) {
+        PassPrediction::PassPeeper(__FILE__, 612); // if
         MemI = LMemI;
         PtrValue = LMemI->getPointerOperand();
       } else if (StoreInst *SMemI = dyn_cast<StoreInst>(&I)) {
-        if (!PrefetchWrites) continue;
+        PassPrediction::PassPeeper(__FILE__, 613); // if
+        if (!PrefetchWrites) {
+          continue;
+        }
         MemI = SMemI;
         PtrValue = SMemI->getPointerOperand();
-      } else continue;
+      } else {
+        PassPrediction::PassPeeper(__FILE__, 614); // else
+        continue;
+      }
 
       unsigned PtrAddrSpace = PtrValue->getType()->getPointerAddressSpace();
-      if (PtrAddrSpace)
+      if (PtrAddrSpace) {
+        PassPrediction::PassPeeper(__FILE__, 615); // if
         continue;
+      }
 
-      if (L->isLoopInvariant(PtrValue))
+      if (L->isLoopInvariant(PtrValue)) {
+        PassPrediction::PassPeeper(__FILE__, 616); // if
         continue;
+      }
 
       const SCEV *LSCEV = SE->getSCEV(PtrValue);
       const SCEVAddRecExpr *LSCEVAddRec = dyn_cast<SCEVAddRecExpr>(LSCEV);
-      if (!LSCEVAddRec)
+      if (!LSCEVAddRec) {
+        PassPrediction::PassPeeper(__FILE__, 617); // if
         continue;
+      }
 
       // Check if the the stride of the accesses is large enough to warrant a
       // prefetch.
-      if (!isStrideLargeEnough(LSCEVAddRec))
+      if (!isStrideLargeEnough(LSCEVAddRec)) {
+        PassPrediction::PassPeeper(__FILE__, 618); // if
         continue;
+      }
 
       // We don't want to double prefetch individual cache lines. If this load
       // is known to be within one cache line of some other load that has
       // already been prefetched, then don't prefetch this one as well.
       bool DupPref = false;
       for (const auto &PrefLoad : PrefLoads) {
+        PassPrediction::PassPeeper(__FILE__, 619); // for-range
         const SCEV *PtrDiff = SE->getMinusSCEV(LSCEVAddRec, PrefLoad.second);
         if (const SCEVConstant *ConstPtrDiff =
-            dyn_cast<SCEVConstant>(PtrDiff)) {
+                dyn_cast<SCEVConstant>(PtrDiff)) {
+          PassPrediction::PassPeeper(__FILE__, 620); // if
           int64_t PD = std::abs(ConstPtrDiff->getValue()->getSExtValue());
-          if (PD < (int64_t) TTI->getCacheLineSize()) {
+          if (PD < (int64_t)TTI->getCacheLineSize()) {
+            PassPrediction::PassPeeper(__FILE__, 621); // if
             DupPref = true;
+            PassPrediction::PassPeeper(__FILE__, 622); // break
             break;
           }
         }
       }
-      if (DupPref)
+      if (DupPref) {
+        PassPrediction::PassPeeper(__FILE__, 623); // if
         continue;
+      }
 
-      const SCEV *NextLSCEV = SE->getAddExpr(LSCEVAddRec, SE->getMulExpr(
-        SE->getConstant(LSCEVAddRec->getType(), ItersAhead),
-        LSCEVAddRec->getStepRecurrence(*SE)));
-      if (!isSafeToExpand(NextLSCEV, *SE))
+      const SCEV *NextLSCEV = SE->getAddExpr(
+          LSCEVAddRec,
+          SE->getMulExpr(SE->getConstant(LSCEVAddRec->getType(), ItersAhead),
+                         LSCEVAddRec->getStepRecurrence(*SE)));
+      if (!isSafeToExpand(NextLSCEV, *SE)) {
+        PassPrediction::PassPeeper(__FILE__, 624); // if
         continue;
+      }
 
       PrefLoads.push_back(std::make_pair(MemI, LSCEVAddRec));
 
@@ -338,4 +401,3 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
 
   return MadeChange;
 }
-

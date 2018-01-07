@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===----------------------- AlignmentFromAssumptions.cpp -----------------===//
 //                  Set Load/Store Alignments From Assumptions
 //
@@ -18,7 +19,6 @@
 
 #define AA_NAME "alignment-from-assumptions"
 #define DEBUG_TYPE AA_NAME
-#include "llvm/Transforms/Scalar/AlignmentFromAssumptions.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Analysis/AliasAnalysis.h"
@@ -35,14 +35,15 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar/AlignmentFromAssumptions.h"
 using namespace llvm;
 
 STATISTIC(NumLoadAlignChanged,
-  "Number of loads changed by alignment assumptions");
+          "Number of loads changed by alignment assumptions");
 STATISTIC(NumStoreAlignChanged,
-  "Number of stores changed by alignment assumptions");
+          "Number of stores changed by alignment assumptions");
 STATISTIC(NumMemIntAlignChanged,
-  "Number of memory intrinsics changed by alignment assumptions");
+          "Number of memory intrinsics changed by alignment assumptions");
 
 namespace {
 struct AlignmentFromAssumptions : public FunctionPass {
@@ -68,17 +69,15 @@ struct AlignmentFromAssumptions : public FunctionPass {
 
   AlignmentFromAssumptionsPass Impl;
 };
-}
+} // namespace
 
 char AlignmentFromAssumptions::ID = 0;
 static const char aip_name[] = "Alignment from assumptions";
-INITIALIZE_PASS_BEGIN(AlignmentFromAssumptions, AA_NAME,
-                      aip_name, false, false)
+INITIALIZE_PASS_BEGIN(AlignmentFromAssumptions, AA_NAME, aip_name, false, false)
 INITIALIZE_PASS_DEPENDENCY(AssumptionCacheTracker)
 INITIALIZE_PASS_DEPENDENCY(DominatorTreeWrapperPass)
 INITIALIZE_PASS_DEPENDENCY(ScalarEvolutionWrapperPass)
-INITIALIZE_PASS_END(AlignmentFromAssumptions, AA_NAME,
-                    aip_name, false, false)
+INITIALIZE_PASS_END(AlignmentFromAssumptions, AA_NAME, aip_name, false, false)
 
 FunctionPass *llvm::createAlignmentFromAssumptionsPass() {
   return new AlignmentFromAssumptions();
@@ -90,33 +89,37 @@ FunctionPass *llvm::createAlignmentFromAssumptionsPass() {
 // to a constant. Using SCEV to compute alignment handles the case where
 // DiffSCEV is a recurrence with constant start such that the aligned offset
 // is constant. e.g. {16,+,32} % 32 -> 16.
-static unsigned getNewAlignmentDiff(const SCEV *DiffSCEV,
-                                    const SCEV *AlignSCEV,
+static unsigned getNewAlignmentDiff(const SCEV *DiffSCEV, const SCEV *AlignSCEV,
                                     ScalarEvolution *SE) {
   // DiffUnits = Diff % int64_t(Alignment)
   const SCEV *DiffAlignDiv = SE->getUDivExpr(DiffSCEV, AlignSCEV);
   const SCEV *DiffAlign = SE->getMulExpr(DiffAlignDiv, AlignSCEV);
   const SCEV *DiffUnitsSCEV = SE->getMinusSCEV(DiffAlign, DiffSCEV);
 
-  DEBUG(dbgs() << "\talignment relative to " << *AlignSCEV << " is " <<
-                  *DiffUnitsSCEV << " (diff: " << *DiffSCEV << ")\n");
+  DEBUG(dbgs() << "\talignment relative to " << *AlignSCEV << " is "
+               << *DiffUnitsSCEV << " (diff: " << *DiffSCEV << ")\n");
 
-  if (const SCEVConstant *ConstDUSCEV =
-      dyn_cast<SCEVConstant>(DiffUnitsSCEV)) {
+  if (const SCEVConstant *ConstDUSCEV = dyn_cast<SCEVConstant>(DiffUnitsSCEV)) {
+    PassPrediction::PassPeeper(__FILE__, 2384); // if
     int64_t DiffUnits = ConstDUSCEV->getValue()->getSExtValue();
 
     // If the displacement is an exact multiple of the alignment, then the
     // displaced pointer has the same alignment as the aligned pointer, so
     // return the alignment value.
-    if (!DiffUnits)
-      return (unsigned)
-        cast<SCEVConstant>(AlignSCEV)->getValue()->getSExtValue();
+    if (!DiffUnits) {
+      PassPrediction::PassPeeper(__FILE__, 2385); // if
+      return (unsigned)cast<SCEVConstant>(AlignSCEV)
+          ->getValue()
+          ->getSExtValue();
+    }
 
     // If the displacement is not an exact multiple, but the remainder is a
     // constant, then return this remainder (but only if it is a power of 2).
     uint64_t DiffUnitsAbs = std::abs(DiffUnits);
-    if (isPowerOf2_64(DiffUnitsAbs))
-      return (unsigned) DiffUnitsAbs;
+    if (isPowerOf2_64(DiffUnitsAbs)) {
+      PassPrediction::PassPeeper(__FILE__, 2386); // if
+      return (unsigned)DiffUnitsAbs;
+    }
   }
 
   return 0;
@@ -139,17 +142,18 @@ static unsigned getNewAlignment(const SCEV *AASCEV, const SCEV *AlignSCEV,
   // address. This address is displaced by the provided offset.
   DiffSCEV = SE->getMinusSCEV(DiffSCEV, OffSCEV);
 
-  DEBUG(dbgs() << "AFI: alignment of " << *Ptr << " relative to " <<
-                  *AlignSCEV << " and offset " << *OffSCEV <<
-                  " using diff " << *DiffSCEV << "\n");
+  DEBUG(dbgs() << "AFI: alignment of " << *Ptr << " relative to " << *AlignSCEV
+               << " and offset " << *OffSCEV << " using diff " << *DiffSCEV
+               << "\n");
 
   unsigned NewAlignment = getNewAlignmentDiff(DiffSCEV, AlignSCEV, SE);
   DEBUG(dbgs() << "\tnew alignment: " << NewAlignment << "\n");
 
   if (NewAlignment) {
+    PassPrediction::PassPeeper(__FILE__, 2387); // if
     return NewAlignment;
   } else if (const SCEVAddRecExpr *DiffARSCEV =
-             dyn_cast<SCEVAddRecExpr>(DiffSCEV)) {
+                 dyn_cast<SCEVAddRecExpr>(DiffSCEV)) {
     // The relative offset to the alignment assumption did not yield a constant,
     // but we should try harder: if we assume that a is 32-byte aligned, then in
     // for (i = 0; i < 1024; i += 4) r += a[i]; not all of the loads from a are
@@ -157,11 +161,12 @@ static unsigned getNewAlignment(const SCEV *AASCEV, const SCEV *AlignSCEV,
     // As a result, the new alignment will not be a constant, but can still
     // be improved over the default (of 4) to 16.
 
+    PassPrediction::PassPeeper(__FILE__, 2388); // if
     const SCEV *DiffStartSCEV = DiffARSCEV->getStart();
     const SCEV *DiffIncSCEV = DiffARSCEV->getStepRecurrence(*SE);
 
-    DEBUG(dbgs() << "\ttrying start/inc alignment using start " <<
-                    *DiffStartSCEV << " and inc " << *DiffIncSCEV << "\n");
+    DEBUG(dbgs() << "\ttrying start/inc alignment using start "
+                 << *DiffStartSCEV << " and inc " << *DiffIncSCEV << "\n");
 
     // Now compute the new alignment using the displacement to the value in the
     // first iteration, and also the alignment using the per-iteration delta.
@@ -174,22 +179,23 @@ static unsigned getNewAlignment(const SCEV *AASCEV, const SCEV *AlignSCEV,
     DEBUG(dbgs() << "\tnew inc alignment: " << NewIncAlignment << "\n");
 
     if (!NewAlignment || !NewIncAlignment) {
+      PassPrediction::PassPeeper(__FILE__, 2389); // if
       return 0;
     } else if (NewAlignment > NewIncAlignment) {
+      PassPrediction::PassPeeper(__FILE__, 2390); // if
       if (NewAlignment % NewIncAlignment == 0) {
-        DEBUG(dbgs() << "\tnew start/inc alignment: " <<
-                        NewIncAlignment << "\n");
+        DEBUG(dbgs() << "\tnew start/inc alignment: " << NewIncAlignment
+                     << "\n");
         return NewIncAlignment;
       }
     } else if (NewIncAlignment > NewAlignment) {
+      PassPrediction::PassPeeper(__FILE__, 2391); // if
       if (NewIncAlignment % NewAlignment == 0) {
-        DEBUG(dbgs() << "\tnew start/inc alignment: " <<
-                        NewAlignment << "\n");
+        DEBUG(dbgs() << "\tnew start/inc alignment: " << NewAlignment << "\n");
         return NewAlignment;
       }
     } else if (NewIncAlignment == NewAlignment) {
-      DEBUG(dbgs() << "\tnew start/inc alignment: " <<
-                      NewAlignment << "\n");
+      DEBUG(dbgs() << "\tnew start/inc alignment: " << NewAlignment << "\n");
       return NewAlignment;
     }
   }
@@ -204,26 +210,35 @@ bool AlignmentFromAssumptionsPass::extractAlignmentInfo(CallInst *I,
   // An alignment assume must be a statement about the least-significant
   // bits of the pointer being zero, possibly with some offset.
   ICmpInst *ICI = dyn_cast<ICmpInst>(I->getArgOperand(0));
-  if (!ICI)
+  if (!ICI) {
+    PassPrediction::PassPeeper(__FILE__, 2392); // if
     return false;
+  }
 
   // This must be an expression of the form: x & m == 0.
-  if (ICI->getPredicate() != ICmpInst::ICMP_EQ)
+  if (ICI->getPredicate() != ICmpInst::ICMP_EQ) {
+    PassPrediction::PassPeeper(__FILE__, 2393); // if
     return false;
+  }
 
   // Swap things around so that the RHS is 0.
   Value *CmpLHS = ICI->getOperand(0);
   Value *CmpRHS = ICI->getOperand(1);
   const SCEV *CmpLHSSCEV = SE->getSCEV(CmpLHS);
   const SCEV *CmpRHSSCEV = SE->getSCEV(CmpRHS);
-  if (CmpLHSSCEV->isZero())
+  if (CmpLHSSCEV->isZero()) {
+    PassPrediction::PassPeeper(__FILE__, 2394); // if
     std::swap(CmpLHS, CmpRHS);
-  else if (!CmpRHSSCEV->isZero())
+  } else if (!CmpRHSSCEV->isZero()) {
+    PassPrediction::PassPeeper(__FILE__, 2395); // if
     return false;
+  }
 
   BinaryOperator *CmpBO = dyn_cast<BinaryOperator>(CmpLHS);
-  if (!CmpBO || CmpBO->getOpcode() != Instruction::And)
+  if (!CmpBO || CmpBO->getOpcode() != Instruction::And) {
+    PassPrediction::PassPeeper(__FILE__, 2396); // if
     return false;
+  }
 
   // Swap things around so that the right operand of the and is a constant
   // (the mask); we cannot deal with variable masks.
@@ -232,25 +247,30 @@ bool AlignmentFromAssumptionsPass::extractAlignmentInfo(CallInst *I,
   const SCEV *AndLHSSCEV = SE->getSCEV(AndLHS);
   const SCEV *AndRHSSCEV = SE->getSCEV(AndRHS);
   if (isa<SCEVConstant>(AndLHSSCEV)) {
+    PassPrediction::PassPeeper(__FILE__, 2397); // if
     std::swap(AndLHS, AndRHS);
     std::swap(AndLHSSCEV, AndRHSSCEV);
   }
 
   const SCEVConstant *MaskSCEV = dyn_cast<SCEVConstant>(AndRHSSCEV);
-  if (!MaskSCEV)
+  if (!MaskSCEV) {
+    PassPrediction::PassPeeper(__FILE__, 2398); // if
     return false;
+  }
 
   // The mask must have some trailing ones (otherwise the condition is
   // trivial and tells us nothing about the alignment of the left operand).
   unsigned TrailingOnes = MaskSCEV->getAPInt().countTrailingOnes();
-  if (!TrailingOnes)
+  if (!TrailingOnes) {
+    PassPrediction::PassPeeper(__FILE__, 2399); // if
     return false;
+  }
 
   // Cap the alignment at the maximum with which LLVM can deal (and make sure
   // we don't overflow the shift).
   uint64_t Alignment;
-  TrailingOnes = std::min(TrailingOnes,
-    unsigned(sizeof(unsigned) * CHAR_BIT - 1));
+  TrailingOnes =
+      std::min(TrailingOnes, unsigned(sizeof(unsigned) * CHAR_BIT - 1));
   Alignment = std::min(1u << TrailingOnes, +Value::MaximumAlignment);
 
   Type *Int64Ty = Type::getInt64Ty(I->getParent()->getParent()->getContext());
@@ -261,31 +281,45 @@ bool AlignmentFromAssumptionsPass::extractAlignmentInfo(CallInst *I,
   AAPtr = nullptr;
   OffSCEV = nullptr;
   if (PtrToIntInst *PToI = dyn_cast<PtrToIntInst>(AndLHS)) {
+    PassPrediction::PassPeeper(__FILE__, 2400); // if
     AAPtr = PToI->getPointerOperand();
     OffSCEV = SE->getZero(Int64Ty);
-  } else if (const SCEVAddExpr* AndLHSAddSCEV =
-             dyn_cast<SCEVAddExpr>(AndLHSSCEV)) {
+  } else if (const SCEVAddExpr *AndLHSAddSCEV =
+                 dyn_cast<SCEVAddExpr>(AndLHSSCEV)) {
     // Try to find the ptrtoint; subtract it and the rest is the offset.
+    PassPrediction::PassPeeper(__FILE__, 2401); // if
     for (SCEVAddExpr::op_iterator J = AndLHSAddSCEV->op_begin(),
-         JE = AndLHSAddSCEV->op_end(); J != JE; ++J)
-      if (const SCEVUnknown *OpUnk = dyn_cast<SCEVUnknown>(*J))
+                                  JE = AndLHSAddSCEV->op_end();
+         J != JE; ++J) {
+      PassPrediction::PassPeeper(__FILE__, 2402); // for
+      if (const SCEVUnknown *OpUnk = dyn_cast<SCEVUnknown>(*J)) {
+        PassPrediction::PassPeeper(__FILE__, 2403); // if
         if (PtrToIntInst *PToI = dyn_cast<PtrToIntInst>(OpUnk->getValue())) {
+          PassPrediction::PassPeeper(__FILE__, 2404); // if
           AAPtr = PToI->getPointerOperand();
           OffSCEV = SE->getMinusSCEV(AndLHSAddSCEV, *J);
+          PassPrediction::PassPeeper(__FILE__, 2405); // break
           break;
         }
+      }
+    }
   }
 
-  if (!AAPtr)
+  if (!AAPtr) {
+    PassPrediction::PassPeeper(__FILE__, 2406); // if
     return false;
+  }
 
   // Sign extend the offset to 64 bits (so that it is like all of the other
-  // expressions). 
+  // expressions).
   unsigned OffSCEVBits = OffSCEV->getType()->getPrimitiveSizeInBits();
-  if (OffSCEVBits < 64)
+  if (OffSCEVBits < 64) {
+    PassPrediction::PassPeeper(__FILE__, 2407); // if
     OffSCEV = SE->getSignExtendExpr(OffSCEV, Int64Ty);
-  else if (OffSCEVBits > 64)
+  } else if (OffSCEVBits > 64) {
+    PassPrediction::PassPeeper(__FILE__, 2408); // if
     return false;
+  }
 
   AAPtr = AAPtr->stripPointerCasts();
   return true;
@@ -294,50 +328,67 @@ bool AlignmentFromAssumptionsPass::extractAlignmentInfo(CallInst *I,
 bool AlignmentFromAssumptionsPass::processAssumption(CallInst *ACall) {
   Value *AAPtr;
   const SCEV *AlignSCEV, *OffSCEV;
-  if (!extractAlignmentInfo(ACall, AAPtr, AlignSCEV, OffSCEV))
+  if (!extractAlignmentInfo(ACall, AAPtr, AlignSCEV, OffSCEV)) {
+    PassPrediction::PassPeeper(__FILE__, 2409); // if
     return false;
+  }
 
   // Skip ConstantPointerNull and UndefValue.  Assumptions on these shouldn't
   // affect other users.
-  if (isa<ConstantData>(AAPtr))
+  if (isa<ConstantData>(AAPtr)) {
+    PassPrediction::PassPeeper(__FILE__, 2410); // if
     return false;
+  }
 
   const SCEV *AASCEV = SE->getSCEV(AAPtr);
 
   // Apply the assumption to all other users of the specified pointer.
   SmallPtrSet<Instruction *, 32> Visited;
-  SmallVector<Instruction*, 16> WorkList;
+  SmallVector<Instruction *, 16> WorkList;
   for (User *J : AAPtr->users()) {
-    if (J == ACall)
+    PassPrediction::PassPeeper(__FILE__, 2411); // for-range
+    if (J == ACall) {
+      PassPrediction::PassPeeper(__FILE__, 2412); // if
       continue;
+    }
 
-    if (Instruction *K = dyn_cast<Instruction>(J))
-      if (isValidAssumeForContext(ACall, K, DT))
+    if (Instruction *K = dyn_cast<Instruction>(J)) {
+      PassPrediction::PassPeeper(__FILE__, 2413); // if
+      if (isValidAssumeForContext(ACall, K, DT)) {
+        PassPrediction::PassPeeper(__FILE__, 2414); // if
         WorkList.push_back(K);
+      }
+    }
   }
 
   while (!WorkList.empty()) {
+    PassPrediction::PassPeeper(__FILE__, 2415); // while
     Instruction *J = WorkList.pop_back_val();
 
     if (LoadInst *LI = dyn_cast<LoadInst>(J)) {
+      PassPrediction::PassPeeper(__FILE__, 2416); // if
       unsigned NewAlignment = getNewAlignment(AASCEV, AlignSCEV, OffSCEV,
-        LI->getPointerOperand(), SE);
+                                              LI->getPointerOperand(), SE);
 
       if (NewAlignment > LI->getAlignment()) {
+        PassPrediction::PassPeeper(__FILE__, 2417); // if
         LI->setAlignment(NewAlignment);
         ++NumLoadAlignChanged;
       }
     } else if (StoreInst *SI = dyn_cast<StoreInst>(J)) {
+      PassPrediction::PassPeeper(__FILE__, 2418); // if
       unsigned NewAlignment = getNewAlignment(AASCEV, AlignSCEV, OffSCEV,
-        SI->getPointerOperand(), SE);
+                                              SI->getPointerOperand(), SE);
 
       if (NewAlignment > SI->getAlignment()) {
+        PassPrediction::PassPeeper(__FILE__, 2419); // if
         SI->setAlignment(NewAlignment);
         ++NumStoreAlignChanged;
       }
     } else if (MemIntrinsic *MI = dyn_cast<MemIntrinsic>(J)) {
-      unsigned NewDestAlignment = getNewAlignment(AASCEV, AlignSCEV, OffSCEV,
-        MI->getDest(), SE);
+      PassPrediction::PassPeeper(__FILE__, 2420); // if
+      unsigned NewDestAlignment =
+          getNewAlignment(AASCEV, AlignSCEV, OffSCEV, MI->getDest(), SE);
 
       // For memory transfers, we need a common alignment for both the
       // source and destination. If we have a new alignment for this
@@ -345,37 +396,47 @@ bool AlignmentFromAssumptionsPass::processAssumption(CallInst *ACall) {
       // other operand through another assumption later, then we may
       // change the alignment at that point.
       if (MemTransferInst *MTI = dyn_cast<MemTransferInst>(MI)) {
-        unsigned NewSrcAlignment = getNewAlignment(AASCEV, AlignSCEV, OffSCEV,
-          MTI->getSource(), SE);
+        PassPrediction::PassPeeper(__FILE__, 2421); // if
+        unsigned NewSrcAlignment =
+            getNewAlignment(AASCEV, AlignSCEV, OffSCEV, MTI->getSource(), SE);
 
         DenseMap<MemTransferInst *, unsigned>::iterator DI =
-          NewDestAlignments.find(MTI);
-        unsigned AltDestAlignment = (DI == NewDestAlignments.end()) ?
-                                    0 : DI->second;
+            NewDestAlignments.find(MTI);
+        unsigned AltDestAlignment =
+            (DI == NewDestAlignments.end()) ? 0 : DI->second;
 
         DenseMap<MemTransferInst *, unsigned>::iterator SI =
-          NewSrcAlignments.find(MTI);
-        unsigned AltSrcAlignment = (SI == NewSrcAlignments.end()) ?
-                                   0 : SI->second;
+            NewSrcAlignments.find(MTI);
+        unsigned AltSrcAlignment =
+            (SI == NewSrcAlignments.end()) ? 0 : SI->second;
 
-        DEBUG(dbgs() << "\tmem trans: " << NewDestAlignment << " " <<
-                        AltDestAlignment << " " << NewSrcAlignment <<
-                        " " << AltSrcAlignment << "\n");
+        DEBUG(dbgs() << "\tmem trans: " << NewDestAlignment << " "
+                     << AltDestAlignment << " " << NewSrcAlignment << " "
+                     << AltSrcAlignment << "\n");
 
         // Of these four alignments, pick the largest possible...
         unsigned NewAlignment = 0;
-        if (NewDestAlignment <= std::max(NewSrcAlignment, AltSrcAlignment))
+        if (NewDestAlignment <= std::max(NewSrcAlignment, AltSrcAlignment)) {
+          PassPrediction::PassPeeper(__FILE__, 2422); // if
           NewAlignment = std::max(NewAlignment, NewDestAlignment);
-        if (AltDestAlignment <= std::max(NewSrcAlignment, AltSrcAlignment))
+        }
+        if (AltDestAlignment <= std::max(NewSrcAlignment, AltSrcAlignment)) {
+          PassPrediction::PassPeeper(__FILE__, 2423); // if
           NewAlignment = std::max(NewAlignment, AltDestAlignment);
-        if (NewSrcAlignment <= std::max(NewDestAlignment, AltDestAlignment))
+        }
+        if (NewSrcAlignment <= std::max(NewDestAlignment, AltDestAlignment)) {
+          PassPrediction::PassPeeper(__FILE__, 2424); // if
           NewAlignment = std::max(NewAlignment, NewSrcAlignment);
-        if (AltSrcAlignment <= std::max(NewDestAlignment, AltDestAlignment))
+        }
+        if (AltSrcAlignment <= std::max(NewDestAlignment, AltDestAlignment)) {
+          PassPrediction::PassPeeper(__FILE__, 2425); // if
           NewAlignment = std::max(NewAlignment, AltSrcAlignment);
+        }
 
         if (NewAlignment > MI->getAlignment()) {
-          MI->setAlignment(ConstantInt::get(Type::getInt32Ty(
-            MI->getParent()->getContext()), NewAlignment));
+          PassPrediction::PassPeeper(__FILE__, 2426); // if
+          MI->setAlignment(ConstantInt::get(
+              Type::getInt32Ty(MI->getParent()->getContext()), NewAlignment));
           ++NumMemIntAlignChanged;
         }
 
@@ -385,8 +446,8 @@ bool AlignmentFromAssumptionsPass::processAssumption(CallInst *ACall) {
         assert((!isa<MemIntrinsic>(MI) || isa<MemSetInst>(MI)) &&
                "Unknown memory intrinsic");
 
-        MI->setAlignment(ConstantInt::get(Type::getInt32Ty(
-          MI->getParent()->getContext()), NewDestAlignment));
+        MI->setAlignment(ConstantInt::get(
+            Type::getInt32Ty(MI->getParent()->getContext()), NewDestAlignment));
         ++NumMemIntAlignChanged;
       }
     }
@@ -395,9 +456,12 @@ bool AlignmentFromAssumptionsPass::processAssumption(CallInst *ACall) {
     // the pointer to update.
     Visited.insert(J);
     for (User *UJ : J->users()) {
+      PassPrediction::PassPeeper(__FILE__, 2427); // for-range
       Instruction *K = cast<Instruction>(UJ);
-      if (!Visited.count(K) && isValidAssumeForContext(ACall, K, DT))
+      if (!Visited.count(K) && isValidAssumeForContext(ACall, K, DT)) {
+        PassPrediction::PassPeeper(__FILE__, 2428); // if
         WorkList.push_back(K);
+      }
     }
   }
 
@@ -405,8 +469,10 @@ bool AlignmentFromAssumptionsPass::processAssumption(CallInst *ACall) {
 }
 
 bool AlignmentFromAssumptions::runOnFunction(Function &F) {
-  if (skipFunction(F))
+  if (skipFunction(F)) {
+    PassPrediction::PassPeeper(__FILE__, 2429); // if
     return false;
+  }
 
   auto &AC = getAnalysis<AssumptionCacheTracker>().getAssumptionCache(F);
   ScalarEvolution *SE = &getAnalysis<ScalarEvolutionWrapperPass>().getSE();
@@ -425,9 +491,13 @@ bool AlignmentFromAssumptionsPass::runImpl(Function &F, AssumptionCache &AC,
   NewSrcAlignments.clear();
 
   bool Changed = false;
-  for (auto &AssumeVH : AC.assumptions())
-    if (AssumeVH)
+  for (auto &AssumeVH : AC.assumptions()) {
+    PassPrediction::PassPeeper(__FILE__, 2430); // for-range
+    if (AssumeVH) {
+      PassPrediction::PassPeeper(__FILE__, 2431); // if
       Changed |= processAssumption(cast<CallInst>(AssumeVH));
+    }
+  }
 
   return Changed;
 }
@@ -438,8 +508,10 @@ AlignmentFromAssumptionsPass::run(Function &F, FunctionAnalysisManager &AM) {
   AssumptionCache &AC = AM.getResult<AssumptionAnalysis>(F);
   ScalarEvolution &SE = AM.getResult<ScalarEvolutionAnalysis>(F);
   DominatorTree &DT = AM.getResult<DominatorTreeAnalysis>(F);
-  if (!runImpl(F, AC, &SE, &DT))
+  if (!runImpl(F, AC, &SE, &DT)) {
+    PassPrediction::PassPeeper(__FILE__, 2432); // if
     return PreservedAnalyses::all();
+  }
 
   PreservedAnalyses PA;
   PA.preserveSet<CFGAnalyses>();

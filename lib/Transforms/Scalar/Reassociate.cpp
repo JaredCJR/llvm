@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===- Reassociate.cpp - Reassociate binary expressions -------------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -20,7 +21,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Transforms/Scalar/Reassociate.h"
 #include "llvm/ADT/DenseMap.h"
 #include "llvm/ADT/PostOrderIterator.h"
 #include "llvm/ADT/STLExtras.h"
@@ -41,6 +41,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar/Reassociate.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include <algorithm>
 using namespace llvm;
@@ -50,7 +51,7 @@ using namespace reassociate;
 
 STATISTIC(NumChanged, "Number of insts reassociated");
 STATISTIC(NumAnnihil, "Number of expr tree annihilated");
-STATISTIC(NumFactor , "Number of multiplies factored");
+STATISTIC(NumFactor, "Number of multiplies factored");
 
 #ifndef NDEBUG
 /// Print out the expression identified in the Ops list.
@@ -58,8 +59,9 @@ STATISTIC(NumFactor , "Number of multiplies factored");
 static void PrintOps(Instruction *I, const SmallVectorImpl<ValueEntry> &Ops) {
   Module *M = I->getModule();
   dbgs() << Instruction::getOpcodeName(I->getOpcode()) << " "
-       << *Ops[0].Op->getType() << '\t';
+         << *Ops[0].Op->getType() << '\t';
   for (unsigned i = 0, e = Ops.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3629); // for
     dbgs() << "[ ";
     Ops[i].Op->printAsOperand(dbgs(), false, M);
     dbgs() << ", #" << Ops[i].Rank << "] ";
@@ -105,13 +107,17 @@ XorOpnd::XorOpnd(Value *V) {
 
   if (I && (I->getOpcode() == Instruction::Or ||
             I->getOpcode() == Instruction::And)) {
+    PassPrediction::PassPeeper(__FILE__, 3630); // if
     Value *V0 = I->getOperand(0);
     Value *V1 = I->getOperand(1);
     const APInt *C;
-    if (match(V0, PatternMatch::m_APInt(C)))
+    if (match(V0, PatternMatch::m_APInt(C))) {
+      PassPrediction::PassPeeper(__FILE__, 3631); // if
       std::swap(V0, V1);
+    }
 
     if (match(V1, PatternMatch::m_APInt(C))) {
+      PassPrediction::PassPeeper(__FILE__, 3632); // if
       ConstPart = *C;
       SymbolicPart = V0;
       isOr = (I->getOpcode() == Instruction::Or);
@@ -130,9 +136,10 @@ XorOpnd::XorOpnd(Value *V) {
 static BinaryOperator *isReassociableOp(Value *V, unsigned Opcode) {
   if (V->hasOneUse() && isa<Instruction>(V) &&
       cast<Instruction>(V)->getOpcode() == Opcode &&
-      (!isa<FPMathOperator>(V) ||
-       cast<Instruction>(V)->hasUnsafeAlgebra()))
+      (!isa<FPMathOperator>(V) || cast<Instruction>(V)->hasUnsafeAlgebra())) {
+    PassPrediction::PassPeeper(__FILE__, 3633); // if
     return cast<BinaryOperator>(V);
+  }
   return nullptr;
 }
 
@@ -141,59 +148,75 @@ static BinaryOperator *isReassociableOp(Value *V, unsigned Opcode1,
   if (V->hasOneUse() && isa<Instruction>(V) &&
       (cast<Instruction>(V)->getOpcode() == Opcode1 ||
        cast<Instruction>(V)->getOpcode() == Opcode2) &&
-      (!isa<FPMathOperator>(V) ||
-       cast<Instruction>(V)->hasUnsafeAlgebra()))
+      (!isa<FPMathOperator>(V) || cast<Instruction>(V)->hasUnsafeAlgebra())) {
+    PassPrediction::PassPeeper(__FILE__, 3634); // if
     return cast<BinaryOperator>(V);
+  }
   return nullptr;
 }
 
-void ReassociatePass::BuildRankMap(Function &F,
-                                   ReversePostOrderTraversal<Function*> &RPOT) {
+void ReassociatePass::BuildRankMap(
+    Function &F, ReversePostOrderTraversal<Function *> &RPOT) {
   unsigned i = 2;
 
   // Assign distinct ranks to function arguments.
   for (Function::arg_iterator I = F.arg_begin(), E = F.arg_end(); I != E; ++I) {
+    PassPrediction::PassPeeper(__FILE__, 3635); // for
     ValueRankMap[&*I] = ++i;
     DEBUG(dbgs() << "Calculated Rank[" << I->getName() << "] = " << i << "\n");
   }
 
   // Traverse basic blocks in ReversePostOrder
   for (BasicBlock *BB : RPOT) {
+    PassPrediction::PassPeeper(__FILE__, 3636); // for-range
     unsigned BBRank = RankMap[BB] = ++i << 16;
 
     // Walk the basic block, adding precomputed ranks for any instructions that
     // we cannot move.  This ensures that the ranks for these instructions are
     // all different in the block.
-    for (Instruction &I : *BB)
-      if (mayBeMemoryDependent(I))
+    for (Instruction &I : *BB) {
+      PassPrediction::PassPeeper(__FILE__, 3637); // for-range
+      if (mayBeMemoryDependent(I)) {
+        PassPrediction::PassPeeper(__FILE__, 3638); // if
         ValueRankMap[&I] = ++BBRank;
+      }
+    }
   }
 }
 
 unsigned ReassociatePass::getRank(Value *V) {
   Instruction *I = dyn_cast<Instruction>(V);
   if (!I) {
-    if (isa<Argument>(V)) return ValueRankMap[V];   // Function argument.
-    return 0;  // Otherwise it's a global or constant, rank 0.
+    PassPrediction::PassPeeper(__FILE__, 3639); // if
+    if (isa<Argument>(V)) {
+      return ValueRankMap[V]; // Function argument.
+    }
+    return 0; // Otherwise it's a global or constant, rank 0.
   }
 
-  if (unsigned Rank = ValueRankMap[I])
-    return Rank;    // Rank already known?
+  if (unsigned Rank = ValueRankMap[I]) {
+    PassPrediction::PassPeeper(__FILE__, 3640); // if
+    return Rank;                                // Rank already known?
+  }
 
   // If this is an expression, return the 1+MAX(rank(LHS), rank(RHS)) so that
   // we can reassociate expressions for code motion!  Since we do not recurse
   // for PHI nodes, we cannot have infinite recursion here, because there
   // cannot be loops in the value graph that do not go through PHI nodes.
   unsigned Rank = 0, MaxRank = RankMap[I->getParent()];
-  for (unsigned i = 0, e = I->getNumOperands();
-       i != e && Rank != MaxRank; ++i)
+  for (unsigned i = 0, e = I->getNumOperands(); i != e && Rank != MaxRank;
+       ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3641); // for
     Rank = std::max(Rank, getRank(I->getOperand(i)));
+  }
 
   // If this is a not or neg instruction, do not count it for rank.  This
   // assures us that X and ~X will have the same rank.
-  if  (!BinaryOperator::isNot(I) && !BinaryOperator::isNeg(I) &&
-       !BinaryOperator::isFNeg(I))
+  if (!BinaryOperator::isNot(I) && !BinaryOperator::isNeg(I) &&
+      !BinaryOperator::isFNeg(I)) {
+    PassPrediction::PassPeeper(__FILE__, 3642); // if
     ++Rank;
+  }
 
   DEBUG(dbgs() << "Calculated Rank[" << V->getName() << "] = " << Rank << "\n");
 
@@ -210,18 +233,24 @@ void ReassociatePass::canonicalizeOperands(Instruction *I) {
   unsigned LHSRank = getRank(LHS);
   unsigned RHSRank = getRank(RHS);
 
-  if (isa<Constant>(RHS))
+  if (isa<Constant>(RHS)) {
+    PassPrediction::PassPeeper(__FILE__, 3643); // if
     return;
+  }
 
-  if (isa<Constant>(LHS) || RHSRank < LHSRank)
+  if (isa<Constant>(LHS) || RHSRank < LHSRank) {
+    PassPrediction::PassPeeper(__FILE__, 3644); // if
     cast<BinaryOperator>(I)->swapOperands();
+  }
 }
 
 static BinaryOperator *CreateAdd(Value *S1, Value *S2, const Twine &Name,
                                  Instruction *InsertBefore, Value *FlagsOp) {
-  if (S1->getType()->isIntOrIntVectorTy())
+  if (S1->getType()->isIntOrIntVectorTy()) {
+    PassPrediction::PassPeeper(__FILE__, 3645); // if
     return BinaryOperator::CreateAdd(S1, S2, Name, InsertBefore);
-  else {
+  } else {
+    PassPrediction::PassPeeper(__FILE__, 3646); // else
     BinaryOperator *Res =
         BinaryOperator::CreateFAdd(S1, S2, Name, InsertBefore);
     Res->setFastMathFlags(cast<FPMathOperator>(FlagsOp)->getFastMathFlags());
@@ -231,11 +260,13 @@ static BinaryOperator *CreateAdd(Value *S1, Value *S2, const Twine &Name,
 
 static BinaryOperator *CreateMul(Value *S1, Value *S2, const Twine &Name,
                                  Instruction *InsertBefore, Value *FlagsOp) {
-  if (S1->getType()->isIntOrIntVectorTy())
+  if (S1->getType()->isIntOrIntVectorTy()) {
+    PassPrediction::PassPeeper(__FILE__, 3647); // if
     return BinaryOperator::CreateMul(S1, S2, Name, InsertBefore);
-  else {
+  } else {
+    PassPrediction::PassPeeper(__FILE__, 3648); // else
     BinaryOperator *Res =
-      BinaryOperator::CreateFMul(S1, S2, Name, InsertBefore);
+        BinaryOperator::CreateFMul(S1, S2, Name, InsertBefore);
     Res->setFastMathFlags(cast<FPMathOperator>(FlagsOp)->getFastMathFlags());
     return Res;
   }
@@ -243,9 +274,11 @@ static BinaryOperator *CreateMul(Value *S1, Value *S2, const Twine &Name,
 
 static BinaryOperator *CreateNeg(Value *S1, const Twine &Name,
                                  Instruction *InsertBefore, Value *FlagsOp) {
-  if (S1->getType()->isIntOrIntVectorTy())
+  if (S1->getType()->isIntOrIntVectorTy()) {
+    PassPrediction::PassPeeper(__FILE__, 3649); // if
     return BinaryOperator::CreateNeg(S1, Name, InsertBefore);
-  else {
+  } else {
+    PassPrediction::PassPeeper(__FILE__, 3650); // else
     BinaryOperator *Res = BinaryOperator::CreateFNeg(S1, Name, InsertBefore);
     Res->setFastMathFlags(cast<FPMathOperator>(FlagsOp)->getFastMathFlags());
     return Res;
@@ -255,8 +288,8 @@ static BinaryOperator *CreateNeg(Value *S1, const Twine &Name,
 /// Replace 0-X with X*-1.
 static BinaryOperator *LowerNegateToMultiply(Instruction *Neg) {
   Type *Ty = Neg->getType();
-  Constant *NegOne = Ty->isIntOrIntVectorTy() ?
-    ConstantInt::getAllOnesValue(Ty) : ConstantFP::get(Ty, -1.0);
+  Constant *NegOne = Ty->isIntOrIntVectorTy() ? ConstantInt::getAllOnesValue(Ty)
+                                              : ConstantFP::get(Ty, -1.0);
 
   BinaryOperator *Res = CreateMul(Neg->getOperand(1), NegOne, "", Neg, Neg);
   Neg->setOperand(1, Constant::getNullValue(Ty)); // Drop use of op.
@@ -272,8 +305,10 @@ static BinaryOperator *LowerNegateToMultiply(Instruction *Neg) {
 /// Note that 0 <= k < Bitwidth, and if Bitwidth > 3 then x^(2^k) = 0 for every
 /// even x in Bitwidth-bit arithmetic.
 static unsigned CarmichaelShift(unsigned Bitwidth) {
-  if (Bitwidth < 3)
+  if (Bitwidth < 3) {
+    PassPrediction::PassPeeper(__FILE__, 3651); // if
     return Bitwidth - 1;
+  }
   return Bitwidth - 2;
 }
 
@@ -293,10 +328,13 @@ static void IncorporateWeight(APInt &LHS, const APInt &RHS, unsigned Opcode) {
   // weight back into range if wrapping would be wrong.
 
   // If RHS is zero then the weight didn't change.
-  if (RHS.isMinValue())
+  if (RHS.isMinValue()) {
+    PassPrediction::PassPeeper(__FILE__, 3652); // if
     return;
+  }
   // If LHS is zero then the combined weight is RHS.
   if (LHS.isMinValue()) {
+    PassPrediction::PassPeeper(__FILE__, 3653); // if
     LHS = RHS;
     return;
   }
@@ -317,6 +355,7 @@ static void IncorporateWeight(APInt &LHS, const APInt &RHS, unsigned Opcode) {
   }
   if (Opcode == Instruction::Add || Opcode == Instruction::FAdd) {
     // TODO: Reduce the weight by exploiting nsw/nuw?
+    PassPrediction::PassPeeper(__FILE__, 3654); // if
     LHS += RHS;
     return;
   }
@@ -335,29 +374,35 @@ static void IncorporateWeight(APInt &LHS, const APInt &RHS, unsigned Opcode) {
   // the Carmichael number).
   if (Bitwidth > 3) {
     /// CM - The value of Carmichael's lambda function.
+    PassPrediction::PassPeeper(__FILE__, 3655); // if
     APInt CM = APInt::getOneBitSet(Bitwidth, CarmichaelShift(Bitwidth));
     // Any weight W >= Threshold can be replaced with W - CM.
     APInt Threshold = CM + Bitwidth;
     assert(LHS.ult(Threshold) && RHS.ult(Threshold) && "Weights not reduced!");
     // For Bitwidth 4 or more the following sum does not overflow.
     LHS += RHS;
-    while (LHS.uge(Threshold))
+    while (LHS.uge(Threshold)) {
+      PassPrediction::PassPeeper(__FILE__, 3657); // while
       LHS -= CM;
+    }
   } else {
     // To avoid problems with overflow do everything the same as above but using
     // a larger type.
+    PassPrediction::PassPeeper(__FILE__, 3656); // else
     unsigned CM = 1U << CarmichaelShift(Bitwidth);
     unsigned Threshold = CM + Bitwidth;
     assert(LHS.getZExtValue() < Threshold && RHS.getZExtValue() < Threshold &&
            "Weights not reduced!");
     unsigned Total = LHS.getZExtValue() + RHS.getZExtValue();
-    while (Total >= Threshold)
+    while (Total >= Threshold) {
+      PassPrediction::PassPeeper(__FILE__, 3658); // while
       Total -= CM;
+    }
     LHS = Total;
   }
 }
 
-typedef std::pair<Value*, APInt> RepeatedValue;
+typedef std::pair<Value *, APInt> RepeatedValue;
 
 /// Given an associative binary expression, return the leaf
 /// nodes in Ops along with their weights (how many times the leaf occurs).  The
@@ -451,7 +496,7 @@ static bool LinearizeExprTree(BinaryOperator *I,
   // with their weights, representing a certain number of paths to the operator.
   // If an operator occurs in the worklist multiple times then we found multiple
   // ways to get to it.
-  SmallVector<std::pair<BinaryOperator*, APInt>, 8> Worklist; // (Op, Weight)
+  SmallVector<std::pair<BinaryOperator *, APInt>, 8> Worklist; // (Op, Weight)
   Worklist.push_back(std::make_pair(I, APInt(Bitwidth, 1)));
   bool Changed = false;
 
@@ -470,18 +515,20 @@ static bool LinearizeExprTree(BinaryOperator *I,
 
   // Leaves - Keeps track of the set of putative leaves as well as the number of
   // paths to each leaf seen so far.
-  typedef DenseMap<Value*, APInt> LeafMap;
-  LeafMap Leaves; // Leaf -> Total weight so far.
-  SmallVector<Value*, 8> LeafOrder; // Ensure deterministic leaf output order.
+  typedef DenseMap<Value *, APInt> LeafMap;
+  LeafMap Leaves;                    // Leaf -> Total weight so far.
+  SmallVector<Value *, 8> LeafOrder; // Ensure deterministic leaf output order.
 
 #ifndef NDEBUG
-  SmallPtrSet<Value*, 8> Visited; // For sanity checking the iteration scheme.
+  SmallPtrSet<Value *, 8> Visited; // For sanity checking the iteration scheme.
 #endif
   while (!Worklist.empty()) {
-    std::pair<BinaryOperator*, APInt> P = Worklist.pop_back_val();
+    PassPrediction::PassPeeper(__FILE__, 3659); // while
+    std::pair<BinaryOperator *, APInt> P = Worklist.pop_back_val();
     I = P.first; // We examine the operands of this binary operator.
 
     for (unsigned OpIdx = 0; OpIdx < 2; ++OpIdx) { // Visit operands.
+      PassPrediction::PassPeeper(__FILE__, 3660);  // for
       Value *Op = I->getOperand(OpIdx);
       APInt Weight = P.second; // Number of paths to this operand.
       DEBUG(dbgs() << "OPERAND: " << *Op << " (" << Weight << ")\n");
@@ -518,9 +565,9 @@ static bool LinearizeExprTree(BinaryOperator *I,
         // Update the number of paths to the leaf.
         IncorporateWeight(It->second, Weight, Opcode);
 
-#if 0   // TODO: Re-enable once PR13021 is fixed.
-        // The leaf already has one use from inside the expression.  As we want
-        // exactly one such use, drop this new use of the leaf.
+#if 0 // TODO: Re-enable once PR13021 is fixed.
+      // The leaf already has one use from inside the expression.  As we want
+      // exactly one such use, drop this new use of the leaf.
         assert(!Op->hasOneUse() && "Only one use, but we got here twice!");
         I->setOperand(OpIdx, UndefValue::get(I->getType()));
         Changed = true;
@@ -539,8 +586,10 @@ static bool LinearizeExprTree(BinaryOperator *I,
 
         // If we still have uses that are not accounted for by the expression
         // then it is not safe to modify the value.
-        if (!Op->hasOneUse())
+        if (!Op->hasOneUse()) {
+          PassPrediction::PassPeeper(__FILE__, 3661); // if
           continue;
+        }
 
         // No uses outside the expression, try morphing it.
         Weight = It->second;
@@ -552,15 +601,16 @@ static bool LinearizeExprTree(BinaryOperator *I,
       // expression.  This means that it can safely be modified.  See if we
       // can usefully morph it into an expression of the right kind.
       assert((!isa<Instruction>(Op) ||
-              cast<Instruction>(Op)->getOpcode() != Opcode
-              || (isa<FPMathOperator>(Op) &&
-                  !cast<Instruction>(Op)->hasUnsafeAlgebra())) &&
+              cast<Instruction>(Op)->getOpcode() != Opcode ||
+              (isa<FPMathOperator>(Op) &&
+               !cast<Instruction>(Op)->hasUnsafeAlgebra())) &&
              "Should have been handled above!");
       assert(Op->hasOneUse() && "Has uses outside the expression tree!");
 
       // If this is a multiply expression, turn any internal negations into
       // multiplies by -1 so they can be reassociated.
-      if (BinaryOperator *BO = dyn_cast<BinaryOperator>(Op))
+      if (BinaryOperator *BO = dyn_cast<BinaryOperator>(Op)) {
+        PassPrediction::PassPeeper(__FILE__, 3662); // if
         if ((Opcode == Instruction::Mul && BinaryOperator::isNeg(BO)) ||
             (Opcode == Instruction::FMul && BinaryOperator::isFNeg(BO))) {
           DEBUG(dbgs() << "MORPH LEAF: " << *Op << " (" << Weight << ") TO ");
@@ -570,6 +620,7 @@ static bool LinearizeExprTree(BinaryOperator *I,
           Changed = true;
           continue;
         }
+      }
 
       // Failed to morph into an expression of the right type.  This really is
       // a leaf.
@@ -583,16 +634,21 @@ static bool LinearizeExprTree(BinaryOperator *I,
   // The leaves, repeated according to their weights, represent the linearized
   // form of the expression.
   for (unsigned i = 0, e = LeafOrder.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3663); // for
     Value *V = LeafOrder[i];
     LeafMap::iterator It = Leaves.find(V);
-    if (It == Leaves.end())
+    if (It == Leaves.end()) {
       // Node initially thought to be a leaf wasn't.
+      PassPrediction::PassPeeper(__FILE__, 3664); // if
       continue;
+    }
     assert(!isReassociableOp(V, Opcode) && "Shouldn't be a leaf!");
     APInt Weight = It->second;
-    if (Weight.isMinValue())
+    if (Weight.isMinValue()) {
       // Leaf already output or weight reduction eliminated it.
+      PassPrediction::PassPeeper(__FILE__, 3665); // if
       continue;
+    }
     // Ensure the leaf is only output once.
     It->second = 0;
     Ops.push_back(std::make_pair(V, Weight));
@@ -602,6 +658,7 @@ static bool LinearizeExprTree(BinaryOperator *I,
   // because the expression was "X xor X" or consisted of 2^Bitwidth additions:
   // in both cases the weight reduces to 0 causing the value to be skipped.
   if (Ops.empty()) {
+    PassPrediction::PassPeeper(__FILE__, 3666); // if
     Constant *Identity = ConstantExpr::getBinOpIdentity(Opcode, I->getType());
     assert(Identity && "Associative operation without identity!");
     Ops.emplace_back(Identity, APInt(Bitwidth, 1));
@@ -627,7 +684,7 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
 
   /// NodesToRewrite - Nodes from the original expression available for writing
   /// the new expression into.
-  SmallVector<BinaryOperator*, 8> NodesToRewrite;
+  SmallVector<BinaryOperator *, 8> NodesToRewrite;
   unsigned Opcode = I->getOpcode();
   BinaryOperator *Op = I;
 
@@ -641,27 +698,33 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
   /// due it being removed as an operand of one of its uses.  Ensure that misuse
   /// of leaf nodes as inner nodes cannot occur by remembering all of the future
   /// leaves and refusing to reuse any of them as inner nodes.
-  SmallPtrSet<Value*, 8> NotRewritable;
-  for (unsigned i = 0, e = Ops.size(); i != e; ++i)
+  SmallPtrSet<Value *, 8> NotRewritable;
+  for (unsigned i = 0, e = Ops.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3667); // for
     NotRewritable.insert(Ops[i].Op);
+  }
 
   // ExpressionChanged - Non-null if the rewritten expression differs from the
   // original in some non-trivial way, requiring the clearing of optional flags.
   // Flags are cleared from the operator in ExpressionChanged up to I inclusive.
   BinaryOperator *ExpressionChanged = nullptr;
-  for (unsigned i = 0; ; ++i) {
+  for (unsigned i = 0;; ++i) {
     // The last operation (which comes earliest in the IR) is special as both
     // operands will come from Ops, rather than just one with the other being
     // a subexpression.
-    if (i+2 == Ops.size()) {
+    PassPrediction::PassPeeper(__FILE__, 3668); // for
+    if (i + 2 == Ops.size()) {
+      PassPrediction::PassPeeper(__FILE__, 3669); // if
       Value *NewLHS = Ops[i].Op;
-      Value *NewRHS = Ops[i+1].Op;
+      Value *NewRHS = Ops[i + 1].Op;
       Value *OldLHS = Op->getOperand(0);
       Value *OldRHS = Op->getOperand(1);
 
-      if (NewLHS == OldLHS && NewRHS == OldRHS)
+      if (NewLHS == OldLHS && NewRHS == OldRHS) {
         // Nothing changed, leave it alone.
+        PassPrediction::PassPeeper(__FILE__, 3670); // if
         break;
+      }
 
       if (NewLHS == OldRHS && NewRHS == OldLHS) {
         // The order of the operands was reversed.  Swap them.
@@ -670,6 +733,7 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
         DEBUG(dbgs() << "TO: " << *Op << '\n');
         MadeChange = true;
         ++NumChanged;
+        PassPrediction::PassPeeper(__FILE__, 3671); // break
         break;
       }
 
@@ -677,15 +741,21 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
       // the old operands with the new ones.
       DEBUG(dbgs() << "RA: " << *Op << '\n');
       if (NewLHS != OldLHS) {
+        PassPrediction::PassPeeper(__FILE__, 3672); // if
         BinaryOperator *BO = isReassociableOp(OldLHS, Opcode);
-        if (BO && !NotRewritable.count(BO))
+        if (BO && !NotRewritable.count(BO)) {
+          PassPrediction::PassPeeper(__FILE__, 3673); // if
           NodesToRewrite.push_back(BO);
+        }
         Op->setOperand(0, NewLHS);
       }
       if (NewRHS != OldRHS) {
+        PassPrediction::PassPeeper(__FILE__, 3674); // if
         BinaryOperator *BO = isReassociableOp(OldRHS, Opcode);
-        if (BO && !NotRewritable.count(BO))
+        if (BO && !NotRewritable.count(BO)) {
+          PassPrediction::PassPeeper(__FILE__, 3675); // if
           NodesToRewrite.push_back(BO);
+        }
         Op->setOperand(1, NewRHS);
       }
       DEBUG(dbgs() << "TO: " << *Op << '\n');
@@ -694,6 +764,7 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
       MadeChange = true;
       ++NumChanged;
 
+      PassPrediction::PassPeeper(__FILE__, 3676); // break
       break;
     }
 
@@ -705,12 +776,16 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
       if (NewRHS == Op->getOperand(0)) {
         // The new right-hand side was already present as the left operand.  If
         // we are lucky then swapping the operands will sort out both of them.
+        PassPrediction::PassPeeper(__FILE__, 3677); // if
         Op->swapOperands();
       } else {
         // Overwrite with the new right-hand side.
+        PassPrediction::PassPeeper(__FILE__, 3678); // else
         BinaryOperator *BO = isReassociableOp(Op->getOperand(1), Opcode);
-        if (BO && !NotRewritable.count(BO))
+        if (BO && !NotRewritable.count(BO)) {
+          PassPrediction::PassPeeper(__FILE__, 3679); // if
           NodesToRewrite.push_back(BO);
+        }
         Op->setOperand(1, NewRHS);
         ExpressionChanged = Op;
       }
@@ -724,6 +799,7 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
     // into it.
     BinaryOperator *BO = isReassociableOp(Op->getOperand(0), Opcode);
     if (BO && !NotRewritable.count(BO)) {
+      PassPrediction::PassPeeper(__FILE__, 3680); // if
       Op = BO;
       continue;
     }
@@ -737,12 +813,16 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
     // stupid, create a new node if there are none left.
     BinaryOperator *NewOp;
     if (NodesToRewrite.empty()) {
+      PassPrediction::PassPeeper(__FILE__, 3681); // if
       Constant *Undef = UndefValue::get(I->getType());
-      NewOp = BinaryOperator::Create(Instruction::BinaryOps(Opcode),
-                                     Undef, Undef, "", I);
-      if (NewOp->getType()->isFPOrFPVectorTy())
+      NewOp = BinaryOperator::Create(Instruction::BinaryOps(Opcode), Undef,
+                                     Undef, "", I);
+      if (NewOp->getType()->isFPOrFPVectorTy()) {
+        PassPrediction::PassPeeper(__FILE__, 3683); // if
         NewOp->setFastMathFlags(I->getFastMathFlags());
+      }
     } else {
+      PassPrediction::PassPeeper(__FILE__, 3682); // else
       NewOp = NodesToRewrite.pop_back_val();
     }
 
@@ -759,25 +839,36 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
   // starting from the operator specified in ExpressionChanged, and compactify
   // the operators to just before the expression root to guarantee that the
   // expression tree is dominated by all of Ops.
-  if (ExpressionChanged)
+  if (ExpressionChanged) {
+    PassPrediction::PassPeeper(__FILE__, 3684); // if
     do {
       // Preserve FastMathFlags.
+      PassPrediction::PassPeeper(__FILE__, 3685); // do-while
       if (isa<FPMathOperator>(I)) {
+        PassPrediction::PassPeeper(__FILE__, 3686); // if
         FastMathFlags Flags = I->getFastMathFlags();
         ExpressionChanged->clearSubclassOptionalData();
         ExpressionChanged->setFastMathFlags(Flags);
-      } else
+      } else {
+        PassPrediction::PassPeeper(__FILE__, 3687); // else
         ExpressionChanged->clearSubclassOptionalData();
+      }
 
-      if (ExpressionChanged == I)
+      if (ExpressionChanged == I) {
+        PassPrediction::PassPeeper(__FILE__, 3688); // if
         break;
+      }
       ExpressionChanged->moveBefore(I);
-      ExpressionChanged = cast<BinaryOperator>(*ExpressionChanged->user_begin());
+      ExpressionChanged =
+          cast<BinaryOperator>(*ExpressionChanged->user_begin());
     } while (1);
+  }
 
   // Throw away any left over nodes from the original expression.
-  for (unsigned i = 0, e = NodesToRewrite.size(); i != e; ++i)
+  for (unsigned i = 0, e = NodesToRewrite.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3689); // for
     RedoInsts.insert(NodesToRewrite[i]);
+  }
 }
 
 /// Insert instructions before the instruction pointed to by BI,
@@ -790,12 +881,13 @@ void ReassociatePass::RewriteExprTree(BinaryOperator *I,
 static Value *NegateValue(Value *V, Instruction *BI,
                           SetVector<AssertingVH<Instruction>> &ToRedo) {
   if (Constant *C = dyn_cast<Constant>(V)) {
+    PassPrediction::PassPeeper(__FILE__, 3690); // if
     if (C->getType()->isFPOrFPVectorTy()) {
+      PassPrediction::PassPeeper(__FILE__, 3691); // if
       return ConstantExpr::getFNeg(C);
     }
     return ConstantExpr::getNeg(C);
   }
-
 
   // We are trying to expose opportunity for reassociation.  One of the things
   // that we want to do to achieve this is to push a negation as deep into an
@@ -809,9 +901,11 @@ static Value *NegateValue(Value *V, Instruction *BI,
   if (BinaryOperator *I =
           isReassociableOp(V, Instruction::Add, Instruction::FAdd)) {
     // Push the negates through the add.
+    PassPrediction::PassPeeper(__FILE__, 3692); // if
     I->setOperand(0, NegateValue(I->getOperand(0), BI, ToRedo));
     I->setOperand(1, NegateValue(I->getOperand(1), BI, ToRedo));
     if (I->getOpcode() == Instruction::Add) {
+      PassPrediction::PassPeeper(__FILE__, 3693); // if
       I->setHasNoUnsignedWrap(false);
       I->setHasNoSignedWrap(false);
     }
@@ -822,7 +916,7 @@ static Value *NegateValue(Value *V, Instruction *BI,
     // instruction we are about to insert after them.
     //
     I->moveBefore(BI);
-    I->setName(I->getName()+".neg");
+    I->setName(I->getName() + ".neg");
 
     // Add the intermediate negates to the redo list as processing them later
     // could expose more reassociating opportunities.
@@ -833,8 +927,11 @@ static Value *NegateValue(Value *V, Instruction *BI,
   // Okay, we need to materialize a negated version of V with an instruction.
   // Scan the use lists of V to see if we have one already.
   for (User *U : V->users()) {
-    if (!BinaryOperator::isNeg(U) && !BinaryOperator::isFNeg(U))
+    PassPrediction::PassPeeper(__FILE__, 3694); // for-range
+    if (!BinaryOperator::isNeg(U) && !BinaryOperator::isFNeg(U)) {
+      PassPrediction::PassPeeper(__FILE__, 3695); // if
       continue;
+    }
 
     // We found one!  Now we have to make sure that the definition dominates
     // this use.  We do this by moving it to the entry block (if it is a
@@ -843,25 +940,36 @@ static Value *NegateValue(Value *V, Instruction *BI,
     BinaryOperator *TheNeg = cast<BinaryOperator>(U);
 
     // Verify that the negate is in this function, V might be a constant expr.
-    if (TheNeg->getParent()->getParent() != BI->getParent()->getParent())
+    if (TheNeg->getParent()->getParent() != BI->getParent()->getParent()) {
+      PassPrediction::PassPeeper(__FILE__, 3696); // if
       continue;
+    }
 
     BasicBlock::iterator InsertPt;
     if (Instruction *InstInput = dyn_cast<Instruction>(V)) {
+      PassPrediction::PassPeeper(__FILE__, 3697); // if
       if (InvokeInst *II = dyn_cast<InvokeInst>(InstInput)) {
+        PassPrediction::PassPeeper(__FILE__, 3699); // if
         InsertPt = II->getNormalDest()->begin();
       } else {
+        PassPrediction::PassPeeper(__FILE__, 3700); // else
         InsertPt = ++InstInput->getIterator();
       }
-      while (isa<PHINode>(InsertPt)) ++InsertPt;
+      while (isa<PHINode>(InsertPt)) {
+        PassPrediction::PassPeeper(__FILE__, 3701); // while
+        ++InsertPt;
+      }
     } else {
+      PassPrediction::PassPeeper(__FILE__, 3698); // else
       InsertPt = TheNeg->getParent()->getParent()->getEntryBlock().begin();
     }
     TheNeg->moveBefore(&*InsertPt);
     if (TheNeg->getOpcode() == Instruction::Sub) {
+      PassPrediction::PassPeeper(__FILE__, 3702); // if
       TheNeg->setHasNoUnsignedWrap(false);
       TheNeg->setHasNoSignedWrap(false);
     } else {
+      PassPrediction::PassPeeper(__FILE__, 3703); // else
       TheNeg->andIRFlags(BI);
     }
     ToRedo.insert(TheNeg);
@@ -878,28 +986,38 @@ static Value *NegateValue(Value *V, Instruction *BI,
 /// Return true if we should break up this subtract of X-Y into (X + -Y).
 static bool ShouldBreakUpSubtract(Instruction *Sub) {
   // If this is a negation, we can't split it up!
-  if (BinaryOperator::isNeg(Sub) || BinaryOperator::isFNeg(Sub))
+  if (BinaryOperator::isNeg(Sub) || BinaryOperator::isFNeg(Sub)) {
+    PassPrediction::PassPeeper(__FILE__, 3704); // if
     return false;
+  }
 
   // Don't breakup X - undef.
-  if (isa<UndefValue>(Sub->getOperand(1)))
+  if (isa<UndefValue>(Sub->getOperand(1))) {
+    PassPrediction::PassPeeper(__FILE__, 3705); // if
     return false;
+  }
 
   // Don't bother to break this up unless either the LHS is an associable add or
   // subtract or if this is only used by one.
   Value *V0 = Sub->getOperand(0);
   if (isReassociableOp(V0, Instruction::Add, Instruction::FAdd) ||
-      isReassociableOp(V0, Instruction::Sub, Instruction::FSub))
+      isReassociableOp(V0, Instruction::Sub, Instruction::FSub)) {
+    PassPrediction::PassPeeper(__FILE__, 3706); // if
     return true;
+  }
   Value *V1 = Sub->getOperand(1);
   if (isReassociableOp(V1, Instruction::Add, Instruction::FAdd) ||
-      isReassociableOp(V1, Instruction::Sub, Instruction::FSub))
+      isReassociableOp(V1, Instruction::Sub, Instruction::FSub)) {
+    PassPrediction::PassPeeper(__FILE__, 3707); // if
     return true;
+  }
   Value *VB = Sub->user_back();
   if (Sub->hasOneUse() &&
       (isReassociableOp(VB, Instruction::Add, Instruction::FAdd) ||
-       isReassociableOp(VB, Instruction::Sub, Instruction::FSub)))
+       isReassociableOp(VB, Instruction::Sub, Instruction::FSub))) {
+    PassPrediction::PassPeeper(__FILE__, 3708); // if
     return true;
+  }
 
   return false;
 }
@@ -935,7 +1053,7 @@ static BinaryOperator *ConvertShiftToMul(Instruction *Shl) {
   MulCst = ConstantExpr::getShl(MulCst, cast<Constant>(Shl->getOperand(1)));
 
   BinaryOperator *Mul =
-    BinaryOperator::CreateMul(Shl->getOperand(0), MulCst, "", Shl);
+      BinaryOperator::CreateMul(Shl->getOperand(0), MulCst, "", Shl);
   Shl->setOperand(0, UndefValue::get(Shl->getType())); // Drop use of op.
   Mul->takeName(Shl);
 
@@ -948,8 +1066,10 @@ static BinaryOperator *ConvertShiftToMul(Instruction *Shl) {
   // handling.
   bool NSW = cast<BinaryOperator>(Shl)->hasNoSignedWrap();
   bool NUW = cast<BinaryOperator>(Shl)->hasNoUnsignedWrap();
-  if (NSW && NUW)
+  if (NSW && NUW) {
+    PassPrediction::PassPeeper(__FILE__, 3709); // if
     Mul->setHasNoSignedWrap(true);
+  }
   Mul->setHasNoUnsignedWrap(NUW);
   return Mul;
 }
@@ -961,22 +1081,40 @@ static unsigned FindInOperandList(const SmallVectorImpl<ValueEntry> &Ops,
                                   unsigned i, Value *X) {
   unsigned XRank = Ops[i].Rank;
   unsigned e = Ops.size();
-  for (unsigned j = i+1; j != e && Ops[j].Rank == XRank; ++j) {
-    if (Ops[j].Op == X)
+  for (unsigned j = i + 1; j != e && Ops[j].Rank == XRank; ++j) {
+    PassPrediction::PassPeeper(__FILE__, 3710); // for
+    if (Ops[j].Op == X) {
+      PassPrediction::PassPeeper(__FILE__, 3711); // if
       return j;
-    if (Instruction *I1 = dyn_cast<Instruction>(Ops[j].Op))
-      if (Instruction *I2 = dyn_cast<Instruction>(X))
-        if (I1->isIdenticalTo(I2))
+    }
+    if (Instruction *I1 = dyn_cast<Instruction>(Ops[j].Op)) {
+      PassPrediction::PassPeeper(__FILE__, 3712); // if
+      if (Instruction *I2 = dyn_cast<Instruction>(X)) {
+        PassPrediction::PassPeeper(__FILE__, 3713); // if
+        if (I1->isIdenticalTo(I2)) {
+          PassPrediction::PassPeeper(__FILE__, 3714); // if
           return j;
+        }
+      }
+    }
   }
   // Scan backwards.
-  for (unsigned j = i-1; j != ~0U && Ops[j].Rank == XRank; --j) {
-    if (Ops[j].Op == X)
+  for (unsigned j = i - 1; j != ~0U && Ops[j].Rank == XRank; --j) {
+    PassPrediction::PassPeeper(__FILE__, 3715); // for
+    if (Ops[j].Op == X) {
+      PassPrediction::PassPeeper(__FILE__, 3716); // if
       return j;
-    if (Instruction *I1 = dyn_cast<Instruction>(Ops[j].Op))
-      if (Instruction *I2 = dyn_cast<Instruction>(X))
-        if (I1->isIdenticalTo(I2))
+    }
+    if (Instruction *I1 = dyn_cast<Instruction>(Ops[j].Op)) {
+      PassPrediction::PassPeeper(__FILE__, 3717); // if
+      if (Instruction *I2 = dyn_cast<Instruction>(X)) {
+        PassPrediction::PassPeeper(__FILE__, 3718); // if
+        if (I1->isIdenticalTo(I2)) {
+          PassPrediction::PassPeeper(__FILE__, 3719); // if
           return j;
+        }
+      }
+    }
   }
   return i;
 }
@@ -985,7 +1123,10 @@ static unsigned FindInOperandList(const SmallVectorImpl<ValueEntry> &Ops,
 /// and returning the result.  Insert the tree before I.
 static Value *EmitAddTreeOfValues(Instruction *I,
                                   SmallVectorImpl<WeakTrackingVH> &Ops) {
-  if (Ops.size() == 1) return Ops.back();
+  if (Ops.size() == 1) {
+    PassPrediction::PassPeeper(__FILE__, 3720); // if
+    return Ops.back();
+  }
 
   Value *V1 = Ops.back();
   Ops.pop_back();
@@ -998,14 +1139,17 @@ static Value *EmitAddTreeOfValues(Instruction *I,
 /// remove Factor from the tree and return the new tree.
 Value *ReassociatePass::RemoveFactorFromExpression(Value *V, Value *Factor) {
   BinaryOperator *BO = isReassociableOp(V, Instruction::Mul, Instruction::FMul);
-  if (!BO)
+  if (!BO) {
+    PassPrediction::PassPeeper(__FILE__, 3721); // if
     return nullptr;
+  }
 
   SmallVector<RepeatedValue, 8> Tree;
   MadeChange |= LinearizeExprTree(BO, Tree);
   SmallVector<ValueEntry, 8> Factors;
   Factors.reserve(Tree.size());
   for (unsigned i = 0, e = Tree.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3722); // for
     RepeatedValue E = Tree[i];
     Factors.append(E.second.getZExtValue(),
                    ValueEntry(getRank(E.first), E.first));
@@ -1014,28 +1158,40 @@ Value *ReassociatePass::RemoveFactorFromExpression(Value *V, Value *Factor) {
   bool FoundFactor = false;
   bool NeedsNegate = false;
   for (unsigned i = 0, e = Factors.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3723); // for
     if (Factors[i].Op == Factor) {
+      PassPrediction::PassPeeper(__FILE__, 3724); // if
       FoundFactor = true;
-      Factors.erase(Factors.begin()+i);
+      Factors.erase(Factors.begin() + i);
+      PassPrediction::PassPeeper(__FILE__, 3725); // break
       break;
     }
 
     // If this is a negative version of this factor, remove it.
     if (ConstantInt *FC1 = dyn_cast<ConstantInt>(Factor)) {
-      if (ConstantInt *FC2 = dyn_cast<ConstantInt>(Factors[i].Op))
+      PassPrediction::PassPeeper(__FILE__, 3726); // if
+      if (ConstantInt *FC2 = dyn_cast<ConstantInt>(Factors[i].Op)) {
+        PassPrediction::PassPeeper(__FILE__, 3727); // if
         if (FC1->getValue() == -FC2->getValue()) {
+          PassPrediction::PassPeeper(__FILE__, 3728); // if
           FoundFactor = NeedsNegate = true;
-          Factors.erase(Factors.begin()+i);
+          Factors.erase(Factors.begin() + i);
+          PassPrediction::PassPeeper(__FILE__, 3729); // break
           break;
         }
+      }
     } else if (ConstantFP *FC1 = dyn_cast<ConstantFP>(Factor)) {
+      PassPrediction::PassPeeper(__FILE__, 3730); // if
       if (ConstantFP *FC2 = dyn_cast<ConstantFP>(Factors[i].Op)) {
+        PassPrediction::PassPeeper(__FILE__, 3731); // if
         const APFloat &F1 = FC1->getValueAPF();
         APFloat F2(FC2->getValueAPF());
         F2.changeSign();
         if (F1.compare(F2) == APFloat::cmpEqual) {
+          PassPrediction::PassPeeper(__FILE__, 3732); // if
           FoundFactor = NeedsNegate = true;
           Factors.erase(Factors.begin() + i);
+          PassPrediction::PassPeeper(__FILE__, 3733); // break
           break;
         }
       }
@@ -1044,6 +1200,7 @@ Value *ReassociatePass::RemoveFactorFromExpression(Value *V, Value *Factor) {
 
   if (!FoundFactor) {
     // Make sure to restore the operands to the expression tree.
+    PassPrediction::PassPeeper(__FILE__, 3734); // if
     RewriteExprTree(BO, Factors);
     return nullptr;
   }
@@ -1053,15 +1210,19 @@ Value *ReassociatePass::RemoveFactorFromExpression(Value *V, Value *Factor) {
   // If this was just a single multiply, remove the multiply and return the only
   // remaining operand.
   if (Factors.size() == 1) {
+    PassPrediction::PassPeeper(__FILE__, 3735); // if
     RedoInsts.insert(BO);
     V = Factors[0].Op;
   } else {
+    PassPrediction::PassPeeper(__FILE__, 3736); // else
     RewriteExprTree(BO, Factors);
     V = BO;
   }
 
-  if (NeedsNegate)
+  if (NeedsNegate) {
+    PassPrediction::PassPeeper(__FILE__, 3737); // if
     V = CreateNeg(V, "neg", &*InsertPt, BO);
+  }
 
   return V;
 }
@@ -1071,9 +1232,10 @@ Value *ReassociatePass::RemoveFactorFromExpression(Value *V, Value *Factor) {
 ///
 /// Ops is the top-level list of add operands we're trying to factor.
 static void FindSingleUseMultiplyFactors(Value *V,
-                                         SmallVectorImpl<Value*> &Factors) {
+                                         SmallVectorImpl<Value *> &Factors) {
   BinaryOperator *BO = isReassociableOp(V, Instruction::Mul, Instruction::FMul);
   if (!BO) {
+    PassPrediction::PassPeeper(__FILE__, 3738); // if
     Factors.push_back(V);
     return;
   }
@@ -1093,38 +1255,50 @@ static Value *OptimizeAndOrXor(unsigned Opcode,
   for (unsigned i = 0, e = Ops.size(); i != e; ++i) {
     // First, check for X and ~X in the operand list.
     assert(i < Ops.size());
-    if (BinaryOperator::isNot(Ops[i].Op)) {    // Cannot occur for ^.
+    if (BinaryOperator::isNot(Ops[i].Op)) {       // Cannot occur for ^.
+      PassPrediction::PassPeeper(__FILE__, 3739); // if
       Value *X = BinaryOperator::getNotArgument(Ops[i].Op);
       unsigned FoundX = FindInOperandList(Ops, i, X);
       if (FoundX != i) {
-        if (Opcode == Instruction::And)   // ...&X&~X = 0
+        PassPrediction::PassPeeper(__FILE__, 3740);   // if
+        if (Opcode == Instruction::And) {             // ...&X&~X = 0
+          PassPrediction::PassPeeper(__FILE__, 3741); // if
           return Constant::getNullValue(X->getType());
+        }
 
-        if (Opcode == Instruction::Or)    // ...|X|~X = -1
+        if (Opcode == Instruction::Or) {              // ...|X|~X = -1
+          PassPrediction::PassPeeper(__FILE__, 3742); // if
           return Constant::getAllOnesValue(X->getType());
+        }
       }
     }
 
     // Next, check for duplicate pairs of values, which we assume are next to
     // each other, due to our sorting criteria.
     assert(i < Ops.size());
-    if (i+1 != Ops.size() && Ops[i+1].Op == Ops[i].Op) {
+    if (i + 1 != Ops.size() && Ops[i + 1].Op == Ops[i].Op) {
+      PassPrediction::PassPeeper(__FILE__, 3743); // if
       if (Opcode == Instruction::And || Opcode == Instruction::Or) {
         // Drop duplicate values for And and Or.
-        Ops.erase(Ops.begin()+i);
-        --i; --e;
+        PassPrediction::PassPeeper(__FILE__, 3744); // if
+        Ops.erase(Ops.begin() + i);
+        --i;
+        --e;
         ++NumAnnihil;
         continue;
       }
 
       // Drop pairs of values for Xor.
       assert(Opcode == Instruction::Xor);
-      if (e == 2)
+      if (e == 2) {
+        PassPrediction::PassPeeper(__FILE__, 3745); // if
         return Constant::getNullValue(Ops[0].Op->getType());
+      }
 
       // Y ^ X^X -> Y
-      Ops.erase(Ops.begin()+i, Ops.begin()+i+2);
-      i -= 1; e -= 2;
+      Ops.erase(Ops.begin() + i, Ops.begin() + i + 2);
+      i -= 1;
+      e -= 2;
       ++NumAnnihil;
     }
   }
@@ -1138,11 +1312,15 @@ static Value *OptimizeAndOrXor(unsigned Opcode,
 /// be returned.
 static Value *createAndInstr(Instruction *InsertBefore, Value *Opnd,
                              const APInt &ConstOpnd) {
-  if (ConstOpnd.isNullValue())
+  if (ConstOpnd.isNullValue()) {
+    PassPrediction::PassPeeper(__FILE__, 3746); // if
     return nullptr;
+  }
 
-  if (ConstOpnd.isAllOnesValue())
+  if (ConstOpnd.isAllOnesValue()) {
+    PassPrediction::PassPeeper(__FILE__, 3747); // if
     return Opnd;
+  }
 
   Instruction *I = BinaryOperator::CreateAnd(
       Opnd, ConstantInt::get(Opnd->getType(), ConstOpnd), "and.ra",
@@ -1160,36 +1338,43 @@ static Value *createAndInstr(Instruction *InsertBefore, Value *Opnd,
 //
 bool ReassociatePass::CombineXorOpnd(Instruction *I, XorOpnd *Opnd1,
                                      APInt &ConstOpnd, Value *&Res) {
-  // Xor-Rule 1: (x | c1) ^ c2 = (x | c1) ^ (c1 ^ c1) ^ c2 
+  // Xor-Rule 1: (x | c1) ^ c2 = (x | c1) ^ (c1 ^ c1) ^ c2
   //                       = ((x | c1) ^ c1) ^ (c1 ^ c2)
   //                       = (x & ~c1) ^ (c1 ^ c2)
   // It is useful only when c1 == c2.
-  if (!Opnd1->isOrExpr() || Opnd1->getConstPart().isNullValue())
+  if (!Opnd1->isOrExpr() || Opnd1->getConstPart().isNullValue()) {
+    PassPrediction::PassPeeper(__FILE__, 3748); // if
     return false;
+  }
 
-  if (!Opnd1->getValue()->hasOneUse())
+  if (!Opnd1->getValue()->hasOneUse()) {
+    PassPrediction::PassPeeper(__FILE__, 3749); // if
     return false;
+  }
 
   const APInt &C1 = Opnd1->getConstPart();
-  if (C1 != ConstOpnd)
+  if (C1 != ConstOpnd) {
+    PassPrediction::PassPeeper(__FILE__, 3750); // if
     return false;
+  }
 
   Value *X = Opnd1->getSymbolicPart();
   Res = createAndInstr(I, X, ~C1);
   // ConstOpnd was C2, now C1 ^ C2.
   ConstOpnd ^= C1;
 
-  if (Instruction *T = dyn_cast<Instruction>(Opnd1->getValue()))
+  if (Instruction *T = dyn_cast<Instruction>(Opnd1->getValue())) {
+    PassPrediction::PassPeeper(__FILE__, 3751); // if
     RedoInsts.insert(T);
+  }
   return true;
 }
 
-                           
 // Helper function of OptimizeXor(). It tries to simplify
 // "Opnd1 ^ Opnd2 ^ ConstOpnd" into "R ^ C", where C would be 0, and R is a
-// symbolic value. 
-// 
-// If it was successful, true is returned, and the "R" and "C" is returned 
+// symbolic value.
+//
+// If it was successful, true is returned, and the "R" and "C" is returned
 // via "Res" and "ConstOpnd", respectively (If the entire expression is
 // evaluated to a constant, the Res is set to NULL); otherwise, false is
 // returned, and both "Res" and "ConstOpnd" remain unchanged.
@@ -1197,15 +1382,21 @@ bool ReassociatePass::CombineXorOpnd(Instruction *I, XorOpnd *Opnd1,
                                      XorOpnd *Opnd2, APInt &ConstOpnd,
                                      Value *&Res) {
   Value *X = Opnd1->getSymbolicPart();
-  if (X != Opnd2->getSymbolicPart())
+  if (X != Opnd2->getSymbolicPart()) {
+    PassPrediction::PassPeeper(__FILE__, 3752); // if
     return false;
+  }
 
   // This many instruction become dead.(At least "Opnd1 ^ Opnd2" will die.)
   int DeadInstNum = 1;
-  if (Opnd1->getValue()->hasOneUse())
+  if (Opnd1->getValue()->hasOneUse()) {
+    PassPrediction::PassPeeper(__FILE__, 3753); // if
     DeadInstNum++;
-  if (Opnd2->getValue()->hasOneUse())
+  }
+  if (Opnd2->getValue()->hasOneUse()) {
+    PassPrediction::PassPeeper(__FILE__, 3754); // if
     DeadInstNum++;
+  }
 
   // Xor-Rule 2:
   //  (x | c1) ^ (x & c2)
@@ -1214,8 +1405,11 @@ bool ReassociatePass::CombineXorOpnd(Instruction *I, XorOpnd *Opnd1,
   //   = (x & c3) ^ c1, where c3 = ~c1 ^ c2      // Xor-rule 3
   //
   if (Opnd1->isOrExpr() != Opnd2->isOrExpr()) {
-    if (Opnd2->isOrExpr())
+    PassPrediction::PassPeeper(__FILE__, 3755); // if
+    if (Opnd2->isOrExpr()) {
+      PassPrediction::PassPeeper(__FILE__, 3756); // if
       std::swap(Opnd1, Opnd2);
+    }
 
     const APInt &C1 = Opnd1->getConstPart();
     const APInt &C2 = Opnd2->getConstPart();
@@ -1223,9 +1417,12 @@ bool ReassociatePass::CombineXorOpnd(Instruction *I, XorOpnd *Opnd1,
 
     // Do not increase code size!
     if (!C3.isNullValue() && !C3.isAllOnesValue()) {
+      PassPrediction::PassPeeper(__FILE__, 3757); // if
       int NewInstNum = ConstOpnd.getBoolValue() ? 1 : 2;
-      if (NewInstNum > DeadInstNum)
+      if (NewInstNum > DeadInstNum) {
+        PassPrediction::PassPeeper(__FILE__, 3758); // if
         return false;
+      }
     }
 
     Res = createAndInstr(I, X, C3);
@@ -1234,15 +1431,19 @@ bool ReassociatePass::CombineXorOpnd(Instruction *I, XorOpnd *Opnd1,
   } else if (Opnd1->isOrExpr()) {
     // Xor-Rule 3: (x | c1) ^ (x | c2) = (x & c3) ^ c3 where c3 = c1 ^ c2
     //
+    PassPrediction::PassPeeper(__FILE__, 3759); // if
     const APInt &C1 = Opnd1->getConstPart();
     const APInt &C2 = Opnd2->getConstPart();
     APInt C3 = C1 ^ C2;
-    
+
     // Do not increase code size
     if (!C3.isNullValue() && !C3.isAllOnesValue()) {
+      PassPrediction::PassPeeper(__FILE__, 3761); // if
       int NewInstNum = ConstOpnd.getBoolValue() ? 1 : 2;
-      if (NewInstNum > DeadInstNum)
+      if (NewInstNum > DeadInstNum) {
+        PassPrediction::PassPeeper(__FILE__, 3762); // if
         return false;
+      }
     }
 
     Res = createAndInstr(I, X, C3);
@@ -1250,6 +1451,7 @@ bool ReassociatePass::CombineXorOpnd(Instruction *I, XorOpnd *Opnd1,
   } else {
     // Xor-Rule 4: (x & c1) ^ (x & c2) = (x & (c1^c2))
     //
+    PassPrediction::PassPeeper(__FILE__, 3760); // else
     const APInt &C1 = Opnd1->getConstPart();
     const APInt &C2 = Opnd2->getConstPart();
     APInt C3 = C1 ^ C2;
@@ -1258,10 +1460,14 @@ bool ReassociatePass::CombineXorOpnd(Instruction *I, XorOpnd *Opnd1,
 
   // Put the original operands in the Redo list; hope they will be deleted
   // as dead code.
-  if (Instruction *T = dyn_cast<Instruction>(Opnd1->getValue()))
+  if (Instruction *T = dyn_cast<Instruction>(Opnd1->getValue())) {
+    PassPrediction::PassPeeper(__FILE__, 3763); // if
     RedoInsts.insert(T);
-  if (Instruction *T = dyn_cast<Instruction>(Opnd2->getValue()))
+  }
+  if (Instruction *T = dyn_cast<Instruction>(Opnd2->getValue())) {
+    PassPrediction::PassPeeper(__FILE__, 3764); // if
     RedoInsts.insert(T);
+  }
 
   return true;
 }
@@ -1271,25 +1477,32 @@ bool ReassociatePass::CombineXorOpnd(Instruction *I, XorOpnd *Opnd1,
 /// necessary.
 Value *ReassociatePass::OptimizeXor(Instruction *I,
                                     SmallVectorImpl<ValueEntry> &Ops) {
-  if (Value *V = OptimizeAndOrXor(Instruction::Xor, Ops))
+  if (Value *V = OptimizeAndOrXor(Instruction::Xor, Ops)) {
+    PassPrediction::PassPeeper(__FILE__, 3765); // if
     return V;
-      
-  if (Ops.size() == 1)
+  }
+
+  if (Ops.size() == 1) {
+    PassPrediction::PassPeeper(__FILE__, 3766); // if
     return nullptr;
+  }
 
   SmallVector<XorOpnd, 8> Opnds;
-  SmallVector<XorOpnd*, 8> OpndPtrs;
+  SmallVector<XorOpnd *, 8> OpndPtrs;
   Type *Ty = Ops[0].Op->getType();
   APInt ConstOpnd(Ty->getScalarSizeInBits(), 0);
 
   // Step 1: Convert ValueEntry to XorOpnd
   for (unsigned i = 0, e = Ops.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3767); // for
     Value *V = Ops[i].Op;
     const APInt *C;
     // TODO: Support non-splat vectors.
     if (match(V, PatternMatch::m_APInt(C))) {
+      PassPrediction::PassPeeper(__FILE__, 3768); // if
       ConstOpnd ^= *C;
     } else {
+      PassPrediction::PassPeeper(__FILE__, 3769); // else
       XorOpnd O(V);
       O.setSymbolicRank(getRank(O.getSymbolicPart()));
       Opnds.push_back(O);
@@ -1301,8 +1514,10 @@ Value *ReassociatePass::OptimizeXor(Instruction *I,
   //  the "OpndPtrs" as well. For the similar reason, do not fuse this loop
   //  with the previous loop --- the iterator of the "Opnds" may be invalidated
   //  when new elements are added to the vector.
-  for (unsigned i = 0, e = Opnds.size(); i != e; ++i)
+  for (unsigned i = 0, e = Opnds.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3770); // for
     OpndPtrs.push_back(&Opnds[i]);
+  }
 
   // Step 2: Sort the Xor-Operands in a way such that the operands containing
   //  the same symbolic value cluster together. For instance, the input operand
@@ -1319,13 +1534,14 @@ Value *ReassociatePass::OptimizeXor(Instruction *I,
   //     "z" in the order of X-Y-Z is better than any other orders.
   std::stable_sort(OpndPtrs.begin(), OpndPtrs.end(),
                    [](XorOpnd *LHS, XorOpnd *RHS) {
-    return LHS->getSymbolicRank() < RHS->getSymbolicRank();
-  });
+                     return LHS->getSymbolicRank() < RHS->getSymbolicRank();
+                   });
 
   // Step 3: Combine adjacent operands
   XorOpnd *PrevOpnd = nullptr;
   bool Changed = false;
   for (unsigned i = 0, e = Opnds.size(); i < e; i++) {
+    PassPrediction::PassPeeper(__FILE__, 3771); // for
     XorOpnd *CurrOpnd = OpndPtrs[i];
     // The combined value
     Value *CV;
@@ -1333,30 +1549,38 @@ Value *ReassociatePass::OptimizeXor(Instruction *I,
     // Step 3.1: Try simplifying "CurrOpnd ^ ConstOpnd"
     if (!ConstOpnd.isNullValue() &&
         CombineXorOpnd(I, CurrOpnd, ConstOpnd, CV)) {
+      PassPrediction::PassPeeper(__FILE__, 3772); // if
       Changed = true;
-      if (CV)
+      if (CV) {
+        PassPrediction::PassPeeper(__FILE__, 3773); // if
         *CurrOpnd = XorOpnd(CV);
-      else {
+      } else {
+        PassPrediction::PassPeeper(__FILE__, 3774); // else
         CurrOpnd->Invalidate();
         continue;
       }
     }
 
-    if (!PrevOpnd || CurrOpnd->getSymbolicPart() != PrevOpnd->getSymbolicPart()) {
+    if (!PrevOpnd ||
+        CurrOpnd->getSymbolicPart() != PrevOpnd->getSymbolicPart()) {
+      PassPrediction::PassPeeper(__FILE__, 3775); // if
       PrevOpnd = CurrOpnd;
       continue;
     }
 
     // step 3.2: When previous and current operands share the same symbolic
-    //  value, try to simplify "PrevOpnd ^ CurrOpnd ^ ConstOpnd" 
-    //    
+    //  value, try to simplify "PrevOpnd ^ CurrOpnd ^ ConstOpnd"
+    //
     if (CombineXorOpnd(I, CurrOpnd, PrevOpnd, ConstOpnd, CV)) {
       // Remove previous operand
+      PassPrediction::PassPeeper(__FILE__, 3776); // if
       PrevOpnd->Invalidate();
       if (CV) {
+        PassPrediction::PassPeeper(__FILE__, 3777); // if
         *CurrOpnd = XorOpnd(CV);
         PrevOpnd = CurrOpnd;
       } else {
+        PassPrediction::PassPeeper(__FILE__, 3778); // else
         CurrOpnd->Invalidate();
         PrevOpnd = nullptr;
       }
@@ -1366,22 +1590,29 @@ Value *ReassociatePass::OptimizeXor(Instruction *I,
 
   // Step 4: Reassemble the Ops
   if (Changed) {
+    PassPrediction::PassPeeper(__FILE__, 3779); // if
     Ops.clear();
     for (unsigned int i = 0, e = Opnds.size(); i < e; i++) {
+      PassPrediction::PassPeeper(__FILE__, 3780); // for
       XorOpnd &O = Opnds[i];
-      if (O.isInvalid())
+      if (O.isInvalid()) {
+        PassPrediction::PassPeeper(__FILE__, 3781); // if
         continue;
+      }
       ValueEntry VE(getRank(O.getValue()), O.getValue());
       Ops.push_back(VE);
     }
     if (!ConstOpnd.isNullValue()) {
+      PassPrediction::PassPeeper(__FILE__, 3782); // if
       Value *C = ConstantInt::get(Ty, ConstOpnd);
       ValueEntry VE(getRank(C), C);
       Ops.push_back(VE);
     }
     unsigned Sz = Ops.size();
-    if (Sz == 1)
+    if (Sz == 1) {
+      PassPrediction::PassPeeper(__FILE__, 3783); // if
       return Ops.back().Op;
+    }
     if (Sz == 0) {
       assert(ConstOpnd.isNullValue());
       return ConstantInt::get(Ty, ConstOpnd);
@@ -1402,15 +1633,18 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
   // duplicates.  We want to canonicalize Y+Y+Y+Z -> 3*Y+Z.
 
   for (unsigned i = 0, e = Ops.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3784); // for
     Value *TheOp = Ops[i].Op;
     // Check to see if we've seen this operand before.  If so, we factor all
     // instances of the operand together.  Due to our sorting criteria, we know
     // that these need to be next to each other in the vector.
-    if (i+1 != Ops.size() && Ops[i+1].Op == TheOp) {
+    if (i + 1 != Ops.size() && Ops[i + 1].Op == TheOp) {
       // Rescan the list, remove all instances of this operand from the expr.
+      PassPrediction::PassPeeper(__FILE__, 3785); // if
       unsigned NumFound = 0;
       do {
-        Ops.erase(Ops.begin()+i);
+        PassPrediction::PassPeeper(__FILE__, 3786); // do-while
+        Ops.erase(Ops.begin() + i);
         ++NumFound;
       } while (i != Ops.size() && Ops[i].Op == TheOp);
 
@@ -1419,8 +1653,8 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
 
       // Insert a new multiply.
       Type *Ty = TheOp->getType();
-      Constant *C = Ty->isIntOrIntVectorTy() ?
-        ConstantInt::get(Ty, NumFound) : ConstantFP::get(Ty, NumFound);
+      Constant *C = Ty->isIntOrIntVectorTy() ? ConstantInt::get(Ty, NumFound)
+                                             : ConstantFP::get(Ty, NumFound);
       Instruction *Mul = CreateMul(TheOp, C, "factor", I, I);
 
       // Now that we have inserted a multiply, optimize it. This allows us to
@@ -1429,8 +1663,10 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
       RedoInsts.insert(Mul);
 
       // If every add operand was a duplicate, return the multiply.
-      if (Ops.empty())
+      if (Ops.empty()) {
+        PassPrediction::PassPeeper(__FILE__, 3787); // if
         return Mul;
+      }
 
       // Otherwise, we had some input that didn't have the dupe, such as
       // "A + A + B" -> "A*2 + B".  Add the new multiply to the list of
@@ -1444,40 +1680,55 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
 
     // Check for X and -X or X and ~X in the operand list.
     if (!BinaryOperator::isNeg(TheOp) && !BinaryOperator::isFNeg(TheOp) &&
-        !BinaryOperator::isNot(TheOp))
+        !BinaryOperator::isNot(TheOp)) {
+      PassPrediction::PassPeeper(__FILE__, 3788); // if
       continue;
+    }
 
     Value *X = nullptr;
-    if (BinaryOperator::isNeg(TheOp) || BinaryOperator::isFNeg(TheOp))
+    if (BinaryOperator::isNeg(TheOp) || BinaryOperator::isFNeg(TheOp)) {
+      PassPrediction::PassPeeper(__FILE__, 3789); // if
       X = BinaryOperator::getNegArgument(TheOp);
-    else if (BinaryOperator::isNot(TheOp))
+    } else if (BinaryOperator::isNot(TheOp)) {
+      PassPrediction::PassPeeper(__FILE__, 3790); // if
       X = BinaryOperator::getNotArgument(TheOp);
+    }
 
     unsigned FoundX = FindInOperandList(Ops, i, X);
-    if (FoundX == i)
+    if (FoundX == i) {
+      PassPrediction::PassPeeper(__FILE__, 3791); // if
       continue;
+    }
 
     // Remove X and -X from the operand list.
     if (Ops.size() == 2 &&
-        (BinaryOperator::isNeg(TheOp) || BinaryOperator::isFNeg(TheOp)))
+        (BinaryOperator::isNeg(TheOp) || BinaryOperator::isFNeg(TheOp))) {
+      PassPrediction::PassPeeper(__FILE__, 3792); // if
       return Constant::getNullValue(X->getType());
+    }
 
     // Remove X and ~X from the operand list.
-    if (Ops.size() == 2 && BinaryOperator::isNot(TheOp))
+    if (Ops.size() == 2 && BinaryOperator::isNot(TheOp)) {
+      PassPrediction::PassPeeper(__FILE__, 3793); // if
       return Constant::getAllOnesValue(X->getType());
+    }
 
-    Ops.erase(Ops.begin()+i);
-    if (i < FoundX)
+    Ops.erase(Ops.begin() + i);
+    if (i < FoundX) {
+      PassPrediction::PassPeeper(__FILE__, 3794); // if
       --FoundX;
-    else
-      --i;   // Need to back up an extra one.
-    Ops.erase(Ops.begin()+FoundX);
+    } else {
+      PassPrediction::PassPeeper(__FILE__, 3795); // else
+      --i; // Need to back up an extra one.
+    }
+    Ops.erase(Ops.begin() + FoundX);
     ++NumAnnihil;
-    --i;     // Revisit element.
-    e -= 2;  // Removed two elements.
+    --i;    // Revisit element.
+    e -= 2; // Removed two elements.
 
     // if X and ~X we append -1 to the operand list.
     if (BinaryOperator::isNot(TheOp)) {
+      PassPrediction::PassPeeper(__FILE__, 3796); // if
       Value *V = Constant::getAllOnesValue(X->getType());
       Ops.insert(Ops.end(), ValueEntry(getRank(V), V));
       e += 1;
@@ -1489,32 +1740,39 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
   // reassociate this to A*(A+B*C)+D, which reduces the number of multiplies.
   // To efficiently find this, we count the number of times a factor occurs
   // for any ADD operands that are MULs.
-  DenseMap<Value*, unsigned> FactorOccurrences;
+  DenseMap<Value *, unsigned> FactorOccurrences;
 
   // Keep track of each multiply we see, to avoid triggering on (X*4)+(X*4)
   // where they are actually the same multiply.
   unsigned MaxOcc = 0;
   Value *MaxOccVal = nullptr;
   for (unsigned i = 0, e = Ops.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3797); // for
     BinaryOperator *BOp =
         isReassociableOp(Ops[i].Op, Instruction::Mul, Instruction::FMul);
-    if (!BOp)
+    if (!BOp) {
+      PassPrediction::PassPeeper(__FILE__, 3798); // if
       continue;
+    }
 
     // Compute all of the factors of this added value.
-    SmallVector<Value*, 8> Factors;
+    SmallVector<Value *, 8> Factors;
     FindSingleUseMultiplyFactors(BOp, Factors);
     assert(Factors.size() > 1 && "Bad linearize!");
 
     // Add one to FactorOccurrences for each unique factor in this op.
-    SmallPtrSet<Value*, 8> Duplicates;
+    SmallPtrSet<Value *, 8> Duplicates;
     for (unsigned i = 0, e = Factors.size(); i != e; ++i) {
+      PassPrediction::PassPeeper(__FILE__, 3799); // for
       Value *Factor = Factors[i];
-      if (!Duplicates.insert(Factor).second)
+      if (!Duplicates.insert(Factor).second) {
+        PassPrediction::PassPeeper(__FILE__, 3800); // if
         continue;
+      }
 
       unsigned Occ = ++FactorOccurrences[Factor];
       if (Occ > MaxOcc) {
+        PassPrediction::PassPeeper(__FILE__, 3801); // if
         MaxOcc = Occ;
         MaxOccVal = Factor;
       }
@@ -1523,25 +1781,35 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
       // because we can percolate the negate out.  Watch for minint, which
       // cannot be positivified.
       if (ConstantInt *CI = dyn_cast<ConstantInt>(Factor)) {
+        PassPrediction::PassPeeper(__FILE__, 3802); // if
         if (CI->isNegative() && !CI->isMinValue(true)) {
+          PassPrediction::PassPeeper(__FILE__, 3803); // if
           Factor = ConstantInt::get(CI->getContext(), -CI->getValue());
-          if (!Duplicates.insert(Factor).second)
+          if (!Duplicates.insert(Factor).second) {
+            PassPrediction::PassPeeper(__FILE__, 3804); // if
             continue;
+          }
           unsigned Occ = ++FactorOccurrences[Factor];
           if (Occ > MaxOcc) {
+            PassPrediction::PassPeeper(__FILE__, 3805); // if
             MaxOcc = Occ;
             MaxOccVal = Factor;
           }
         }
       } else if (ConstantFP *CF = dyn_cast<ConstantFP>(Factor)) {
+        PassPrediction::PassPeeper(__FILE__, 3806); // if
         if (CF->isNegative()) {
+          PassPrediction::PassPeeper(__FILE__, 3807); // if
           APFloat F(CF->getValueAPF());
           F.changeSign();
           Factor = ConstantFP::get(CF->getContext(), F);
-          if (!Duplicates.insert(Factor).second)
+          if (!Duplicates.insert(Factor).second) {
+            PassPrediction::PassPeeper(__FILE__, 3808); // if
             continue;
+          }
           unsigned Occ = ++FactorOccurrences[Factor];
           if (Occ > MaxOcc) {
+            PassPrediction::PassPeeper(__FILE__, 3809); // if
             MaxOcc = Occ;
             MaxOccVal = Factor;
           }
@@ -1567,19 +1835,25 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
     SmallVector<WeakTrackingVH, 4> NewMulOps;
     for (unsigned i = 0; i != Ops.size(); ++i) {
       // Only try to remove factors from expressions we're allowed to.
+      PassPrediction::PassPeeper(__FILE__, 3810); // for
       BinaryOperator *BOp =
           isReassociableOp(Ops[i].Op, Instruction::Mul, Instruction::FMul);
-      if (!BOp)
+      if (!BOp) {
+        PassPrediction::PassPeeper(__FILE__, 3811); // if
         continue;
+      }
 
       if (Value *V = RemoveFactorFromExpression(Ops[i].Op, MaxOccVal)) {
         // The factorized operand may occur several times.  Convert them all in
         // one fell swoop.
+        PassPrediction::PassPeeper(__FILE__, 3812); // if
         for (unsigned j = Ops.size(); j != i;) {
+          PassPrediction::PassPeeper(__FILE__, 3813); // for
           --j;
           if (Ops[j].Op == Ops[i].Op) {
+            PassPrediction::PassPeeper(__FILE__, 3814); // if
             NewMulOps.push_back(V);
-            Ops.erase(Ops.begin()+j);
+            Ops.erase(Ops.begin() + j);
           }
         }
         --i;
@@ -1597,8 +1871,10 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
     // A*A*B + A*A*C   -->   A*(A*B+A*C)   -->   A*(A*(B+C))
     assert(NumAddedValues > 1 && "Each occurrence should contribute a value");
     (void)NumAddedValues;
-    if (Instruction *VI = dyn_cast<Instruction>(V))
+    if (Instruction *VI = dyn_cast<Instruction>(V)) {
+      PassPrediction::PassPeeper(__FILE__, 3815); // if
       RedoInsts.insert(VI);
+    }
 
     // Create the multiply.
     Instruction *V2 = CreateMul(V, MaxOccVal, "tmp", I, I);
@@ -1609,8 +1885,10 @@ Value *ReassociatePass::OptimizeAdd(Instruction *I,
 
     // If every add operand included the factor (e.g. "A*B + A*C"), then the
     // entire result expression is just the multiply "A*(B+C)".
-    if (Ops.empty())
+    if (Ops.empty()) {
+      PassPrediction::PassPeeper(__FILE__, 3816); // if
       return V2;
+    }
 
     // Otherwise, we had some input that didn't have the factor, such as
     // "A*B + A*C + D" -> "A*(B+C) + D".  Add the new multiply to the list of
@@ -1638,41 +1916,53 @@ static bool collectMultiplyFactors(SmallVectorImpl<ValueEntry> &Ops,
   // Compute the sum of powers of simplifiable factors.
   unsigned FactorPowerSum = 0;
   for (unsigned Idx = 1, Size = Ops.size(); Idx < Size; ++Idx) {
-    Value *Op = Ops[Idx-1].Op;
+    PassPrediction::PassPeeper(__FILE__, 3817); // for
+    Value *Op = Ops[Idx - 1].Op;
 
     // Count the number of occurrences of this value.
     unsigned Count = 1;
-    for (; Idx < Size && Ops[Idx].Op == Op; ++Idx)
+    for (; Idx < Size && Ops[Idx].Op == Op; ++Idx) {
+      PassPrediction::PassPeeper(__FILE__, 3818); // for
       ++Count;
+    }
     // Track for simplification all factors which occur 2 or more times.
-    if (Count > 1)
+    if (Count > 1) {
+      PassPrediction::PassPeeper(__FILE__, 3819); // if
       FactorPowerSum += Count;
+    }
   }
 
   // We can only simplify factors if the sum of the powers of our simplifiable
   // factors is 4 or higher. When that is the case, we will *always* have
   // a simplification. This is an important invariant to prevent cyclicly
   // trying to simplify already minimal formations.
-  if (FactorPowerSum < 4)
+  if (FactorPowerSum < 4) {
+    PassPrediction::PassPeeper(__FILE__, 3820); // if
     return false;
+  }
 
   // Now gather the simplifiable factors, removing them from Ops.
   FactorPowerSum = 0;
   for (unsigned Idx = 1; Idx < Ops.size(); ++Idx) {
-    Value *Op = Ops[Idx-1].Op;
+    PassPrediction::PassPeeper(__FILE__, 3821); // for
+    Value *Op = Ops[Idx - 1].Op;
 
     // Count the number of occurrences of this value.
     unsigned Count = 1;
-    for (; Idx < Ops.size() && Ops[Idx].Op == Op; ++Idx)
+    for (; Idx < Ops.size() && Ops[Idx].Op == Op; ++Idx) {
+      PassPrediction::PassPeeper(__FILE__, 3822); // for
       ++Count;
-    if (Count == 1)
+    }
+    if (Count == 1) {
+      PassPrediction::PassPeeper(__FILE__, 3823); // if
       continue;
+    }
     // Move an even number of occurrences to Factors.
     Count &= ~1U;
     Idx -= Count;
     FactorPowerSum += Count;
     Factors.push_back(Factor(Op, Count));
-    Ops.erase(Ops.begin()+Idx, Ops.begin()+Idx+Count);
+    Ops.erase(Ops.begin() + Idx, Ops.begin() + Idx + Count);
   }
 
   // None of the adjustments above should have reduced the sum of factor powers
@@ -1681,23 +1971,29 @@ static bool collectMultiplyFactors(SmallVectorImpl<ValueEntry> &Ops,
 
   std::stable_sort(Factors.begin(), Factors.end(),
                    [](const Factor &LHS, const Factor &RHS) {
-    return LHS.Power > RHS.Power;
-  });
+                     return LHS.Power > RHS.Power;
+                   });
   return true;
 }
 
 /// \brief Build a tree of multiplies, computing the product of Ops.
 static Value *buildMultiplyTree(IRBuilder<> &Builder,
-                                SmallVectorImpl<Value*> &Ops) {
-  if (Ops.size() == 1)
+                                SmallVectorImpl<Value *> &Ops) {
+  if (Ops.size() == 1) {
+    PassPrediction::PassPeeper(__FILE__, 3824); // if
     return Ops.back();
+  }
 
   Value *LHS = Ops.pop_back_val();
   do {
-    if (LHS->getType()->isIntOrIntVectorTy())
+    PassPrediction::PassPeeper(__FILE__, 3825); // do-while
+    if (LHS->getType()->isIntOrIntVectorTy()) {
+      PassPrediction::PassPeeper(__FILE__, 3826); // if
       LHS = Builder.CreateMul(LHS, Ops.pop_back_val());
-    else
+    } else {
+      PassPrediction::PassPeeper(__FILE__, 3827); // else
       LHS = Builder.CreateFMul(LHS, Ops.pop_back_val());
+    }
   } while (!Ops.empty());
 
   return LHS;
@@ -1716,7 +2012,9 @@ ReassociatePass::buildMinimalMultiplyDAG(IRBuilder<> &Builder,
   SmallVector<Value *, 4> OuterProduct;
   for (unsigned LastIdx = 0, Idx = 1, Size = Factors.size();
        Idx < Size && Factors[Idx].Power > 0; ++Idx) {
+    PassPrediction::PassPeeper(__FILE__, 3828); // for
     if (Factors[Idx].Power != Factors[LastIdx].Power) {
+      PassPrediction::PassPeeper(__FILE__, 3829); // if
       LastIdx = Idx;
       continue;
     }
@@ -1727,6 +2025,7 @@ ReassociatePass::buildMinimalMultiplyDAG(IRBuilder<> &Builder,
     SmallVector<Value *, 4> InnerProduct;
     InnerProduct.push_back(Factors[LastIdx].Base);
     do {
+      PassPrediction::PassPeeper(__FILE__, 3830); // do-while
       InnerProduct.push_back(Factors[Idx].Base);
       ++Idx;
     } while (Idx < Size && Factors[Idx].Power == Factors[LastIdx].Power);
@@ -1734,8 +2033,10 @@ ReassociatePass::buildMinimalMultiplyDAG(IRBuilder<> &Builder,
     // Reset the base value of the first factor to the new expression tree.
     // We'll remove all the factors with the same power in a second pass.
     Value *M = Factors[LastIdx].Base = buildMultiplyTree(Builder, InnerProduct);
-    if (Instruction *MI = dyn_cast<Instruction>(M))
+    if (Instruction *MI = dyn_cast<Instruction>(M)) {
+      PassPrediction::PassPeeper(__FILE__, 3831); // if
       RedoInsts.insert(MI);
+    }
 
     LastIdx = Idx;
   }
@@ -1751,17 +2052,23 @@ ReassociatePass::buildMinimalMultiplyDAG(IRBuilder<> &Builder,
   // outer product, and halve each power in preparation for squaring the
   // expression.
   for (unsigned Idx = 0, Size = Factors.size(); Idx != Size; ++Idx) {
-    if (Factors[Idx].Power & 1)
+    PassPrediction::PassPeeper(__FILE__, 3832); // for
+    if (Factors[Idx].Power & 1) {
+      PassPrediction::PassPeeper(__FILE__, 3833); // if
       OuterProduct.push_back(Factors[Idx].Base);
+    }
     Factors[Idx].Power >>= 1;
   }
   if (Factors[0].Power) {
+    PassPrediction::PassPeeper(__FILE__, 3834); // if
     Value *SquareRoot = buildMinimalMultiplyDAG(Builder, Factors);
     OuterProduct.push_back(SquareRoot);
     OuterProduct.push_back(SquareRoot);
   }
-  if (OuterProduct.size() == 1)
+  if (OuterProduct.size() == 1) {
+    PassPrediction::PassPeeper(__FILE__, 3835); // if
     return OuterProduct.front();
+  }
 
   Value *V = buildMultiplyTree(Builder, OuterProduct);
   return V;
@@ -1771,26 +2078,34 @@ Value *ReassociatePass::OptimizeMul(BinaryOperator *I,
                                     SmallVectorImpl<ValueEntry> &Ops) {
   // We can only optimize the multiplies when there is a chain of more than
   // three, such that a balanced tree might require fewer total multiplies.
-  if (Ops.size() < 4)
+  if (Ops.size() < 4) {
+    PassPrediction::PassPeeper(__FILE__, 3836); // if
     return nullptr;
+  }
 
   // Try to turn linear trees of multiplies without other uses of the
   // intermediate stages into minimal multiply DAGs with perfect sub-expression
   // re-use.
   SmallVector<Factor, 4> Factors;
-  if (!collectMultiplyFactors(Ops, Factors))
+  if (!collectMultiplyFactors(Ops, Factors)) {
+    PassPrediction::PassPeeper(__FILE__, 3837); // if
     return nullptr; // All distinct factors, so nothing left for us to do.
+  }
 
   IRBuilder<> Builder(I);
   // The reassociate transformation for FP operations is performed only
   // if unsafe algebra is permitted by FastMathFlags. Propagate those flags
   // to the newly generated operations.
-  if (auto FPI = dyn_cast<FPMathOperator>(I))
+  if (auto FPI = dyn_cast<FPMathOperator>(I)) {
+    PassPrediction::PassPeeper(__FILE__, 3838); // if
     Builder.setFastMathFlags(FPI->getFastMathFlags());
+  }
 
   Value *V = buildMinimalMultiplyDAG(Builder, Factors);
-  if (Ops.empty())
+  if (Ops.empty()) {
+    PassPrediction::PassPeeper(__FILE__, 3839); // if
     return V;
+  }
 
   ValueEntry NewEntry = ValueEntry(getRank(V), V);
   Ops.insert(std::lower_bound(Ops.begin(), Ops.end(), NewEntry), NewEntry);
@@ -1804,55 +2119,94 @@ Value *ReassociatePass::OptimizeExpression(BinaryOperator *I,
   Constant *Cst = nullptr;
   unsigned Opcode = I->getOpcode();
   while (!Ops.empty() && isa<Constant>(Ops.back().Op)) {
+    PassPrediction::PassPeeper(__FILE__, 3840); // while
     Constant *C = cast<Constant>(Ops.pop_back_val().Op);
     Cst = Cst ? ConstantExpr::get(Opcode, C, Cst) : C;
   }
   // If there was nothing but constants then we are done.
-  if (Ops.empty())
+  if (Ops.empty()) {
+    PassPrediction::PassPeeper(__FILE__, 3841); // if
     return Cst;
+  }
 
   // Put the combined constant back at the end of the operand list, except if
   // there is no point.  For example, an add of 0 gets dropped here, while a
   // multiplication by zero turns the whole expression into zero.
   if (Cst && Cst != ConstantExpr::getBinOpIdentity(Opcode, I->getType())) {
-    if (Cst == ConstantExpr::getBinOpAbsorber(Opcode, I->getType()))
+    PassPrediction::PassPeeper(__FILE__, 3842); // if
+    if (Cst == ConstantExpr::getBinOpAbsorber(Opcode, I->getType())) {
+      PassPrediction::PassPeeper(__FILE__, 3843); // if
       return Cst;
+    }
     Ops.push_back(ValueEntry(0, Cst));
   }
 
-  if (Ops.size() == 1) return Ops[0].Op;
+  if (Ops.size() == 1) {
+    PassPrediction::PassPeeper(__FILE__, 3844); // if
+    return Ops[0].Op;
+  }
 
   // Handle destructive annihilation due to identities between elements in the
   // argument list here.
   unsigned NumOps = Ops.size();
   switch (Opcode) {
-  default: break;
+  default:
+    PassPrediction::PassPeeper(__FILE__, 3845); // break
+    break;
   case Instruction::And:
+    PassPrediction::PassPeeper(__FILE__, 3846); // case
+
   case Instruction::Or:
-    if (Value *Result = OptimizeAndOrXor(Opcode, Ops))
+    PassPrediction::PassPeeper(__FILE__, 3847); // case
+
+    if (Value *Result = OptimizeAndOrXor(Opcode, Ops)) {
+      PassPrediction::PassPeeper(__FILE__, 3848); // if
       return Result;
+    }
+    PassPrediction::PassPeeper(__FILE__, 3849); // break
     break;
 
   case Instruction::Xor:
-    if (Value *Result = OptimizeXor(I, Ops))
+    PassPrediction::PassPeeper(__FILE__, 3850); // case
+
+    if (Value *Result = OptimizeXor(I, Ops)) {
+      PassPrediction::PassPeeper(__FILE__, 3851); // if
       return Result;
+    }
+    PassPrediction::PassPeeper(__FILE__, 3852); // break
     break;
 
   case Instruction::Add:
+    PassPrediction::PassPeeper(__FILE__, 3853); // case
+
   case Instruction::FAdd:
-    if (Value *Result = OptimizeAdd(I, Ops))
+    PassPrediction::PassPeeper(__FILE__, 3854); // case
+
+    if (Value *Result = OptimizeAdd(I, Ops)) {
+      PassPrediction::PassPeeper(__FILE__, 3855); // if
       return Result;
+    }
+    PassPrediction::PassPeeper(__FILE__, 3856); // break
     break;
 
   case Instruction::Mul:
+    PassPrediction::PassPeeper(__FILE__, 3857); // case
+
   case Instruction::FMul:
-    if (Value *Result = OptimizeMul(I, Ops))
+    PassPrediction::PassPeeper(__FILE__, 3858); // case
+
+    if (Value *Result = OptimizeMul(I, Ops)) {
+      PassPrediction::PassPeeper(__FILE__, 3859); // if
       return Result;
+    }
+    PassPrediction::PassPeeper(__FILE__, 3860); // break
     break;
   }
 
-  if (Ops.size() != NumOps)
+  if (Ops.size() != NumOps) {
+    PassPrediction::PassPeeper(__FILE__, 3861); // if
     return OptimizeExpression(I, Ops);
+  }
   return nullptr;
 }
 
@@ -1866,10 +2220,16 @@ void ReassociatePass::RecursivelyEraseDeadInsts(
   Insts.remove(I);
   RedoInsts.remove(I);
   I->eraseFromParent();
-  for (auto Op : Ops)
-    if (Instruction *OpInst = dyn_cast<Instruction>(Op))
-      if (OpInst->use_empty())
+  for (auto Op : Ops) {
+    PassPrediction::PassPeeper(__FILE__, 3862); // for-range
+    if (Instruction *OpInst = dyn_cast<Instruction>(Op)) {
+      PassPrediction::PassPeeper(__FILE__, 3863); // if
+      if (OpInst->use_empty()) {
+        PassPrediction::PassPeeper(__FILE__, 3864); // if
         Insts.insert(OpInst);
+      }
+    }
+  }
 }
 
 /// Zap the given instruction, adding interesting operands to the work list.
@@ -1877,23 +2237,28 @@ void ReassociatePass::EraseInst(Instruction *I) {
   assert(isInstructionTriviallyDead(I) && "Trivially dead instructions only!");
   DEBUG(dbgs() << "Erasing dead inst: "; I->dump());
 
-  SmallVector<Value*, 8> Ops(I->op_begin(), I->op_end());
+  SmallVector<Value *, 8> Ops(I->op_begin(), I->op_end());
   // Erase the dead instruction.
   ValueRankMap.erase(I);
   RedoInsts.remove(I);
   I->eraseFromParent();
   // Optimize its operands.
   SmallPtrSet<Instruction *, 8> Visited; // Detect self-referential nodes.
-  for (unsigned i = 0, e = Ops.size(); i != e; ++i)
+  for (unsigned i = 0, e = Ops.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3865); // for
     if (Instruction *Op = dyn_cast<Instruction>(Ops[i])) {
       // If this is a node in an expression tree, climb to the expression root
       // and add that since that's where optimization actually happens.
+      PassPrediction::PassPeeper(__FILE__, 3866); // if
       unsigned Opcode = Op->getOpcode();
       while (Op->hasOneUse() && Op->user_back()->getOpcode() == Opcode &&
-             Visited.insert(Op).second)
+             Visited.insert(Op).second) {
+        PassPrediction::PassPeeper(__FILE__, 3867); // while
         Op = Op->user_back();
+      }
       RedoInsts.insert(Op);
     }
+  }
 
   MadeChange = true;
 }
@@ -1902,50 +2267,68 @@ void ReassociatePass::EraseInst(Instruction *I) {
 //  x + (-Constant * y) -> x - (Constant * y)
 //  x - (-Constant * y) -> x + (Constant * y)
 Instruction *ReassociatePass::canonicalizeNegConstExpr(Instruction *I) {
-  if (!I->hasOneUse() || I->getType()->isVectorTy())
+  if (!I->hasOneUse() || I->getType()->isVectorTy()) {
+    PassPrediction::PassPeeper(__FILE__, 3868); // if
     return nullptr;
+  }
 
   // Must be a fmul or fdiv instruction.
   unsigned Opcode = I->getOpcode();
-  if (Opcode != Instruction::FMul && Opcode != Instruction::FDiv)
+  if (Opcode != Instruction::FMul && Opcode != Instruction::FDiv) {
+    PassPrediction::PassPeeper(__FILE__, 3869); // if
     return nullptr;
+  }
 
   auto *C0 = dyn_cast<ConstantFP>(I->getOperand(0));
   auto *C1 = dyn_cast<ConstantFP>(I->getOperand(1));
 
   // Both operands are constant, let it get constant folded away.
-  if (C0 && C1)
+  if (C0 && C1) {
+    PassPrediction::PassPeeper(__FILE__, 3870); // if
     return nullptr;
+  }
 
   ConstantFP *CF = C0 ? C0 : C1;
 
   // Must have one constant operand.
-  if (!CF)
+  if (!CF) {
+    PassPrediction::PassPeeper(__FILE__, 3871); // if
     return nullptr;
+  }
 
   // Must be a negative ConstantFP.
-  if (!CF->isNegative())
+  if (!CF->isNegative()) {
+    PassPrediction::PassPeeper(__FILE__, 3872); // if
     return nullptr;
+  }
 
   // User must be a binary operator with one or more uses.
   Instruction *User = I->user_back();
-  if (!isa<BinaryOperator>(User) || User->use_empty())
+  if (!isa<BinaryOperator>(User) || User->use_empty()) {
+    PassPrediction::PassPeeper(__FILE__, 3873); // if
     return nullptr;
+  }
 
   unsigned UserOpcode = User->getOpcode();
-  if (UserOpcode != Instruction::FAdd && UserOpcode != Instruction::FSub)
+  if (UserOpcode != Instruction::FAdd && UserOpcode != Instruction::FSub) {
+    PassPrediction::PassPeeper(__FILE__, 3874); // if
     return nullptr;
+  }
 
   // Subtraction is not commutative. Explicitly, the following transform is
   // not valid: (-Constant * y) - x  -> x + (Constant * y)
-  if (!User->isCommutative() && User->getOperand(1) != I)
+  if (!User->isCommutative() && User->getOperand(1) != I) {
+    PassPrediction::PassPeeper(__FILE__, 3875); // if
     return nullptr;
+  }
 
   // Don't canonicalize x + (-Constant * y) -> x - (Constant * y), if the
   // resulting subtract will be broken up later.  This can get us into an
   // infinite loop during reassociation.
-  if (UserOpcode == Instruction::FAdd && ShouldBreakUpSubtract(User))
+  if (UserOpcode == Instruction::FAdd && ShouldBreakUpSubtract(User)) {
+    PassPrediction::PassPeeper(__FILE__, 3876); // if
     return nullptr;
+  }
 
   // Change the sign of the constant.
   APFloat Val = CF->getValueAPF();
@@ -1954,8 +2337,10 @@ Instruction *ReassociatePass::canonicalizeNegConstExpr(Instruction *I) {
 
   // Canonicalize I to RHS to simplify the next bit of logic. E.g.,
   // ((-Const*y) + x) -> (x + (-Const*y)).
-  if (User->getOperand(0) == I && User->isCommutative())
+  if (User->getOperand(0) == I && User->isCommutative()) {
+    PassPrediction::PassPeeper(__FILE__, 3877); // if
     cast<BinaryOperator>(User)->swapOperands();
+  }
 
   Value *Op0 = User->getOperand(0);
   Value *Op1 = User->getOperand(1);
@@ -1964,12 +2349,18 @@ Instruction *ReassociatePass::canonicalizeNegConstExpr(Instruction *I) {
   default:
     llvm_unreachable("Unexpected Opcode!");
   case Instruction::FAdd:
+    PassPrediction::PassPeeper(__FILE__, 3878); // case
+
     NI = BinaryOperator::CreateFSub(Op0, Op1);
     NI->setFastMathFlags(cast<FPMathOperator>(User)->getFastMathFlags());
+    PassPrediction::PassPeeper(__FILE__, 3879); // break
     break;
   case Instruction::FSub:
+    PassPrediction::PassPeeper(__FILE__, 3880); // case
+
     NI = BinaryOperator::CreateFAdd(Op0, Op1);
     NI->setFastMathFlags(cast<FPMathOperator>(User)->getFastMathFlags());
+    PassPrediction::PassPeeper(__FILE__, 3881); // break
     break;
   }
 
@@ -1986,35 +2377,47 @@ Instruction *ReassociatePass::canonicalizeNegConstExpr(Instruction *I) {
 /// instructions is not allowed.
 void ReassociatePass::OptimizeInst(Instruction *I) {
   // Only consider operations that we understand.
-  if (!isa<BinaryOperator>(I))
+  if (!isa<BinaryOperator>(I)) {
+    PassPrediction::PassPeeper(__FILE__, 3882); // if
     return;
+  }
 
-  if (I->getOpcode() == Instruction::Shl && isa<ConstantInt>(I->getOperand(1)))
+  if (I->getOpcode() == Instruction::Shl &&
+      isa<ConstantInt>(I->getOperand(1))) {
     // If an operand of this shift is a reassociable multiply, or if the shift
     // is used by a reassociable multiply or add, turn into a multiply.
+    PassPrediction::PassPeeper(__FILE__, 3883); // if
     if (isReassociableOp(I->getOperand(0), Instruction::Mul) ||
         (I->hasOneUse() &&
          (isReassociableOp(I->user_back(), Instruction::Mul) ||
           isReassociableOp(I->user_back(), Instruction::Add)))) {
+      PassPrediction::PassPeeper(__FILE__, 3884); // if
       Instruction *NI = ConvertShiftToMul(I);
       RedoInsts.insert(I);
       MadeChange = true;
       I = NI;
     }
+  }
 
   // Canonicalize negative constants out of expressions.
-  if (Instruction *Res = canonicalizeNegConstExpr(I))
+  if (Instruction *Res = canonicalizeNegConstExpr(I)) {
+    PassPrediction::PassPeeper(__FILE__, 3885); // if
     I = Res;
+  }
 
   // Commute binary operators, to canonicalize the order of their operands.
   // This can potentially expose more CSE opportunities, and makes writing other
   // transformations simpler.
-  if (I->isCommutative())
+  if (I->isCommutative()) {
+    PassPrediction::PassPeeper(__FILE__, 3886); // if
     canonicalizeOperands(I);
+  }
 
   // Don't optimize floating point instructions that don't have unsafe algebra.
-  if (I->getType()->isFPOrFPVectorTy() && !I->hasUnsafeAlgebra())
+  if (I->getType()->isFPOrFPVectorTy() && !I->hasUnsafeAlgebra()) {
+    PassPrediction::PassPeeper(__FILE__, 3887); // if
     return;
+  }
 
   // Do not reassociate boolean (i1) expressions.  We want to preserve the
   // original order of evaluation for short-circuited comparisons that
@@ -2022,13 +2425,17 @@ void ReassociatePass::OptimizeInst(Instruction *I) {
   // is not further optimized, it is likely to be transformed back to a
   // short-circuited form for code gen, and the source order may have been
   // optimized for the most likely conditions.
-  if (I->getType()->isIntegerTy(1))
+  if (I->getType()->isIntegerTy(1)) {
+    PassPrediction::PassPeeper(__FILE__, 3888); // if
     return;
+  }
 
   // If this is a subtract instruction which is not already in negate form,
   // see if we can convert it to X+-Y.
   if (I->getOpcode() == Instruction::Sub) {
+    PassPrediction::PassPeeper(__FILE__, 3889); // if
     if (ShouldBreakUpSubtract(I)) {
+      PassPrediction::PassPeeper(__FILE__, 3890); // if
       Instruction *NI = BreakUpSubtract(I, RedoInsts);
       RedoInsts.insert(I);
       MadeChange = true;
@@ -2036,15 +2443,20 @@ void ReassociatePass::OptimizeInst(Instruction *I) {
     } else if (BinaryOperator::isNeg(I)) {
       // Otherwise, this is a negation.  See if the operand is a multiply tree
       // and if this is not an inner node of a multiply tree.
+      PassPrediction::PassPeeper(__FILE__, 3891); // if
       if (isReassociableOp(I->getOperand(1), Instruction::Mul) &&
           (!I->hasOneUse() ||
            !isReassociableOp(I->user_back(), Instruction::Mul))) {
+        PassPrediction::PassPeeper(__FILE__, 3892); // if
         Instruction *NI = LowerNegateToMultiply(I);
         // If the negate was simplified, revisit the users to see if we can
         // reassociate further.
         for (User *U : NI->users()) {
-          if (BinaryOperator *Tmp = dyn_cast<BinaryOperator>(U))
+          PassPrediction::PassPeeper(__FILE__, 3893); // for-range
+          if (BinaryOperator *Tmp = dyn_cast<BinaryOperator>(U)) {
+            PassPrediction::PassPeeper(__FILE__, 3894); // if
             RedoInsts.insert(Tmp);
+          }
         }
         RedoInsts.insert(I);
         MadeChange = true;
@@ -2052,7 +2464,9 @@ void ReassociatePass::OptimizeInst(Instruction *I) {
       }
     }
   } else if (I->getOpcode() == Instruction::FSub) {
+    PassPrediction::PassPeeper(__FILE__, 3895); // if
     if (ShouldBreakUpSubtract(I)) {
+      PassPrediction::PassPeeper(__FILE__, 3896); // if
       Instruction *NI = BreakUpSubtract(I, RedoInsts);
       RedoInsts.insert(I);
       MadeChange = true;
@@ -2060,15 +2474,20 @@ void ReassociatePass::OptimizeInst(Instruction *I) {
     } else if (BinaryOperator::isFNeg(I)) {
       // Otherwise, this is a negation.  See if the operand is a multiply tree
       // and if this is not an inner node of a multiply tree.
+      PassPrediction::PassPeeper(__FILE__, 3897); // if
       if (isReassociableOp(I->getOperand(1), Instruction::FMul) &&
           (!I->hasOneUse() ||
            !isReassociableOp(I->user_back(), Instruction::FMul))) {
         // If the negate was simplified, revisit the users to see if we can
         // reassociate further.
+        PassPrediction::PassPeeper(__FILE__, 3898); // if
         Instruction *NI = LowerNegateToMultiply(I);
         for (User *U : NI->users()) {
-          if (BinaryOperator *Tmp = dyn_cast<BinaryOperator>(U))
+          PassPrediction::PassPeeper(__FILE__, 3899); // for-range
+          if (BinaryOperator *Tmp = dyn_cast<BinaryOperator>(U)) {
+            PassPrediction::PassPeeper(__FILE__, 3900); // if
             RedoInsts.insert(Tmp);
+          }
         }
         RedoInsts.insert(I);
         MadeChange = true;
@@ -2078,7 +2497,10 @@ void ReassociatePass::OptimizeInst(Instruction *I) {
   }
 
   // If this instruction is an associative binary operator, process it.
-  if (!I->isAssociative()) return;
+  if (!I->isAssociative()) {
+    PassPrediction::PassPeeper(__FILE__, 3901); // if
+    return;
+  }
   BinaryOperator *BO = cast<BinaryOperator>(I);
 
   // If this is an interior node of a reassociable tree, ignore it until we
@@ -2088,20 +2510,27 @@ void ReassociatePass::OptimizeInst(Instruction *I) {
     // During the initial run we will get to the root of the tree.
     // But if we get here while we are redoing instructions, there is no
     // guarantee that the root will be visited. So Redo later
+    PassPrediction::PassPeeper(__FILE__, 3902); // if
     if (BO->user_back() != BO &&
-        BO->getParent() == BO->user_back()->getParent())
+        BO->getParent() == BO->user_back()->getParent()) {
+      PassPrediction::PassPeeper(__FILE__, 3903); // if
       RedoInsts.insert(BO->user_back());
+    }
     return;
   }
 
   // If this is an add tree that is used by a sub instruction, ignore it
   // until we process the subtract.
   if (BO->hasOneUse() && BO->getOpcode() == Instruction::Add &&
-      cast<Instruction>(BO->user_back())->getOpcode() == Instruction::Sub)
+      cast<Instruction>(BO->user_back())->getOpcode() == Instruction::Sub) {
+    PassPrediction::PassPeeper(__FILE__, 3904); // if
     return;
+  }
   if (BO->hasOneUse() && BO->getOpcode() == Instruction::FAdd &&
-      cast<Instruction>(BO->user_back())->getOpcode() == Instruction::FSub)
+      cast<Instruction>(BO->user_back())->getOpcode() == Instruction::FSub) {
+    PassPrediction::PassPeeper(__FILE__, 3905); // if
     return;
+  }
 
   ReassociateExpression(BO);
 }
@@ -2114,9 +2543,9 @@ void ReassociatePass::ReassociateExpression(BinaryOperator *I) {
   SmallVector<ValueEntry, 8> Ops;
   Ops.reserve(Tree.size());
   for (unsigned i = 0, e = Tree.size(); i != e; ++i) {
+    PassPrediction::PassPeeper(__FILE__, 3906); // for
     RepeatedValue E = Tree[i];
-    Ops.append(E.second.getZExtValue(),
-               ValueEntry(getRank(E.first), E.first));
+    Ops.append(E.second.getZExtValue(), ValueEntry(getRank(E.first), E.first));
   }
 
   DEBUG(dbgs() << "RAIn:\t"; PrintOps(I, Ops); dbgs() << '\n');
@@ -2132,15 +2561,20 @@ void ReassociatePass::ReassociateExpression(BinaryOperator *I) {
   // Now that we have the expression tree in a convenient
   // sorted form, optimize it globally if possible.
   if (Value *V = OptimizeExpression(I, Ops)) {
-    if (V == I)
+    PassPrediction::PassPeeper(__FILE__, 3907); // if
+    if (V == I) {
       // Self-referential expression in unreachable code.
+      PassPrediction::PassPeeper(__FILE__, 3908); // if
       return;
+    }
     // This expression tree simplified to something that isn't a tree,
     // eliminate it.
     DEBUG(dbgs() << "Reassoc to scalar: " << *V << '\n');
     I->replaceAllUsesWith(V);
-    if (Instruction *VI = dyn_cast<Instruction>(V))
+    if (Instruction *VI = dyn_cast<Instruction>(V)) {
+      PassPrediction::PassPeeper(__FILE__, 3909); // if
       VI->setDebugLoc(I->getDebugLoc());
+    }
     RedoInsts.insert(I);
     ++NumAnnihil;
     return;
@@ -2151,10 +2585,12 @@ void ReassociatePass::ReassociateExpression(BinaryOperator *I) {
   // In this case we reassociate to put the negation on the outside so that we
   // can fold the negation into the add: (-X)*Y + Z -> Z-X*Y
   if (I->hasOneUse()) {
+    PassPrediction::PassPeeper(__FILE__, 3910); // if
     if (I->getOpcode() == Instruction::Mul &&
         cast<Instruction>(I->user_back())->getOpcode() == Instruction::Add &&
         isa<ConstantInt>(Ops.back().Op) &&
         cast<ConstantInt>(Ops.back().Op)->isMinusOne()) {
+      PassPrediction::PassPeeper(__FILE__, 3911); // if
       ValueEntry Tmp = Ops.pop_back_val();
       Ops.insert(Ops.begin(), Tmp);
     } else if (I->getOpcode() == Instruction::FMul &&
@@ -2162,6 +2598,7 @@ void ReassociatePass::ReassociateExpression(BinaryOperator *I) {
                    Instruction::FAdd &&
                isa<ConstantFP>(Ops.back().Op) &&
                cast<ConstantFP>(Ops.back().Op)->isExactlyValue(-1.0)) {
+      PassPrediction::PassPeeper(__FILE__, 3912); // if
       ValueEntry Tmp = Ops.pop_back_val();
       Ops.insert(Ops.begin(), Tmp);
     }
@@ -2170,15 +2607,20 @@ void ReassociatePass::ReassociateExpression(BinaryOperator *I) {
   DEBUG(dbgs() << "RAOut:\t"; PrintOps(I, Ops); dbgs() << '\n');
 
   if (Ops.size() == 1) {
-    if (Ops[0].Op == I)
+    PassPrediction::PassPeeper(__FILE__, 3913); // if
+    if (Ops[0].Op == I) {
       // Self-referential expression in unreachable code.
+      PassPrediction::PassPeeper(__FILE__, 3914); // if
       return;
+    }
 
     // This expression tree simplified to something that isn't a tree,
     // eliminate it.
     I->replaceAllUsesWith(Ops[0].Op);
-    if (Instruction *OI = dyn_cast<Instruction>(Ops[0].Op))
+    if (Instruction *OI = dyn_cast<Instruction>(Ops[0].Op)) {
+      PassPrediction::PassPeeper(__FILE__, 3915); // if
       OI->setDebugLoc(I->getDebugLoc());
+    }
     RedoInsts.insert(I);
     return;
   }
@@ -2203,14 +2645,18 @@ PreservedAnalyses ReassociatePass::run(Function &F, FunctionAnalysisManager &) {
   for (BasicBlock *BI : RPOT) {
     assert(RankMap.count(&*BI) && "BB should be ranked.");
     // Optimize every instruction in the basic block.
-    for (BasicBlock::iterator II = BI->begin(), IE = BI->end(); II != IE;)
+    for (BasicBlock::iterator II = BI->begin(), IE = BI->end(); II != IE;) {
+      PassPrediction::PassPeeper(__FILE__, 3916); // for
       if (isInstructionTriviallyDead(&*II)) {
+        PassPrediction::PassPeeper(__FILE__, 3917); // if
         EraseInst(&*II++);
       } else {
+        PassPrediction::PassPeeper(__FILE__, 3918); // else
         OptimizeInst(&*II);
         assert(II->getParent() == &*BI && "Moved to a different block!");
         ++II;
       }
+    }
 
     // Make a copy of all the instructions to be redone so we can remove dead
     // instructions.
@@ -2220,8 +2666,10 @@ PreservedAnalyses ReassociatePass::run(Function &F, FunctionAnalysisManager &) {
     // dead mark it for deletion as well. Continue this process until all
     // trivially dead instructions have been removed.
     while (!ToRedo.empty()) {
+      PassPrediction::PassPeeper(__FILE__, 3919); // while
       Instruction *I = ToRedo.pop_back_val();
       if (isInstructionTriviallyDead(I)) {
+        PassPrediction::PassPeeper(__FILE__, 3920); // if
         RecursivelyEraseDeadInsts(I, ToRedo);
         MadeChange = true;
       }
@@ -2230,11 +2678,15 @@ PreservedAnalyses ReassociatePass::run(Function &F, FunctionAnalysisManager &) {
     // Now that we have removed dead instructions, we can reoptimize the
     // remaining instructions.
     while (!RedoInsts.empty()) {
+      PassPrediction::PassPeeper(__FILE__, 3921); // while
       Instruction *I = RedoInsts.pop_back_val();
-      if (isInstructionTriviallyDead(I))
+      if (isInstructionTriviallyDead(I)) {
+        PassPrediction::PassPeeper(__FILE__, 3922); // if
         EraseInst(I);
-      else
+      } else {
+        PassPrediction::PassPeeper(__FILE__, 3923); // else
         OptimizeInst(I);
+      }
     }
   }
 
@@ -2243,6 +2695,7 @@ PreservedAnalyses ReassociatePass::run(Function &F, FunctionAnalysisManager &) {
   ValueRankMap.clear();
 
   if (MadeChange) {
+    PassPrediction::PassPeeper(__FILE__, 3924); // if
     PreservedAnalyses PA;
     PA.preserveSet<CFGAnalyses>();
     PA.preserve<GlobalsAA>();
@@ -2253,33 +2706,36 @@ PreservedAnalyses ReassociatePass::run(Function &F, FunctionAnalysisManager &) {
 }
 
 namespace {
-  class ReassociateLegacyPass : public FunctionPass {
-    ReassociatePass Impl;
-  public:
-    static char ID; // Pass identification, replacement for typeid
-    ReassociateLegacyPass() : FunctionPass(ID) {
-      initializeReassociateLegacyPassPass(*PassRegistry::getPassRegistry());
+class ReassociateLegacyPass : public FunctionPass {
+  ReassociatePass Impl;
+
+public:
+  static char ID; // Pass identification, replacement for typeid
+  ReassociateLegacyPass() : FunctionPass(ID) {
+    initializeReassociateLegacyPassPass(*PassRegistry::getPassRegistry());
+  }
+
+  bool runOnFunction(Function &F) override {
+    if (skipFunction(F)) {
+      PassPrediction::PassPeeper(__FILE__, 3925); // if
+      return false;
     }
 
-    bool runOnFunction(Function &F) override {
-      if (skipFunction(F))
-        return false;
+    FunctionAnalysisManager DummyFAM;
+    auto PA = Impl.run(F, DummyFAM);
+    return !PA.areAllPreserved();
+  }
 
-      FunctionAnalysisManager DummyFAM;
-      auto PA = Impl.run(F, DummyFAM);
-      return !PA.areAllPreserved();
-    }
-
-    void getAnalysisUsage(AnalysisUsage &AU) const override {
-      AU.setPreservesCFG();
-      AU.addPreserved<GlobalsAAWrapperPass>();
-    }
-  };
-}
+  void getAnalysisUsage(AnalysisUsage &AU) const override {
+    AU.setPreservesCFG();
+    AU.addPreserved<GlobalsAAWrapperPass>();
+  }
+};
+} // namespace
 
 char ReassociateLegacyPass::ID = 0;
-INITIALIZE_PASS(ReassociateLegacyPass, "reassociate",
-                "Reassociate expressions", false, false)
+INITIALIZE_PASS(ReassociateLegacyPass, "reassociate", "Reassociate expressions",
+                false, false)
 
 // Public interface to the Reassociate pass
 FunctionPass *llvm::createReassociatePass() {

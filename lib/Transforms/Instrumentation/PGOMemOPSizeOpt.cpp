@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===-- PGOMemOPSizeOpt.cpp - Optimizations based on value profiling ===//
 //
 //                      The LLVM Compiler Infrastructure
@@ -27,10 +28,10 @@
 #include "llvm/IR/DiagnosticInfo.h"
 #include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/InstVisitor.h"
 #include "llvm/IR/InstrTypes.h"
 #include "llvm/IR/Instruction.h"
 #include "llvm/IR/Instructions.h"
-#include "llvm/IR/InstVisitor.h"
 #include "llvm/IR/LLVMContext.h"
 #include "llvm/IR/PassManager.h"
 #include "llvm/IR/Type.h"
@@ -145,8 +146,10 @@ public:
     visit(Func);
 
     for (auto &MI : WorkList) {
+      PassPrediction::PassPeeper(__FILE__, 0); // for-range
       ++NumOfPGOMemOPAnnotate;
       if (perform(MI)) {
+        PassPrediction::PassPeeper(__FILE__, 1); // if
         Changed = true;
         ++NumOfPGOMemOPOpt;
         DEBUG(dbgs() << "MemOP call: " << MI->getCalledFunction()->getName()
@@ -158,8 +161,10 @@ public:
   void visitMemIntrinsic(MemIntrinsic &MI) {
     Value *Length = MI.getLength();
     // Not perform on constant length calls.
-    if (dyn_cast<ConstantInt>(Length))
+    if (dyn_cast<ConstantInt>(Length)) {
+      PassPrediction::PassPeeper(__FILE__, 2); // if
       return;
+    }
     WorkList.push_back(&MI);
   }
 
@@ -182,10 +187,14 @@ private:
   enum MemOPSizeKind { PreciseValue, NonLargeGroup, LargeGroup };
 
   MemOPSizeKind getMemOPSizeKind(int64_t Value) const {
-    if (Value == MemOPSizeLarge && MemOPSizeLarge != 0)
+    if (Value == MemOPSizeLarge && MemOPSizeLarge != 0) {
+      PassPrediction::PassPeeper(__FILE__, 3); // if
       return LargeGroup;
-    if (Value == PreciseRangeLast + 1)
+    }
+    if (Value == PreciseRangeLast + 1) {
+      PassPrediction::PassPeeper(__FILE__, 4); // if
       return NonLargeGroup;
+    }
     return PreciseValue;
   }
 };
@@ -193,10 +202,16 @@ private:
 static const char *getMIName(const MemIntrinsic *MI) {
   switch (MI->getIntrinsicID()) {
   case Intrinsic::memcpy:
+    PassPrediction::PassPeeper(__FILE__, 5); // case
+
     return "memcpy";
   case Intrinsic::memmove:
+    PassPrediction::PassPeeper(__FILE__, 6); // case
+
     return "memmove";
   case Intrinsic::memset:
+    PassPrediction::PassPeeper(__FILE__, 7); // case
+
     return "memset";
   default:
     return "unknown";
@@ -205,17 +220,23 @@ static const char *getMIName(const MemIntrinsic *MI) {
 
 static bool isProfitable(uint64_t Count, uint64_t TotalCount) {
   assert(Count <= TotalCount);
-  if (Count < MemOPCountThreshold)
+  if (Count < MemOPCountThreshold) {
+    PassPrediction::PassPeeper(__FILE__, 8); // if
     return false;
-  if (Count < TotalCount * MemOPPercentThreshold / 100)
+  }
+  if (Count < TotalCount * MemOPPercentThreshold / 100) {
+    PassPrediction::PassPeeper(__FILE__, 9); // if
     return false;
+  }
   return true;
 }
 
 static inline uint64_t getScaledCount(uint64_t Count, uint64_t Num,
                                       uint64_t Denom) {
-  if (!MemOPScaleCount)
+  if (!MemOPScaleCount) {
+    PassPrediction::PassPeeper(__FILE__, 10); // if
     return Count;
+  }
   bool Overflowed;
   uint64_t ScaleCount = SaturatingMultiply(Count, Num, &Overflowed);
   return ScaleCount / Denom;
@@ -223,21 +244,28 @@ static inline uint64_t getScaledCount(uint64_t Count, uint64_t Num,
 
 bool MemOPSizeOpt::perform(MemIntrinsic *MI) {
   assert(MI);
-  if (MI->getIntrinsicID() == Intrinsic::memmove)
+  if (MI->getIntrinsicID() == Intrinsic::memmove) {
+    PassPrediction::PassPeeper(__FILE__, 11); // if
     return false;
+  }
 
   uint32_t NumVals, MaxNumPromotions = MemOPMaxVersion + 2;
   uint64_t TotalCount;
   if (!getValueProfDataFromInst(*MI, IPVK_MemOPSize, MaxNumPromotions,
-                                ValueDataArray.get(), NumVals, TotalCount))
+                                ValueDataArray.get(), NumVals, TotalCount)) {
+    PassPrediction::PassPeeper(__FILE__, 12); // if
     return false;
+  }
 
   uint64_t ActualCount = TotalCount;
   uint64_t SavedTotalCount = TotalCount;
   if (MemOPScaleCount) {
+    PassPrediction::PassPeeper(__FILE__, 13); // if
     auto BBEdgeCount = BFI.getBlockProfileCount(MI->getParent());
-    if (!BBEdgeCount)
+    if (!BBEdgeCount) {
+      PassPrediction::PassPeeper(__FILE__, 14); // if
       return false;
+    }
     ActualCount = *BBEdgeCount;
   }
 
@@ -248,17 +276,22 @@ bool MemOPSizeOpt::perform(MemIntrinsic *MI) {
       for (auto &VD
            : VDs) { dbgs() << "  (" << VD.Value << "," << VD.Count << ")\n"; });
 
-  if (ActualCount < MemOPCountThreshold)
+  if (ActualCount < MemOPCountThreshold) {
+    PassPrediction::PassPeeper(__FILE__, 15); // if
     return false;
+  }
   // Skip if the total value profiled count is 0, in which case we can't
   // scale up the counts properly (and there is no profitable transformation).
-  if (TotalCount == 0)
+  if (TotalCount == 0) {
+    PassPrediction::PassPeeper(__FILE__, 16); // if
     return false;
+  }
 
   TotalCount = ActualCount;
-  if (MemOPScaleCount)
+  if (MemOPScaleCount) {
     DEBUG(dbgs() << "Scale counts: numerator = " << ActualCount
                  << " denominator = " << SavedTotalCount << "\n");
+  }
 
   // Keeping track of the count of the default case:
   uint64_t RemainCount = TotalCount;
@@ -270,40 +303,55 @@ bool MemOPSizeOpt::perform(MemIntrinsic *MI) {
   // Default case is in the front -- save the slot here.
   CaseCounts.push_back(0);
   for (auto &VD : VDs) {
+    PassPrediction::PassPeeper(__FILE__, 17); // for-range
     int64_t V = VD.Value;
     uint64_t C = VD.Count;
-    if (MemOPScaleCount)
+    if (MemOPScaleCount) {
+      PassPrediction::PassPeeper(__FILE__, 18); // if
       C = getScaledCount(C, ActualCount, SavedTotalCount);
+    }
 
     // Only care precise value here.
-    if (getMemOPSizeKind(V) != PreciseValue)
+    if (getMemOPSizeKind(V) != PreciseValue) {
+      PassPrediction::PassPeeper(__FILE__, 19); // if
       continue;
+    }
 
     // ValueCounts are sorted on the count. Break at the first un-profitable
     // value.
-    if (!isProfitable(C, RemainCount))
+    if (!isProfitable(C, RemainCount)) {
+      PassPrediction::PassPeeper(__FILE__, 20); // if
       break;
+    }
 
     SizeIds.push_back(V);
     CaseCounts.push_back(C);
-    if (C > MaxCount)
+    if (C > MaxCount) {
+      PassPrediction::PassPeeper(__FILE__, 21); // if
       MaxCount = C;
+    }
 
     assert(RemainCount >= C);
     RemainCount -= C;
     assert(SavedRemainCount >= VD.Count);
     SavedRemainCount -= VD.Count;
 
-    if (++Version > MemOPMaxVersion && MemOPMaxVersion != 0)
+    if (++Version > MemOPMaxVersion && MemOPMaxVersion != 0) {
+      PassPrediction::PassPeeper(__FILE__, 22); // if
       break;
+    }
   }
 
-  if (Version == 0)
+  if (Version == 0) {
+    PassPrediction::PassPeeper(__FILE__, 23); // if
     return false;
+  }
 
   CaseCounts[0] = RemainCount;
-  if (RemainCount > MaxCount)
+  if (RemainCount > MaxCount) {
+    PassPrediction::PassPeeper(__FILE__, 24); // if
     MaxCount = RemainCount;
+  }
 
   uint64_t SumForOpt = TotalCount - RemainCount;
 
@@ -350,14 +398,17 @@ bool MemOPSizeOpt::perform(MemIntrinsic *MI) {
   // Clear the value profile data.
   MI->setMetadata(LLVMContext::MD_prof, nullptr);
   // If all promoted, we don't need the MD.prof metadata.
-  if (SavedRemainCount > 0 || Version != NumVals)
+  if (SavedRemainCount > 0 || Version != NumVals) {
     // Otherwise we need update with the un-promoted records back.
+    PassPrediction::PassPeeper(__FILE__, 25); // if
     annotateValueSite(*Func.getParent(), *MI, VDs.slice(Version),
                       SavedRemainCount, IPVK_MemOPSize, NumVals);
+  }
 
   DEBUG(dbgs() << "\n\n== Basic Block After==\n");
 
   for (uint64_t SizeId : SizeIds) {
+    PassPrediction::PassPeeper(__FILE__, 26); // for-range
     ConstantInt *CaseSizeId = ConstantInt::get(Type::getInt64Ty(Ctx), SizeId);
     BasicBlock *CaseBB = BasicBlock::Create(
         Ctx, Twine("MemOP.Case.") + Twine(SizeId), &Func, DefaultBB);
@@ -387,11 +438,15 @@ bool MemOPSizeOpt::perform(MemIntrinsic *MI) {
 } // namespace
 
 static bool PGOMemOPSizeOptImpl(Function &F, BlockFrequencyInfo &BFI) {
-  if (DisableMemOPOPT)
+  if (DisableMemOPOPT) {
+    PassPrediction::PassPeeper(__FILE__, 27); // if
     return false;
+  }
 
-  if (F.hasFnAttribute(Attribute::OptimizeForSize))
+  if (F.hasFnAttribute(Attribute::OptimizeForSize)) {
+    PassPrediction::PassPeeper(__FILE__, 28); // if
     return false;
+  }
   MemOPSizeOpt MemOPSizeOpt(F, BFI);
   MemOPSizeOpt.perform();
   return MemOPSizeOpt.isChanged();
@@ -410,8 +465,10 @@ PreservedAnalyses PGOMemOPSizeOpt::run(Function &F,
                                        FunctionAnalysisManager &FAM) {
   auto &BFI = FAM.getResult<BlockFrequencyAnalysis>(F);
   bool Changed = PGOMemOPSizeOptImpl(F, BFI);
-  if (!Changed)
+  if (!Changed) {
+    PassPrediction::PassPeeper(__FILE__, 29); // if
     return PreservedAnalyses::all();
+  }
   auto PA = PreservedAnalyses();
   PA.preserve<GlobalsAA>();
   return PA;

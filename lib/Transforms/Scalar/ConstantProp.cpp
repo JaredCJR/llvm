@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===- ConstantProp.cpp - Code to perform Simple Constant Propagation -----===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -35,40 +36,44 @@ using namespace llvm;
 STATISTIC(NumInstKilled, "Number of instructions killed");
 
 namespace {
-  struct ConstantPropagation : public FunctionPass {
-    static char ID; // Pass identification, replacement for typeid
-    ConstantPropagation() : FunctionPass(ID) {
-      initializeConstantPropagationPass(*PassRegistry::getPassRegistry());
-    }
+struct ConstantPropagation : public FunctionPass {
+  static char ID; // Pass identification, replacement for typeid
+  ConstantPropagation() : FunctionPass(ID) {
+    initializeConstantPropagationPass(*PassRegistry::getPassRegistry());
+  }
 
-    bool runOnFunction(Function &F) override;
+  bool runOnFunction(Function &F) override;
 
-    void getAnalysisUsage(AnalysisUsage &AU) const override {
-      AU.setPreservesCFG();
-      AU.addRequired<TargetLibraryInfoWrapperPass>();
-    }
-  };
-}
+  void getAnalysisUsage(AnalysisUsage &AU) const override {
+    AU.setPreservesCFG();
+    AU.addRequired<TargetLibraryInfoWrapperPass>();
+  }
+};
+} // namespace
 
 char ConstantPropagation::ID = 0;
 INITIALIZE_PASS_BEGIN(ConstantPropagation, "constprop",
-                "Simple constant propagation", false, false)
+                      "Simple constant propagation", false, false)
 INITIALIZE_PASS_DEPENDENCY(TargetLibraryInfoWrapperPass)
 INITIALIZE_PASS_END(ConstantPropagation, "constprop",
-                "Simple constant propagation", false, false)
+                    "Simple constant propagation", false, false)
 
 FunctionPass *llvm::createConstantPropagationPass() {
   return new ConstantPropagation();
 }
 
 bool ConstantPropagation::runOnFunction(Function &F) {
-  if (skipFunction(F))
+  if (skipFunction(F)) {
+    PassPrediction::PassPeeper(__FILE__, 3622); // if
     return false;
+  }
 
   // Initialize the worklist to all of the instructions ready to process...
-  std::set<Instruction*> WorkList;
-  for (Instruction &I: instructions(&F))
+  std::set<Instruction *> WorkList;
+  for (Instruction &I : instructions(&F)) {
+    PassPrediction::PassPeeper(__FILE__, 3623); // for-range
     WorkList.insert(&I);
+  }
 
   bool Changed = false;
   const DataLayout &DL = F.getParent()->getDataLayout();
@@ -76,15 +81,20 @@ bool ConstantPropagation::runOnFunction(Function &F) {
       &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
 
   while (!WorkList.empty()) {
+    PassPrediction::PassPeeper(__FILE__, 3624); // while
     Instruction *I = *WorkList.begin();
-    WorkList.erase(WorkList.begin());    // Get an element from the worklist...
+    WorkList.erase(WorkList.begin()); // Get an element from the worklist...
 
-    if (!I->use_empty())                 // Don't muck with dead instructions...
+    if (!I->use_empty()) { // Don't muck with dead instructions...
+      PassPrediction::PassPeeper(__FILE__, 3625); // if
       if (Constant *C = ConstantFoldInstruction(I, DL, TLI)) {
         // Add all of the users of this instruction to the worklist, they might
         // be constant propagatable now...
-        for (User *U : I->users())
+        PassPrediction::PassPeeper(__FILE__, 3626); // if
+        for (User *U : I->users()) {
+          PassPrediction::PassPeeper(__FILE__, 3627); // for-range
           WorkList.insert(cast<Instruction>(U));
+        }
 
         // Replace all of the uses of a variable with uses of the constant.
         I->replaceAllUsesWith(C);
@@ -92,6 +102,7 @@ bool ConstantPropagation::runOnFunction(Function &F) {
         // Remove the dead instruction.
         WorkList.erase(I);
         if (isInstructionTriviallyDead(I, TLI)) {
+          PassPrediction::PassPeeper(__FILE__, 3628); // if
           I->eraseFromParent();
           ++NumInstKilled;
         }
@@ -99,6 +110,7 @@ bool ConstantPropagation::runOnFunction(Function &F) {
         // We made a change to the function...
         Changed = true;
       }
+    }
   }
   return Changed;
 }

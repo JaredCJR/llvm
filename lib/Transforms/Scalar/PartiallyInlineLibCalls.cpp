@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===--- PartiallyInlineLibCalls.cpp - Partially inline libcalls ----------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -13,28 +14,31 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Transforms/Scalar/PartiallyInlineLibCalls.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
 #include "llvm/Analysis/TargetTransformInfo.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar/PartiallyInlineLibCalls.h"
 #include "llvm/Transforms/Utils/BasicBlockUtils.h"
 
 using namespace llvm;
 
 #define DEBUG_TYPE "partially-inline-libcalls"
 
-
 static bool optimizeSQRT(CallInst *Call, Function *CalledFunc,
                          BasicBlock &CurrBB, Function::iterator &BB) {
   // There is no need to change the IR, since backend will emit sqrt
   // instruction if the call has already been marked read-only.
-  if (Call->onlyReadsMemory())
+  if (Call->onlyReadsMemory()) {
+    PassPrediction::PassPeeper(__FILE__, 2433); // if
     return false;
+  }
 
   // The call must have the expected result type.
-  if (!Call->getType()->isFloatingPointTy())
+  if (!Call->getType()->isFloatingPointTy()) {
+    PassPrediction::PassPeeper(__FILE__, 2434); // if
     return false;
+  }
 
   // Do the following transformation:
   //
@@ -86,35 +90,48 @@ static bool runPartiallyInlineLibCalls(Function &F, TargetLibraryInfo *TLI,
 
   Function::iterator CurrBB;
   for (Function::iterator BB = F.begin(), BE = F.end(); BB != BE;) {
+    PassPrediction::PassPeeper(__FILE__, 2435); // for
     CurrBB = BB++;
 
     for (BasicBlock::iterator II = CurrBB->begin(), IE = CurrBB->end();
          II != IE; ++II) {
+      PassPrediction::PassPeeper(__FILE__, 2436); // for
       CallInst *Call = dyn_cast<CallInst>(&*II);
       Function *CalledFunc;
 
-      if (!Call || !(CalledFunc = Call->getCalledFunction()))
+      if (!Call || !(CalledFunc = Call->getCalledFunction())) {
+        PassPrediction::PassPeeper(__FILE__, 2437); // if
         continue;
+      }
 
       // Skip if function either has local linkage or is not a known library
       // function.
       LibFunc LF;
       if (CalledFunc->hasLocalLinkage() || !CalledFunc->hasName() ||
-          !TLI->getLibFunc(CalledFunc->getName(), LF))
+          !TLI->getLibFunc(CalledFunc->getName(), LF)) {
+        PassPrediction::PassPeeper(__FILE__, 2438); // if
         continue;
+      }
 
       switch (LF) {
       case LibFunc_sqrtf:
+        PassPrediction::PassPeeper(__FILE__, 2439); // case
+
       case LibFunc_sqrt:
+        PassPrediction::PassPeeper(__FILE__, 2440); // case
+
         if (TTI->haveFastSqrt(Call->getType()) &&
-            optimizeSQRT(Call, CalledFunc, *CurrBB, BB))
+            optimizeSQRT(Call, CalledFunc, *CurrBB, BB)) {
+          PassPrediction::PassPeeper(__FILE__, 2441); // if
           break;
+        }
         continue;
       default:
         continue;
       }
 
       Changed = true;
+      PassPrediction::PassPeeper(__FILE__, 2442); // break
       break;
     }
   }
@@ -126,8 +143,10 @@ PreservedAnalyses
 PartiallyInlineLibCallsPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
   auto &TTI = AM.getResult<TargetIRAnalysis>(F);
-  if (!runPartiallyInlineLibCalls(F, &TLI, &TTI))
+  if (!runPartiallyInlineLibCalls(F, &TLI, &TTI)) {
+    PassPrediction::PassPeeper(__FILE__, 2443); // if
     return PreservedAnalyses::all();
+  }
   return PreservedAnalyses::none();
 }
 
@@ -148,8 +167,10 @@ public:
   }
 
   bool runOnFunction(Function &F) override {
-    if (skipFunction(F))
+    if (skipFunction(F)) {
+      PassPrediction::PassPeeper(__FILE__, 2444); // if
       return false;
+    }
 
     TargetLibraryInfo *TLI =
         &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
@@ -158,7 +179,7 @@ public:
     return runPartiallyInlineLibCalls(F, TLI, TTI);
   }
 };
-}
+} // namespace
 
 char PartiallyInlineLibCallsLegacyPass::ID = 0;
 INITIALIZE_PASS_BEGIN(PartiallyInlineLibCallsLegacyPass,

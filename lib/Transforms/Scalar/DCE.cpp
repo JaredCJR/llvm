@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===- DCE.cpp - Code to perform dead code elimination --------------------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -16,7 +17,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Transforms/Scalar/DCE.h"
 #include "llvm/ADT/SetVector.h"
 #include "llvm/ADT/Statistic.h"
 #include "llvm/Analysis/TargetLibraryInfo.h"
@@ -24,6 +24,7 @@
 #include "llvm/IR/Instruction.h"
 #include "llvm/Pass.h"
 #include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar/DCE.h"
 #include "llvm/Transforms/Utils/Local.h"
 using namespace llvm;
 
@@ -33,40 +34,44 @@ STATISTIC(DIEEliminated, "Number of insts removed by DIE pass");
 STATISTIC(DCEEliminated, "Number of insts removed");
 
 namespace {
-  //===--------------------------------------------------------------------===//
-  // DeadInstElimination pass implementation
-  //
-  struct DeadInstElimination : public BasicBlockPass {
-    static char ID; // Pass identification, replacement for typeid
-    DeadInstElimination() : BasicBlockPass(ID) {
-      initializeDeadInstEliminationPass(*PassRegistry::getPassRegistry());
+//===--------------------------------------------------------------------===//
+// DeadInstElimination pass implementation
+//
+struct DeadInstElimination : public BasicBlockPass {
+  static char ID; // Pass identification, replacement for typeid
+  DeadInstElimination() : BasicBlockPass(ID) {
+    initializeDeadInstEliminationPass(*PassRegistry::getPassRegistry());
+  }
+  bool runOnBasicBlock(BasicBlock &BB) override {
+    if (skipBasicBlock(BB)) {
+      PassPrediction::PassPeeper(__FILE__, 2310); // if
+      return false;
     }
-    bool runOnBasicBlock(BasicBlock &BB) override {
-      if (skipBasicBlock(BB))
-        return false;
-      auto *TLIP = getAnalysisIfAvailable<TargetLibraryInfoWrapperPass>();
-      TargetLibraryInfo *TLI = TLIP ? &TLIP->getTLI() : nullptr;
-      bool Changed = false;
-      for (BasicBlock::iterator DI = BB.begin(); DI != BB.end(); ) {
-        Instruction *Inst = &*DI++;
-        if (isInstructionTriviallyDead(Inst, TLI)) {
-          Inst->eraseFromParent();
-          Changed = true;
-          ++DIEEliminated;
-        }
+    auto *TLIP = getAnalysisIfAvailable<TargetLibraryInfoWrapperPass>();
+    TargetLibraryInfo *TLI = TLIP ? &TLIP->getTLI() : nullptr;
+    bool Changed = false;
+    for (BasicBlock::iterator DI = BB.begin(); DI != BB.end();) {
+      PassPrediction::PassPeeper(__FILE__, 2311); // for
+      Instruction *Inst = &*DI++;
+      if (isInstructionTriviallyDead(Inst, TLI)) {
+        PassPrediction::PassPeeper(__FILE__, 2312); // if
+        Inst->eraseFromParent();
+        Changed = true;
+        ++DIEEliminated;
       }
-      return Changed;
     }
+    return Changed;
+  }
 
-    void getAnalysisUsage(AnalysisUsage &AU) const override {
-      AU.setPreservesCFG();
-    }
-  };
-}
+  void getAnalysisUsage(AnalysisUsage &AU) const override {
+    AU.setPreservesCFG();
+  }
+};
+} // namespace
 
 char DeadInstElimination::ID = 0;
-INITIALIZE_PASS(DeadInstElimination, "die",
-                "Dead Instruction Elimination", false, false)
+INITIALIZE_PASS(DeadInstElimination, "die", "Dead Instruction Elimination",
+                false, false)
 
 Pass *llvm::createDeadInstEliminationPass() {
   return new DeadInstElimination();
@@ -78,19 +83,27 @@ static bool DCEInstruction(Instruction *I,
   if (isInstructionTriviallyDead(I, TLI)) {
     // Null out all of the instruction's operands to see if any operand becomes
     // dead as we go.
+    PassPrediction::PassPeeper(__FILE__, 2313); // if
     for (unsigned i = 0, e = I->getNumOperands(); i != e; ++i) {
+      PassPrediction::PassPeeper(__FILE__, 2314); // for
       Value *OpV = I->getOperand(i);
       I->setOperand(i, nullptr);
 
-      if (!OpV->use_empty() || I == OpV)
+      if (!OpV->use_empty() || I == OpV) {
+        PassPrediction::PassPeeper(__FILE__, 2315); // if
         continue;
+      }
 
       // If the operand is an instruction that became dead as we nulled out the
       // operand, and if it is 'trivially' dead, delete it in a future loop
       // iteration.
-      if (Instruction *OpI = dyn_cast<Instruction>(OpV))
-        if (isInstructionTriviallyDead(OpI, TLI))
+      if (Instruction *OpI = dyn_cast<Instruction>(OpV)) {
+        PassPrediction::PassPeeper(__FILE__, 2316); // if
+        if (isInstructionTriviallyDead(OpI, TLI)) {
+          PassPrediction::PassPeeper(__FILE__, 2317); // if
           WorkList.insert(OpI);
+        }
+      }
     }
 
     I->eraseFromParent();
@@ -107,16 +120,20 @@ static bool eliminateDeadCode(Function &F, TargetLibraryInfo *TLI) {
   // if they actually need to be revisited. This avoids having to pre-init
   // the worklist with the entire function's worth of instructions.
   for (inst_iterator FI = inst_begin(F), FE = inst_end(F); FI != FE;) {
+    PassPrediction::PassPeeper(__FILE__, 2318); // for
     Instruction *I = &*FI;
     ++FI;
 
     // We're visiting this instruction now, so make sure it's not in the
     // worklist from an earlier visit.
-    if (!WorkList.count(I))
+    if (!WorkList.count(I)) {
+      PassPrediction::PassPeeper(__FILE__, 2319); // if
       MadeChange |= DCEInstruction(I, WorkList, TLI);
+    }
   }
 
   while (!WorkList.empty()) {
+    PassPrediction::PassPeeper(__FILE__, 2320); // while
     Instruction *I = WorkList.pop_back_val();
     MadeChange |= DCEInstruction(I, WorkList, TLI);
   }
@@ -124,8 +141,10 @@ static bool eliminateDeadCode(Function &F, TargetLibraryInfo *TLI) {
 }
 
 PreservedAnalyses DCEPass::run(Function &F, FunctionAnalysisManager &AM) {
-  if (!eliminateDeadCode(F, AM.getCachedResult<TargetLibraryAnalysis>(F)))
+  if (!eliminateDeadCode(F, AM.getCachedResult<TargetLibraryAnalysis>(F))) {
+    PassPrediction::PassPeeper(__FILE__, 2321); // if
     return PreservedAnalyses::all();
+  }
 
   PreservedAnalyses PA;
   PA.preserveSet<CFGAnalyses>();
@@ -140,8 +159,10 @@ struct DCELegacyPass : public FunctionPass {
   }
 
   bool runOnFunction(Function &F) override {
-    if (skipFunction(F))
+    if (skipFunction(F)) {
+      PassPrediction::PassPeeper(__FILE__, 2322); // if
       return false;
+    }
 
     auto *TLIP = getAnalysisIfAvailable<TargetLibraryInfoWrapperPass>();
     TargetLibraryInfo *TLI = TLIP ? &TLIP->getTLI() : nullptr;
@@ -153,7 +174,7 @@ struct DCELegacyPass : public FunctionPass {
     AU.setPreservesCFG();
   }
 };
-}
+} // namespace
 
 char DCELegacyPass::ID = 0;
 INITIALIZE_PASS(DCELegacyPass, "dce", "Dead Code Elimination", false, false)

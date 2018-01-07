@@ -1,3 +1,4 @@
+#include "llvm/PassPrediction/PassPrediction-Instrumentation.h"
 //===- ConstantHoisting.cpp - Prepare code for expensive constants --------===//
 //
 //                     The LLVM Compiler Infrastructure
@@ -33,7 +34,6 @@
 // %0 = load i64* inttoptr (i64 big_constant to i64*)
 //===----------------------------------------------------------------------===//
 
-#include "llvm/Transforms/Scalar/ConstantHoisting.h"
 #include "llvm/ADT/SmallSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/Statistic.h"
@@ -44,6 +44,7 @@
 #include "llvm/Support/Debug.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Transforms/Scalar.h"
+#include "llvm/Transforms/Scalar/ConstantHoisting.h"
 #include "llvm/Transforms/Utils/Local.h"
 #include <tuple>
 
@@ -76,8 +77,10 @@ public:
 
   void getAnalysisUsage(AnalysisUsage &AU) const override {
     AU.setPreservesCFG();
-    if (ConstHoistWithBlockFrequency)
+    if (ConstHoistWithBlockFrequency) {
+      PassPrediction::PassPeeper(__FILE__, 625); // if
       AU.addRequired<BlockFrequencyInfoWrapperPass>();
+    }
     AU.addRequired<DominatorTreeWrapperPass>();
     AU.addRequired<TargetTransformInfoWrapperPass>();
   }
@@ -87,7 +90,7 @@ public:
 private:
   ConstantHoistingPass Impl;
 };
-}
+} // namespace
 
 char ConstantHoistingLegacyPass::ID = 0;
 INITIALIZE_PASS_BEGIN(ConstantHoistingLegacyPass, "consthoist",
@@ -104,8 +107,10 @@ FunctionPass *llvm::createConstantHoistingPass() {
 
 /// \brief Perform the constant hoisting optimization for the given function.
 bool ConstantHoistingLegacyPass::runOnFunction(Function &Fn) {
-  if (skipFunction(Fn))
+  if (skipFunction(Fn)) {
+    PassPrediction::PassPeeper(__FILE__, 626); // if
     return false;
+  }
 
   DEBUG(dbgs() << "********** Begin Constant Hoisting **********\n");
   DEBUG(dbgs() << "********** Function: " << Fn.getName() << '\n');
@@ -128,28 +133,36 @@ bool ConstantHoistingLegacyPass::runOnFunction(Function &Fn) {
   return MadeChange;
 }
 
-
 /// \brief Find the constant materialization insertion point.
 Instruction *ConstantHoistingPass::findMatInsertPt(Instruction *Inst,
                                                    unsigned Idx) const {
   // If the operand is a cast instruction, then we have to materialize the
   // constant before the cast instruction.
   if (Idx != ~0U) {
+    PassPrediction::PassPeeper(__FILE__, 627); // if
     Value *Opnd = Inst->getOperand(Idx);
-    if (auto CastInst = dyn_cast<Instruction>(Opnd))
-      if (CastInst->isCast())
+    if (auto CastInst = dyn_cast<Instruction>(Opnd)) {
+      PassPrediction::PassPeeper(__FILE__, 628); // if
+      if (CastInst->isCast()) {
+        PassPrediction::PassPeeper(__FILE__, 629); // if
         return CastInst;
+      }
+    }
   }
 
   // The simple and common case. This also includes constant expressions.
-  if (!isa<PHINode>(Inst) && !Inst->isEHPad())
+  if (!isa<PHINode>(Inst) && !Inst->isEHPad()) {
+    PassPrediction::PassPeeper(__FILE__, 630); // if
     return Inst;
+  }
 
   // We can't insert directly before a phi node or an eh pad. Insert before
   // the terminator of the incoming or dominating block.
   assert(Entry != Inst->getParent() && "PHI or landing pad in entry block!");
-  if (Idx != ~0U && isa<PHINode>(Inst))
+  if (Idx != ~0U && isa<PHINode>(Inst)) {
+    PassPrediction::PassPeeper(__FILE__, 631); // if
     return cast<PHINode>(Inst)->getIncomingBlock(Idx)->getTerminator();
+  }
 
   // This must be an EH pad. Iterate over immediate dominators until we find a
   // non-EH pad. We need to skip over catchswitch blocks, which are both EH pads
@@ -177,6 +190,7 @@ static void findBestInsertionSet(DominatorTree &DT, BlockFrequencyInfo &BFI,
   // in the dominator tree from Entry to 'BB'.
   SmallPtrSet<BasicBlock *, 16> Candidates;
   for (auto BB : BBs) {
+    PassPrediction::PassPeeper(__FILE__, 632); // for-range
     Path.clear();
     // Walk up the dominator tree until Entry or another BB in BBs
     // is reached. Insert the nodes on the way to the Path.
@@ -184,9 +198,12 @@ static void findBestInsertionSet(DominatorTree &DT, BlockFrequencyInfo &BFI,
     // The "Path" is a candidate path to be added into Candidates set.
     bool isCandidate = false;
     do {
+      PassPrediction::PassPeeper(__FILE__, 633); // do-while
       Path.insert(Node);
       if (Node == Entry || Candidates.count(Node)) {
+        PassPrediction::PassPeeper(__FILE__, 634); // if
         isCandidate = true;
+        PassPrediction::PassPeeper(__FILE__, 635); // break
         break;
       }
       assert(DT.getNode(Node)->getIDom() &&
@@ -196,8 +213,10 @@ static void findBestInsertionSet(DominatorTree &DT, BlockFrequencyInfo &BFI,
 
     // If isCandidate is false, Node is another Block in BBs dominating
     // current 'BB'. Drop the nodes on the Path.
-    if (!isCandidate)
+    if (!isCandidate) {
+      PassPrediction::PassPeeper(__FILE__, 636); // if
       continue;
+    }
 
     // Add nodes on the Path into Candidates.
     Candidates.insert(Path.begin(), Path.end());
@@ -209,10 +228,14 @@ static void findBestInsertionSet(DominatorTree &DT, BlockFrequencyInfo &BFI,
   SmallVector<BasicBlock *, 16> Orders;
   Orders.push_back(Entry);
   while (Idx != Orders.size()) {
+    PassPrediction::PassPeeper(__FILE__, 637); // while
     BasicBlock *Node = Orders[Idx++];
     for (auto ChildDomNode : DT.getNode(Node)->getChildren()) {
-      if (Candidates.count(ChildDomNode->getBlock()))
+      PassPrediction::PassPeeper(__FILE__, 638); // for-range
+      if (Candidates.count(ChildDomNode->getBlock())) {
+        PassPrediction::PassPeeper(__FILE__, 639); // if
         Orders.push_back(ChildDomNode->getBlock());
+      }
     }
   }
 
@@ -224,6 +247,7 @@ static void findBestInsertionSet(DominatorTree &DT, BlockFrequencyInfo &BFI,
   DenseMap<BasicBlock *, InsertPtsCostPair> InsertPtsMap;
   InsertPtsMap.reserve(Orders.size() + 1);
   for (auto RIt = Orders.rbegin(); RIt != Orders.rend(); RIt++) {
+    PassPrediction::PassPeeper(__FILE__, 640); // for
     BasicBlock *Node = *RIt;
     bool NodeInBBs = BBs.count(Node);
     SmallPtrSet<BasicBlock *, 16> &InsertPts = InsertPtsMap[Node].first;
@@ -231,12 +255,17 @@ static void findBestInsertionSet(DominatorTree &DT, BlockFrequencyInfo &BFI,
 
     // Return the optimal insert points in BBs.
     if (Node == Entry) {
+      PassPrediction::PassPeeper(__FILE__, 641); // if
       BBs.clear();
       if (InsertPtsFreq > BFI.getBlockFreq(Node) ||
-          (InsertPtsFreq == BFI.getBlockFreq(Node) && InsertPts.size() > 1))
+          (InsertPtsFreq == BFI.getBlockFreq(Node) && InsertPts.size() > 1)) {
+        PassPrediction::PassPeeper(__FILE__, 642); // if
         BBs.insert(Entry);
-      else
+      } else {
+        PassPrediction::PassPeeper(__FILE__, 643); // else
         BBs.insert(InsertPts.begin(), InsertPts.end());
+      }
+      PassPrediction::PassPeeper(__FILE__, 644); // break
       break;
     }
 
@@ -255,9 +284,11 @@ static void findBestInsertionSet(DominatorTree &DT, BlockFrequencyInfo &BFI,
         (!Node->isEHPad() &&
          (InsertPtsFreq > BFI.getBlockFreq(Node) ||
           (InsertPtsFreq == BFI.getBlockFreq(Node) && InsertPts.size() > 1)))) {
+      PassPrediction::PassPeeper(__FILE__, 645); // if
       ParentInsertPts.insert(Node);
       ParentPtsFreq += BFI.getBlockFreq(Node);
     } else {
+      PassPrediction::PassPeeper(__FILE__, 646); // else
       ParentInsertPts.insert(InsertPts.begin(), InsertPts.end());
       ParentPtsFreq += InsertPtsFreq;
     }
@@ -271,32 +302,43 @@ SmallPtrSet<Instruction *, 8> ConstantHoistingPass::findConstantInsertionPoint(
   // Collect all basic blocks.
   SmallPtrSet<BasicBlock *, 8> BBs;
   SmallPtrSet<Instruction *, 8> InsertPts;
-  for (auto const &RCI : ConstInfo.RebasedConstants)
-    for (auto const &U : RCI.Uses)
+  for (auto const &RCI : ConstInfo.RebasedConstants) {
+    PassPrediction::PassPeeper(__FILE__, 647); // for-range
+    for (auto const &U : RCI.Uses) {
+      PassPrediction::PassPeeper(__FILE__, 648); // for-range
       BBs.insert(findMatInsertPt(U.Inst, U.OpndIdx)->getParent());
+    }
+  }
 
   if (BBs.count(Entry)) {
+    PassPrediction::PassPeeper(__FILE__, 649); // if
     InsertPts.insert(&Entry->front());
     return InsertPts;
   }
 
   if (BFI) {
+    PassPrediction::PassPeeper(__FILE__, 650); // if
     findBestInsertionSet(*DT, *BFI, Entry, BBs);
     for (auto BB : BBs) {
+      PassPrediction::PassPeeper(__FILE__, 651); // for-range
       BasicBlock::iterator InsertPt = BB->begin();
-      for (; isa<PHINode>(InsertPt) || InsertPt->isEHPad(); ++InsertPt)
+      for (; isa<PHINode>(InsertPt) || InsertPt->isEHPad(); ++InsertPt) {
+        PassPrediction::PassPeeper(__FILE__, 652); // for
         ;
+      }
       InsertPts.insert(&*InsertPt);
     }
     return InsertPts;
   }
 
   while (BBs.size() >= 2) {
+    PassPrediction::PassPeeper(__FILE__, 653); // while
     BasicBlock *BB, *BB1, *BB2;
     BB1 = *BBs.begin();
     BB2 = *std::next(BBs.begin());
     BB = DT->findNearestCommonDominator(BB1, BB2);
     if (BB == Entry) {
+      PassPrediction::PassPeeper(__FILE__, 654); // if
       InsertPts.insert(&Entry->front());
       return InsertPts;
     }
@@ -310,7 +352,6 @@ SmallPtrSet<Instruction *, 8> ConstantHoistingPass::findConstantInsertionPoint(
   return InsertPts;
 }
 
-
 /// \brief Record constant integer ConstInt for instruction Inst at operand
 /// index Idx.
 ///
@@ -323,34 +364,36 @@ void ConstantHoistingPass::collectConstantCandidates(
   unsigned Cost;
   // Ask the target about the cost of materializing the constant for the given
   // instruction and operand index.
-  if (auto IntrInst = dyn_cast<IntrinsicInst>(Inst))
+  if (auto IntrInst = dyn_cast<IntrinsicInst>(Inst)) {
+    PassPrediction::PassPeeper(__FILE__, 655); // if
     Cost = TTI->getIntImmCost(IntrInst->getIntrinsicID(), Idx,
                               ConstInt->getValue(), ConstInt->getType());
-  else
+  } else {
+    PassPrediction::PassPeeper(__FILE__, 656); // else
     Cost = TTI->getIntImmCost(Inst->getOpcode(), Idx, ConstInt->getValue(),
                               ConstInt->getType());
+  }
 
   // Ignore cheap integer constants.
   if (Cost > TargetTransformInfo::TCC_Basic) {
+    PassPrediction::PassPeeper(__FILE__, 657); // if
     ConstCandMapType::iterator Itr;
     bool Inserted;
     std::tie(Itr, Inserted) = ConstCandMap.insert(std::make_pair(ConstInt, 0));
     if (Inserted) {
+      PassPrediction::PassPeeper(__FILE__, 658); // if
       ConstCandVec.push_back(ConstantCandidate(ConstInt));
       Itr->second = ConstCandVec.size() - 1;
     }
     ConstCandVec[Itr->second].addUser(Inst, Idx, Cost);
-    DEBUG(if (isa<ConstantInt>(Inst->getOperand(Idx)))
-            dbgs() << "Collect constant " << *ConstInt << " from " << *Inst
-                   << " with cost " << Cost << '\n';
-          else
-          dbgs() << "Collect constant " << *ConstInt << " indirectly from "
-                 << *Inst << " via " << *Inst->getOperand(Idx) << " with cost "
-                 << Cost << '\n';
-    );
+    DEBUG(if (isa<ConstantInt>(Inst->getOperand(Idx))) dbgs()
+              << "Collect constant " << *ConstInt << " from " << *Inst
+              << " with cost " << Cost << '\n';
+          else dbgs() << "Collect constant " << *ConstInt << " indirectly from "
+                      << *Inst << " via " << *Inst->getOperand(Idx)
+                      << " with cost " << Cost << '\n';);
   }
 }
-
 
 /// \brief Check the operand for instruction Inst at index Idx.
 void ConstantHoistingPass::collectConstantCandidates(
@@ -359,6 +402,7 @@ void ConstantHoistingPass::collectConstantCandidates(
 
   // Visit constant integers.
   if (auto ConstInt = dyn_cast<ConstantInt>(Opnd)) {
+    PassPrediction::PassPeeper(__FILE__, 659); // if
     collectConstantCandidates(ConstCandMap, Inst, Idx, ConstInt);
     return;
   }
@@ -367,12 +411,16 @@ void ConstantHoistingPass::collectConstantCandidates(
   if (auto CastInst = dyn_cast<Instruction>(Opnd)) {
     // Only visit cast instructions, which have been skipped. All other
     // instructions should have already been visited.
-    if (!CastInst->isCast())
+    PassPrediction::PassPeeper(__FILE__, 660); // if
+    if (!CastInst->isCast()) {
+      PassPrediction::PassPeeper(__FILE__, 661); // if
       return;
+    }
 
     if (auto *ConstInt = dyn_cast<ConstantInt>(CastInst->getOperand(0))) {
       // Pretend the constant is directly used by the instruction and ignore
       // the cast instruction.
+      PassPrediction::PassPeeper(__FILE__, 662); // if
       collectConstantCandidates(ConstCandMap, Inst, Idx, ConstInt);
       return;
     }
@@ -381,26 +429,31 @@ void ConstantHoistingPass::collectConstantCandidates(
   // Visit constant expressions that have constant integers.
   if (auto ConstExpr = dyn_cast<ConstantExpr>(Opnd)) {
     // Only visit constant cast expressions.
-    if (!ConstExpr->isCast())
+    PassPrediction::PassPeeper(__FILE__, 663); // if
+    if (!ConstExpr->isCast()) {
+      PassPrediction::PassPeeper(__FILE__, 664); // if
       return;
+    }
 
     if (auto ConstInt = dyn_cast<ConstantInt>(ConstExpr->getOperand(0))) {
       // Pretend the constant is directly used by the instruction and ignore
       // the constant expression.
+      PassPrediction::PassPeeper(__FILE__, 665); // if
       collectConstantCandidates(ConstCandMap, Inst, Idx, ConstInt);
       return;
     }
   }
 }
 
-
 /// \brief Scan the instruction for expensive integer constants and record them
 /// in the constant candidate vector.
 void ConstantHoistingPass::collectConstantCandidates(
     ConstCandMapType &ConstCandMap, Instruction *Inst) {
   // Skip all cast instructions. They are visited indirectly later on.
-  if (Inst->isCast())
+  if (Inst->isCast()) {
+    PassPrediction::PassPeeper(__FILE__, 666); // if
     return;
+  }
 
   // Scan all operands.
   for (unsigned Idx = 0, E = Inst->getNumOperands(); Idx != E; ++Idx) {
@@ -408,7 +461,9 @@ void ConstantHoistingPass::collectConstantCandidates(
     // `TargetTransformInfo::getIntImmCost`) for instructions which only take
     // constant variables is lower than `TargetTransformInfo::TCC_Basic`. So
     // it's safe for us to collect constant candidates from all IntrinsicInsts.
+    PassPrediction::PassPeeper(__FILE__, 667); // for
     if (canReplaceOperandWithVariable(Inst, Idx) || isa<IntrinsicInst>(Inst)) {
+      PassPrediction::PassPeeper(__FILE__, 668); // if
       collectConstantCandidates(ConstCandMap, Inst, Idx);
     }
   } // end of for all operands
@@ -418,9 +473,13 @@ void ConstantHoistingPass::collectConstantCandidates(
 /// into an instruction itself.
 void ConstantHoistingPass::collectConstantCandidates(Function &Fn) {
   ConstCandMapType ConstCandMap;
-  for (BasicBlock &BB : Fn)
-    for (Instruction &Inst : BB)
+  for (BasicBlock &BB : Fn) {
+    PassPrediction::PassPeeper(__FILE__, 669); // for-range
+    for (Instruction &Inst : BB) {
+      PassPrediction::PassPeeper(__FILE__, 670); // for-range
       collectConstantCandidates(ConstCandMap, &Inst);
+    }
+  }
 }
 
 // This helper function is necessary to deal with values that have different
@@ -430,13 +489,15 @@ void ConstantHoistingPass::collectConstantCandidates(Function &Fn) {
 static llvm::Optional<APInt> calculateOffsetDiff(const APInt &V1,
                                                  const APInt &V2) {
   llvm::Optional<APInt> Res = None;
-  unsigned BW = V1.getBitWidth() > V2.getBitWidth() ?
-                V1.getBitWidth() : V2.getBitWidth();
+  unsigned BW =
+      V1.getBitWidth() > V2.getBitWidth() ? V1.getBitWidth() : V2.getBitWidth();
   uint64_t LimVal1 = V1.getLimitedValue();
   uint64_t LimVal2 = V2.getLimitedValue();
 
-  if (LimVal1 == ~0ULL || LimVal2 == ~0ULL)
+  if (LimVal1 == ~0ULL || LimVal2 == ~0ULL) {
+    PassPrediction::PassPeeper(__FILE__, 671); // if
     return Res;
+  }
 
   uint64_t Diff = LimVal1 - LimVal2;
   return APInt(BW, Diff, true);
@@ -465,17 +526,20 @@ static llvm::Optional<APInt> calculateOffsetDiff(const APInt &V1,
 // function only when we're optimising for size and there are less than 100
 // constants, we fall back to the straightforward algorithm otherwise
 // which does not do all the offset calculations.
-unsigned
-ConstantHoistingPass::maximizeConstantsInRange(ConstCandVecType::iterator S,
-                                           ConstCandVecType::iterator E,
-                                           ConstCandVecType::iterator &MaxCostItr) {
+unsigned ConstantHoistingPass::maximizeConstantsInRange(
+    ConstCandVecType::iterator S, ConstCandVecType::iterator E,
+    ConstCandVecType::iterator &MaxCostItr) {
   unsigned NumUses = 0;
 
-  if(!Entry->getParent()->optForSize() || std::distance(S,E) > 100) {
+  if (!Entry->getParent()->optForSize() || std::distance(S, E) > 100) {
+    PassPrediction::PassPeeper(__FILE__, 672); // if
     for (auto ConstCand = S; ConstCand != E; ++ConstCand) {
+      PassPrediction::PassPeeper(__FILE__, 673); // for
       NumUses += ConstCand->Uses.size();
-      if (ConstCand->CumulativeCost > MaxCostItr->CumulativeCost)
+      if (ConstCand->CumulativeCost > MaxCostItr->CumulativeCost) {
+        PassPrediction::PassPeeper(__FILE__, 674); // if
         MaxCostItr = ConstCand;
+      }
     }
     return NumUses;
   }
@@ -483,6 +547,7 @@ ConstantHoistingPass::maximizeConstantsInRange(ConstCandVecType::iterator S,
   DEBUG(dbgs() << "== Maximize constants in range ==\n");
   int MaxCost = -1;
   for (auto ConstCand = S; ConstCand != E; ++ConstCand) {
+    PassPrediction::PassPeeper(__FILE__, 675); // for
     auto Value = ConstCand->ConstInt->getValue();
     Type *Ty = ConstCand->ConstInt->getType();
     int Cost = 0;
@@ -490,18 +555,20 @@ ConstantHoistingPass::maximizeConstantsInRange(ConstCandVecType::iterator S,
     DEBUG(dbgs() << "= Constant: " << ConstCand->ConstInt->getValue() << "\n");
 
     for (auto User : ConstCand->Uses) {
+      PassPrediction::PassPeeper(__FILE__, 676); // for-range
       unsigned Opcode = User.Inst->getOpcode();
       unsigned OpndIdx = User.OpndIdx;
       Cost += TTI->getIntImmCost(Opcode, OpndIdx, Value, Ty);
       DEBUG(dbgs() << "Cost: " << Cost << "\n");
 
       for (auto C2 = S; C2 != E; ++C2) {
+        PassPrediction::PassPeeper(__FILE__, 677); // for
         llvm::Optional<APInt> Diff = calculateOffsetDiff(
-                                      C2->ConstInt->getValue(),
-                                      ConstCand->ConstInt->getValue());
+            C2->ConstInt->getValue(), ConstCand->ConstInt->getValue());
         if (Diff) {
+          PassPrediction::PassPeeper(__FILE__, 678); // if
           const int ImmCosts =
-            TTI->getIntImmCodeSizeCost(Opcode, OpndIdx, Diff.getValue(), Ty);
+              TTI->getIntImmCodeSizeCost(Opcode, OpndIdx, Diff.getValue(), Ty);
           Cost -= ImmCosts;
           DEBUG(dbgs() << "Offset " << Diff.getValue() << " "
                        << "has penalty: " << ImmCosts << "\n"
@@ -511,6 +578,7 @@ ConstantHoistingPass::maximizeConstantsInRange(ConstCandVecType::iterator S,
     }
     DEBUG(dbgs() << "Cumulative cost: " << Cost << "\n");
     if (Cost > MaxCost) {
+      PassPrediction::PassPeeper(__FILE__, 679); // if
       MaxCost = Cost;
       MaxCostItr = ConstCand;
       DEBUG(dbgs() << "New candidate: " << MaxCostItr->ConstInt->getValue()
@@ -528,8 +596,10 @@ void ConstantHoistingPass::findAndMakeBaseConstant(
   unsigned NumUses = maximizeConstantsInRange(S, E, MaxCostItr);
 
   // Don't hoist constants that have only one use.
-  if (NumUses <= 1)
+  if (NumUses <= 1) {
+    PassPrediction::PassPeeper(__FILE__, 680); // if
     return;
+  }
 
   ConstantInfo ConstInfo;
   ConstInfo.BaseConstant = MaxCostItr->ConstInt;
@@ -537,11 +607,12 @@ void ConstantHoistingPass::findAndMakeBaseConstant(
 
   // Rebase the constants with respect to the base constant.
   for (auto ConstCand = S; ConstCand != E; ++ConstCand) {
-    APInt Diff = ConstCand->ConstInt->getValue() -
-                 ConstInfo.BaseConstant->getValue();
+    PassPrediction::PassPeeper(__FILE__, 681); // for
+    APInt Diff =
+        ConstCand->ConstInt->getValue() - ConstInfo.BaseConstant->getValue();
     Constant *Offset = Diff == 0 ? nullptr : ConstantInt::get(Ty, Diff);
     ConstInfo.RebasedConstants.push_back(
-      RebasedConstantInfo(std::move(ConstCand->Uses), Offset));
+        RebasedConstantInfo(std::move(ConstCand->Uses), Offset));
   }
   ConstantVec.push_back(std::move(ConstInfo));
 }
@@ -552,23 +623,29 @@ void ConstantHoistingPass::findBaseConstants() {
   // Sort the constants by value and type. This invalidates the mapping!
   std::sort(ConstCandVec.begin(), ConstCandVec.end(),
             [](const ConstantCandidate &LHS, const ConstantCandidate &RHS) {
-    if (LHS.ConstInt->getType() != RHS.ConstInt->getType())
-      return LHS.ConstInt->getType()->getBitWidth() <
-             RHS.ConstInt->getType()->getBitWidth();
-    return LHS.ConstInt->getValue().ult(RHS.ConstInt->getValue());
-  });
+              if (LHS.ConstInt->getType() != RHS.ConstInt->getType()) {
+                PassPrediction::PassPeeper(__FILE__, 682); // if
+                return LHS.ConstInt->getType()->getBitWidth() <
+                       RHS.ConstInt->getType()->getBitWidth();
+              }
+              return LHS.ConstInt->getValue().ult(RHS.ConstInt->getValue());
+            });
 
   // Simple linear scan through the sorted constant candidate vector for viable
   // merge candidates.
   auto MinValItr = ConstCandVec.begin();
   for (auto CC = std::next(ConstCandVec.begin()), E = ConstCandVec.end();
        CC != E; ++CC) {
+    PassPrediction::PassPeeper(__FILE__, 683); // for
     if (MinValItr->ConstInt->getType() == CC->ConstInt->getType()) {
       // Check if the constant is in range of an add with immediate.
+      PassPrediction::PassPeeper(__FILE__, 684); // if
       APInt Diff = CC->ConstInt->getValue() - MinValItr->ConstInt->getValue();
       if ((Diff.getBitWidth() <= 64) &&
-          TTI->isLegalAddImmediate(Diff.getSExtValue()))
+          TTI->isLegalAddImmediate(Diff.getSExtValue())) {
+        PassPrediction::PassPeeper(__FILE__, 685); // if
         continue;
+      }
     }
     // We either have now a different constant type or the constant is not in
     // range of an add with immediate anymore.
@@ -594,9 +671,12 @@ static bool updateOperand(Instruction *Inst, unsigned Idx, Instruction *Mat) {
     // operand(s), otherwise we will fail verification due to different values.
     // The values are actually the same, but the variable names are different
     // and the verifier doesn't like that.
+    PassPrediction::PassPeeper(__FILE__, 686); // if
     BasicBlock *IncomingBB = PHI->getIncomingBlock(Idx);
     for (unsigned i = 0; i < Idx; ++i) {
+      PassPrediction::PassPeeper(__FILE__, 687); // for
       if (PHI->getIncomingBlock(i) == IncomingBB) {
+        PassPrediction::PassPeeper(__FILE__, 688); // if
         Value *IncomingVal = PHI->getIncomingValue(i);
         Inst->setOperand(Idx, IncomingVal);
         return false;
@@ -615,14 +695,15 @@ void ConstantHoistingPass::emitBaseConstants(Instruction *Base,
                                              const ConstantUser &ConstUser) {
   Instruction *Mat = Base;
   if (Offset) {
-    Instruction *InsertionPt = findMatInsertPt(ConstUser.Inst,
-                                               ConstUser.OpndIdx);
-    Mat = BinaryOperator::Create(Instruction::Add, Base, Offset,
-                                 "const_mat", InsertionPt);
+    PassPrediction::PassPeeper(__FILE__, 689); // if
+    Instruction *InsertionPt =
+        findMatInsertPt(ConstUser.Inst, ConstUser.OpndIdx);
+    Mat = BinaryOperator::Create(Instruction::Add, Base, Offset, "const_mat",
+                                 InsertionPt);
 
-    DEBUG(dbgs() << "Materialize constant (" << *Base->getOperand(0)
-                 << " + " << *Offset << ") in BB "
-                 << Mat->getParent()->getName() << '\n' << *Mat << '\n');
+    DEBUG(dbgs() << "Materialize constant (" << *Base->getOperand(0) << " + "
+                 << *Offset << ") in BB " << Mat->getParent()->getName() << '\n'
+                 << *Mat << '\n');
     Mat->setDebugLoc(ConstUser.Inst->getDebugLoc());
   }
   Value *Opnd = ConstUser.Inst->getOperand(ConstUser.OpndIdx);
@@ -630,8 +711,10 @@ void ConstantHoistingPass::emitBaseConstants(Instruction *Base,
   // Visit constant integer.
   if (isa<ConstantInt>(Opnd)) {
     DEBUG(dbgs() << "Update: " << *ConstUser.Inst << '\n');
-    if (!updateOperand(ConstUser.Inst, ConstUser.OpndIdx, Mat) && Offset)
+    if (!updateOperand(ConstUser.Inst, ConstUser.OpndIdx, Mat) && Offset) {
+      PassPrediction::PassPeeper(__FILE__, 690); // if
       Mat->eraseFromParent();
+    }
     DEBUG(dbgs() << "To    : " << *ConstUser.Inst << '\n');
     return;
   }
@@ -643,6 +726,7 @@ void ConstantHoistingPass::emitBaseConstants(Instruction *Base,
     // unnecessary cloning.
     Instruction *&ClonedCastInst = ClonedCastMap[CastInst];
     if (!ClonedCastInst) {
+      PassPrediction::PassPeeper(__FILE__, 691); // if
       ClonedCastInst = CastInst->clone();
       ClonedCastInst->setOperand(0, Mat);
       ClonedCastInst->insertAfter(CastInst);
@@ -660,10 +744,11 @@ void ConstantHoistingPass::emitBaseConstants(Instruction *Base,
 
   // Visit constant expression.
   if (auto ConstExpr = dyn_cast<ConstantExpr>(Opnd)) {
+    PassPrediction::PassPeeper(__FILE__, 692); // if
     Instruction *ConstExprInst = ConstExpr->getAsInstruction();
     ConstExprInst->setOperand(0, Mat);
-    ConstExprInst->insertBefore(findMatInsertPt(ConstUser.Inst,
-                                                ConstUser.OpndIdx));
+    ConstExprInst->insertBefore(
+        findMatInsertPt(ConstUser.Inst, ConstUser.OpndIdx));
 
     // Use the same debug location as the instruction we are about to update.
     ConstExprInst->setDebugLoc(ConstUser.Inst->getDebugLoc());
@@ -672,9 +757,12 @@ void ConstantHoistingPass::emitBaseConstants(Instruction *Base,
                  << "From              : " << *ConstExpr << '\n');
     DEBUG(dbgs() << "Update: " << *ConstUser.Inst << '\n');
     if (!updateOperand(ConstUser.Inst, ConstUser.OpndIdx, ConstExprInst)) {
+      PassPrediction::PassPeeper(__FILE__, 693); // if
       ConstExprInst->eraseFromParent();
-      if (Offset)
+      if (Offset) {
+        PassPrediction::PassPeeper(__FILE__, 694); // if
         Mat->eraseFromParent();
+      }
     }
     DEBUG(dbgs() << "To    : " << *ConstUser.Inst << '\n');
     return;
@@ -687,12 +775,14 @@ bool ConstantHoistingPass::emitBaseConstants() {
   bool MadeChange = false;
   for (auto const &ConstInfo : ConstantVec) {
     // Hoist and hide the base constant behind a bitcast.
+    PassPrediction::PassPeeper(__FILE__, 695); // for-range
     SmallPtrSet<Instruction *, 8> IPSet = findConstantInsertionPoint(ConstInfo);
     assert(!IPSet.empty() && "IPSet is empty");
 
     unsigned UsesNum = 0;
     unsigned ReBasesNum = 0;
     for (Instruction *IP : IPSet) {
+      PassPrediction::PassPeeper(__FILE__, 696); // for-range
       IntegerType *Ty = ConstInfo.BaseConstant->getType();
       Instruction *Base =
           new BitCastInst(ConstInfo.BaseConstant, Ty, "const", IP);
@@ -703,7 +793,9 @@ bool ConstantHoistingPass::emitBaseConstants() {
       // Emit materialization code for all rebased constants.
       unsigned Uses = 0;
       for (auto const &RCI : ConstInfo.RebasedConstants) {
+        PassPrediction::PassPeeper(__FILE__, 697); // for-range
         for (auto const &U : RCI.Uses) {
+          PassPrediction::PassPeeper(__FILE__, 698); // for-range
           Uses++;
           BasicBlock *OrigMatInsertBB =
               findMatInsertPt(U.Inst, U.OpndIdx)->getParent();
@@ -711,6 +803,7 @@ bool ConstantHoistingPass::emitBaseConstants() {
           // generate rebase for U using the Base dominating U.
           if (IPSet.size() == 1 ||
               DT->dominates(Base->getParent(), OrigMatInsertBB)) {
+            PassPrediction::PassPeeper(__FILE__, 699); // if
             emitBaseConstants(Base, RCI.Offset, U);
             ReBasesNum++;
           }
@@ -743,9 +836,13 @@ bool ConstantHoistingPass::emitBaseConstants() {
 /// \brief Check all cast instructions we made a copy of and remove them if they
 /// have no more users.
 void ConstantHoistingPass::deleteDeadCastInst() const {
-  for (auto const &I : ClonedCastMap)
-    if (I.first->use_empty())
+  for (auto const &I : ClonedCastMap) {
+    PassPrediction::PassPeeper(__FILE__, 700); // for-range
+    if (I.first->use_empty()) {
+      PassPrediction::PassPeeper(__FILE__, 701); // if
       I.first->eraseFromParent();
+    }
+  }
 }
 
 /// \brief Optimize expensive integer constants in the given function.
@@ -755,21 +852,25 @@ bool ConstantHoistingPass::runImpl(Function &Fn, TargetTransformInfo &TTI,
   this->TTI = &TTI;
   this->DT = &DT;
   this->BFI = BFI;
-  this->Entry = &Entry;  
+  this->Entry = &Entry;
   // Collect all constant candidates.
   collectConstantCandidates(Fn);
 
   // There are no constant candidates to worry about.
-  if (ConstCandVec.empty())
+  if (ConstCandVec.empty()) {
+    PassPrediction::PassPeeper(__FILE__, 702); // if
     return false;
+  }
 
   // Combine constants that can be easily materialized with an add from a common
   // base constant.
   findBaseConstants();
 
   // There are no constants to emit.
-  if (ConstantVec.empty())
+  if (ConstantVec.empty()) {
+    PassPrediction::PassPeeper(__FILE__, 703); // if
     return false;
+  }
 
   // Finally hoist the base constant and emit materialization code for dependent
   // constants.
@@ -788,8 +889,10 @@ PreservedAnalyses ConstantHoistingPass::run(Function &F,
   auto BFI = ConstHoistWithBlockFrequency
                  ? &AM.getResult<BlockFrequencyAnalysis>(F)
                  : nullptr;
-  if (!runImpl(F, TTI, DT, BFI, F.getEntryBlock()))
+  if (!runImpl(F, TTI, DT, BFI, F.getEntryBlock())) {
+    PassPrediction::PassPeeper(__FILE__, 704); // if
     return PreservedAnalyses::all();
+  }
 
   PreservedAnalyses PA;
   PA.preserveSet<CFGAnalyses>();
