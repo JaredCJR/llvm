@@ -10,7 +10,10 @@
 #include <vector>
 
 namespace PassPrediction {
+  std::string getDemangledFunctionName(std::string mangledName);
   void PassPeeper(const std::string& file, unsigned FeatureId);
+  void BuildWorkerDestMap(
+            std::unordered_map<std::string, std::pair<std::string, std::string> > &WorkerDestMap);
   class FeatureRecorder {
     public:
       // singleton
@@ -51,6 +54,15 @@ namespace PassPrediction {
         FeatureMap[CurrFuncName][FeatureId] = FeatureMap[CurrFuncName][FeatureId] + 1;
       }
 
+      std::string getFeatureAsString(std::string mangledFuncName) {
+        std::string features;
+        for (auto it : FeatureMap[mangledFuncName]) {
+          features += std::to_string(it);
+          features += std::string(" ");
+        }
+        return features;
+      }
+
       void printFeatures() {
         for (auto it : FeatureMap) {
           llvm::errs() << it.first << ": ";
@@ -61,10 +73,19 @@ namespace PassPrediction {
         }
       }
 
+      int getWorkerID() {
+        return WorkerID;
+      }
+
+      void setWorkerID(int id) {
+        WorkerID = id;
+      }
+
     private:
       bool ActivateInstrumentation;
       unsigned FeatureSize = 0;
       std::string CurrFuncName;
+      int WorkerID = -1;
       FeatureRecorder() { // Prevent construction
         ActivateInstrumentation = false;
         // Read the size of features, which is generate from "InstrumentTidiedPasses.sh"
@@ -83,6 +104,7 @@ namespace PassPrediction {
         fin >> FeatureSize;
         fin.close();
       };
+      // Key: mangled name(C++); Value: feature vector
       std::unordered_map<std::string, std::vector<unsigned short> > FeatureMap;
   };
 }
