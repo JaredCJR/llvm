@@ -2,6 +2,9 @@
 
 cmake_minimum_required(VERSION 3.4.3)
 
+# Thesis build option
+add_definitions(-DDAEMON_WORKER_ID=${DAEMON_WORKER_ID})
+
 if(POLICY CMP0022)
   cmake_policy(SET CMP0022 NEW) # automatic when 2.8.12 is required
 endif()
