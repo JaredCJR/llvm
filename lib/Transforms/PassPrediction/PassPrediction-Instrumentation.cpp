@@ -16,6 +16,27 @@ namespace PassPrediction {
     return std::string(OrigName);
   }
 
+  // Whether the demangled function name is worth to extract features.
+  bool isWorthToExtract(std::string &FuncName) {
+    if (FuncName.find(std::string("std::")) == 0) {
+      return false;
+    }
+    if (FuncName.find(std::string("__cxx")) == 0) {
+      return false;
+    }
+    if (FuncName.find(std::string("__gnu_cxx::")) == 0) {
+      return false;
+    }
+    if (FuncName.find(std::string("_GLOBAL")) == 0) {
+      return false;
+    }
+    std::string cpp(".cpp");
+    if (FuncName.rfind(cpp) == (FuncName.size() - cpp.size())) { //end with
+      return false;
+    }
+    return true;
+  }
+
   void PassPeeper(const std::string& file, unsigned FeatureId) {
     // Get the feature object, which is a singleton
     FeatureRecorder &InstrumentRec = FeatureRecorder::getInstance();
@@ -24,7 +45,7 @@ namespace PassPrediction {
       std::string demangledFuncName = 
         PassPrediction::getDemangledFunctionName(InstrumentRec.getCurrFuncName());
       // Do not extract features from "std::"
-      if (demangledFuncName.find(std::string("std::")) != 0) {
+      if (isWorthToExtract(demangledFuncName)) {
         InstrumentRec.encounterFeatures(FeatureId);
       }
     }  
