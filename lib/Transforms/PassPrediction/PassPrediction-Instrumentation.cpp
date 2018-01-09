@@ -61,7 +61,7 @@ namespace PassPrediction {
     if (!env_p) {
       exit(EXIT_FAILURE);
     }
-    std::string ConnectionInfoLoc = std::string(env_p) + std::string("/training/ConnectionInfo");
+    std::string ConnectionInfoLoc = std::string(env_p) + std::string("/training/ClangConnectInfo");
     std::ifstream stream(ConnectionInfoLoc);
     std::string line, workerEntry, tcpIP, tcpPort;
     std::getline(stream, line); //skip the first line
