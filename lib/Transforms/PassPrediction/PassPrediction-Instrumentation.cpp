@@ -34,6 +34,16 @@ namespace PassPrediction {
     if (FuncName.rfind(cpp) == (FuncName.size() - cpp.size())) { //end with
       return false;
     }
+    // Something like "void std::"
+    std::istringstream iss(FuncName);
+    std::string tmp;
+    if (std::getline(iss, tmp, ' ')) {
+      std::getline(iss, tmp, ' ');
+      if (tmp.find(std::string("std::")) == 0) {
+        return false;
+      }
+    }
+
     return true;
   }
 
