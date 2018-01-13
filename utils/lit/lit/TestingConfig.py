@@ -29,7 +29,7 @@ class TestingConfig:
                      'LLVM_THESIS_HOME', 'LLVM_THESIS_RandomHome',
                      'LLVM_THESIS_TestSuite', 'LLVM_THESIS_Random_LLVMTestSuiteScript',
                      'LLVM_THESIS_Random_LLVMTestSuite_Results', 'LLVM_THESIS_lit',
-                     'PYTHONPATH', ]
+                     'LLVM_THESIS_InstrumentHome', 'LLVM_THESIS_TrainingHome','PYTHONPATH', ]
         for var in pass_vars:
             val = os.environ.get(var, '')
             # Check for empty string as some variables such as LD_PRELOAD cannot be empty
