@@ -55,12 +55,12 @@ namespace PassPrediction {
         FeatureMap[CurrFuncName][FeatureId] = FeatureMap[CurrFuncName][FeatureId] + 1;
       }
 
-      std::string getFeatureAsString(std::string mangledFuncName) {
+      std::string getFeatureAsString(std::string mangledFuncName, std::string split) {
         std::string features = "";
-        if (FeatureMap.find(CurrFuncName) != FeatureMap.end()) {
+        if (FeatureMap.find(mangledFuncName) != FeatureMap.end()) {
           for (auto it : FeatureMap[mangledFuncName]) {
             features += std::to_string(it);
-            features += std::string(" ");
+            features += split;
           }
         }
         return features;
@@ -68,13 +68,13 @@ namespace PassPrediction {
 
       void printFeatures() {
         for (auto it : FeatureMap) {
-          llvm::errs() << it.first << ": ";
-          for (auto feature : it.second) {
-            llvm::errs() << feature << " ";
-          }
+          llvm::errs() << it.first << " @ ";
+          llvm::errs() << getFeatureAsString(it.first, std::string(" "));
           llvm::errs() << "\n\n";
         }
       }
+
+      void writeAllFeatures(std::string Path);
 
       int getWorkerID() {
         return WorkerID;

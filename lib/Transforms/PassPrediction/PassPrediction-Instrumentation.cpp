@@ -52,17 +52,19 @@ namespace PassPrediction {
     FeatureRecorder &InstrumentRec = FeatureRecorder::getInstance();
     // if instrumentation is enabled, record it.
     if (InstrumentRec.isInstrumentationActivated()){
-      std::string demangledFuncName = 
+      std::string demangledFuncName =
         PassPrediction::getDemangledFunctionName(InstrumentRec.getCurrFuncName());
       // Do not extract features from "std::"
       if (isWorthToExtract(demangledFuncName)) {
         InstrumentRec.encounterFeatures(FeatureId);
       }
-    }  
+    }
   }
 
   void BuildWorkerDestMap(
       std::unordered_map<std::string, std::pair<std::string, std::string> > &WorkerDestMap) {
+// This macro must be defined in the command of cmake
+// ex. -DDAEMON_WORKER_ID="1"
 #if defined(DAEMON_WORKER_ID)
     FeatureRecorder &InstrumentRec = FeatureRecorder::getInstance();
     InstrumentRec.setWorkerID(DAEMON_WORKER_ID);
@@ -91,6 +93,17 @@ namespace PassPrediction {
     #error "workerID should be defined in cmake build command for training framework."
     exit(EXIT_FAILURE);
 #endif
+  }
+
+  void FeatureRecorder::writeAllFeatures(std::string Path) {
+    std::ofstream file;
+    file.open(Path, std::ofstream::out);
+		for (auto it : FeatureMap) {
+		  file << it.first << " @ ";
+      file << getFeatureAsString(it.first, std::string(", "));
+			file << "\n";
+		}
+    file.close();
   }
 
 }
