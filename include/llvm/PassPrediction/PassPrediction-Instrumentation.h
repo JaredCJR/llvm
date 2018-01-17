@@ -56,10 +56,12 @@ namespace PassPrediction {
       }
 
       std::string getFeatureAsString(std::string mangledFuncName) {
-        std::string features;
-        for (auto it : FeatureMap[mangledFuncName]) {
-          features += std::to_string(it);
-          features += std::string(" ");
+        std::string features = "";
+        if (FeatureMap.find(CurrFuncName) != FeatureMap.end()) {
+          for (auto it : FeatureMap[mangledFuncName]) {
+            features += std::to_string(it);
+            features += std::string(" ");
+          }
         }
         return features;
       }
@@ -85,6 +87,7 @@ namespace PassPrediction {
     private:
       bool ActivateInstrumentation;
       unsigned FeatureSize = 0;
+      // CurrFuncName must be mangled Function Name
       std::string CurrFuncName;
       int WorkerID = -1;
       FeatureRecorder() { // Prevent construction
