@@ -5,6 +5,7 @@
 #include <string>
 #include <sstream>
 #include <fstream>
+#include <algorithm>
 
 namespace PassPrediction {
   std::string getDemangledFunctionName(std::string mangledName) {
@@ -85,6 +86,10 @@ namespace PassPrediction {
         std::getline(ss, workerEntry, ',');
         std::getline(ss, tcpIP, ',');
         std::getline(ss, tcpPort, ',');
+        // remove the spaces
+        workerEntry.erase(std::remove(workerEntry.begin(), workerEntry.end(), ' '), workerEntry.end());
+        tcpIP.erase(std::remove(tcpIP.begin(), tcpIP.end(), ' '), tcpIP.end());
+        tcpPort.erase(std::remove(tcpPort.begin(), tcpPort.end(), ' '), tcpPort.end());
         WorkerDestMap[workerEntry] =
           std::make_pair(tcpIP, tcpPort);
       }
