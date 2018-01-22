@@ -70,7 +70,7 @@ struct SimpleValue {
   static bool canHandle(Instruction *Inst) {
     // This can only handle non-void readnone functions.
     if (CallInst *CI = dyn_cast<CallInst>(Inst)) {
-      PassPrediction::PassPeeper(__FILE__, 2215); // if
+      PassPrediction::PassPeeper(2215); // if
       return CI->doesNotAccessMemory() && !CI->getType()->isVoidTy();
     }
     return isa<CastInst>(Inst) || isa<BinaryOperator>(Inst) ||
@@ -99,11 +99,11 @@ unsigned DenseMapInfo<SimpleValue>::getHashValue(SimpleValue Val) {
   Instruction *Inst = Val.Inst;
   // Hash in all of the operands as pointers.
   if (BinaryOperator *BinOp = dyn_cast<BinaryOperator>(Inst)) {
-    PassPrediction::PassPeeper(__FILE__, 2216); // if
+    PassPrediction::PassPeeper(2216); // if
     Value *LHS = BinOp->getOperand(0);
     Value *RHS = BinOp->getOperand(1);
     if (BinOp->isCommutative() && BinOp->getOperand(0) > BinOp->getOperand(1)) {
-      PassPrediction::PassPeeper(__FILE__, 2217); // if
+      PassPrediction::PassPeeper(2217); // if
       std::swap(LHS, RHS);
     }
 
@@ -111,12 +111,12 @@ unsigned DenseMapInfo<SimpleValue>::getHashValue(SimpleValue Val) {
   }
 
   if (CmpInst *CI = dyn_cast<CmpInst>(Inst)) {
-    PassPrediction::PassPeeper(__FILE__, 2218); // if
+    PassPrediction::PassPeeper(2218); // if
     Value *LHS = CI->getOperand(0);
     Value *RHS = CI->getOperand(1);
     CmpInst::Predicate Pred = CI->getPredicate();
     if (Inst->getOperand(0) > Inst->getOperand(1)) {
-      PassPrediction::PassPeeper(__FILE__, 2219); // if
+      PassPrediction::PassPeeper(2219); // if
       std::swap(LHS, RHS);
       Pred = CI->getSwappedPredicate();
     }
@@ -124,18 +124,18 @@ unsigned DenseMapInfo<SimpleValue>::getHashValue(SimpleValue Val) {
   }
 
   if (CastInst *CI = dyn_cast<CastInst>(Inst)) {
-    PassPrediction::PassPeeper(__FILE__, 2220); // if
+    PassPrediction::PassPeeper(2220); // if
     return hash_combine(CI->getOpcode(), CI->getType(), CI->getOperand(0));
   }
 
   if (const ExtractValueInst *EVI = dyn_cast<ExtractValueInst>(Inst)) {
-    PassPrediction::PassPeeper(__FILE__, 2221); // if
+    PassPrediction::PassPeeper(2221); // if
     return hash_combine(EVI->getOpcode(), EVI->getOperand(0),
                         hash_combine_range(EVI->idx_begin(), EVI->idx_end()));
   }
 
   if (const InsertValueInst *IVI = dyn_cast<InsertValueInst>(Inst)) {
-    PassPrediction::PassPeeper(__FILE__, 2222); // if
+    PassPrediction::PassPeeper(2222); // if
     return hash_combine(IVI->getOpcode(), IVI->getOperand(0),
                         IVI->getOperand(1),
                         hash_combine_range(IVI->idx_begin(), IVI->idx_end()));
@@ -157,24 +157,24 @@ bool DenseMapInfo<SimpleValue>::isEqual(SimpleValue LHS, SimpleValue RHS) {
   Instruction *LHSI = LHS.Inst, *RHSI = RHS.Inst;
 
   if (LHS.isSentinel() || RHS.isSentinel()) {
-    PassPrediction::PassPeeper(__FILE__, 2223); // if
+    PassPrediction::PassPeeper(2223); // if
     return LHSI == RHSI;
   }
 
   if (LHSI->getOpcode() != RHSI->getOpcode()) {
-    PassPrediction::PassPeeper(__FILE__, 2224); // if
+    PassPrediction::PassPeeper(2224); // if
     return false;
   }
   if (LHSI->isIdenticalToWhenDefined(RHSI)) {
-    PassPrediction::PassPeeper(__FILE__, 2225); // if
+    PassPrediction::PassPeeper(2225); // if
     return true;
   }
 
   // If we're not strictly identical, we still might be a commutable instruction
   if (BinaryOperator *LHSBinOp = dyn_cast<BinaryOperator>(LHSI)) {
-    PassPrediction::PassPeeper(__FILE__, 2226); // if
+    PassPrediction::PassPeeper(2226); // if
     if (!LHSBinOp->isCommutative()) {
-      PassPrediction::PassPeeper(__FILE__, 2227); // if
+      PassPrediction::PassPeeper(2227); // if
       return false;
     }
 
@@ -221,13 +221,13 @@ struct CallValue {
   static bool canHandle(Instruction *Inst) {
     // Don't value number anything that returns void.
     if (Inst->getType()->isVoidTy()) {
-      PassPrediction::PassPeeper(__FILE__, 2228); // if
+      PassPrediction::PassPeeper(2228); // if
       return false;
     }
 
     CallInst *CI = dyn_cast<CallInst>(Inst);
     if (!CI || !CI->onlyReadsMemory()) {
-      PassPrediction::PassPeeper(__FILE__, 2229); // if
+      PassPrediction::PassPeeper(2229); // if
       return false;
     }
     return true;
@@ -259,7 +259,7 @@ unsigned DenseMapInfo<CallValue>::getHashValue(CallValue Val) {
 bool DenseMapInfo<CallValue>::isEqual(CallValue LHS, CallValue RHS) {
   Instruction *LHSI = LHS.Inst, *RHSI = RHS.Inst;
   if (LHS.isSentinel() || RHS.isSentinel()) {
-    PassPrediction::PassPeeper(__FILE__, 2230); // if
+    PassPrediction::PassPeeper(2230); // if
     return LHSI == RHSI;
   }
   return LHSI->isIdenticalTo(RHSI);
@@ -427,45 +427,45 @@ private:
     ParseMemoryInst(Instruction *Inst, const TargetTransformInfo &TTI)
         : IsTargetMemInst(false), Inst(Inst) {
       if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(Inst)) {
-        PassPrediction::PassPeeper(__FILE__, 2231); // if
+        PassPrediction::PassPeeper(2231); // if
         if (TTI.getTgtMemIntrinsic(II, Info)) {
-          PassPrediction::PassPeeper(__FILE__, 2232); // if
+          PassPrediction::PassPeeper(2232); // if
           IsTargetMemInst = true;
         }
       }
     }
     bool isLoad() const {
       if (IsTargetMemInst) {
-        PassPrediction::PassPeeper(__FILE__, 2233); // if
+        PassPrediction::PassPeeper(2233); // if
         return Info.ReadMem;
       }
       return isa<LoadInst>(Inst);
     }
     bool isStore() const {
       if (IsTargetMemInst) {
-        PassPrediction::PassPeeper(__FILE__, 2234); // if
+        PassPrediction::PassPeeper(2234); // if
         return Info.WriteMem;
       }
       return isa<StoreInst>(Inst);
     }
     bool isAtomic() const {
       if (IsTargetMemInst) {
-        PassPrediction::PassPeeper(__FILE__, 2235); // if
+        PassPrediction::PassPeeper(2235); // if
         return Info.Ordering != AtomicOrdering::NotAtomic;
       }
       return Inst->isAtomic();
     }
     bool isUnordered() const {
       if (IsTargetMemInst) {
-        PassPrediction::PassPeeper(__FILE__, 2236); // if
+        PassPrediction::PassPeeper(2236); // if
         return Info.isUnordered();
       }
 
       if (LoadInst *LI = dyn_cast<LoadInst>(Inst)) {
-        PassPrediction::PassPeeper(__FILE__, 2237); // if
+        PassPrediction::PassPeeper(2237); // if
         return LI->isUnordered();
       } else if (StoreInst *SI = dyn_cast<StoreInst>(Inst)) {
-        PassPrediction::PassPeeper(__FILE__, 2238); // if
+        PassPrediction::PassPeeper(2238); // if
         return SI->isUnordered();
       }
       // Conservative answer
@@ -474,15 +474,15 @@ private:
 
     bool isVolatile() const {
       if (IsTargetMemInst) {
-        PassPrediction::PassPeeper(__FILE__, 2239); // if
+        PassPrediction::PassPeeper(2239); // if
         return Info.IsVolatile;
       }
 
       if (LoadInst *LI = dyn_cast<LoadInst>(Inst)) {
-        PassPrediction::PassPeeper(__FILE__, 2240); // if
+        PassPrediction::PassPeeper(2240); // if
         return LI->isVolatile();
       } else if (StoreInst *SI = dyn_cast<StoreInst>(Inst)) {
-        PassPrediction::PassPeeper(__FILE__, 2241); // if
+        PassPrediction::PassPeeper(2241); // if
         return SI->isVolatile();
       }
       // Conservative answer
@@ -491,7 +491,7 @@ private:
 
     bool isInvariantLoad() const {
       if (auto *LI = dyn_cast<LoadInst>(Inst)) {
-        PassPrediction::PassPeeper(__FILE__, 2242); // if
+        PassPrediction::PassPeeper(2242); // if
         return LI->getMetadata(LLVMContext::MD_invariant_load) != nullptr;
       }
       return false;
@@ -509,35 +509,35 @@ private:
     // non-negative values only.
     int getMatchingId() const {
       if (IsTargetMemInst) {
-        PassPrediction::PassPeeper(__FILE__, 2243); // if
+        PassPrediction::PassPeeper(2243); // if
         return Info.MatchingId;
       }
       return -1;
     }
     Value *getPointerOperand() const {
       if (IsTargetMemInst) {
-        PassPrediction::PassPeeper(__FILE__, 2244); // if
+        PassPrediction::PassPeeper(2244); // if
         return Info.PtrVal;
       }
       if (LoadInst *LI = dyn_cast<LoadInst>(Inst)) {
-        PassPrediction::PassPeeper(__FILE__, 2245); // if
+        PassPrediction::PassPeeper(2245); // if
         return LI->getPointerOperand();
       } else if (StoreInst *SI = dyn_cast<StoreInst>(Inst)) {
-        PassPrediction::PassPeeper(__FILE__, 2246); // if
+        PassPrediction::PassPeeper(2246); // if
         return SI->getPointerOperand();
       }
       return nullptr;
     }
     bool mayReadFromMemory() const {
       if (IsTargetMemInst) {
-        PassPrediction::PassPeeper(__FILE__, 2247); // if
+        PassPrediction::PassPeeper(2247); // if
         return Info.ReadMem;
       }
       return Inst->mayReadFromMemory();
     }
     bool mayWriteToMemory() const {
       if (IsTargetMemInst) {
-        PassPrediction::PassPeeper(__FILE__, 2248); // if
+        PassPrediction::PassPeeper(2248); // if
         return Info.WriteMem;
       }
       return Inst->mayWriteToMemory();
@@ -553,11 +553,11 @@ private:
 
   Value *getOrCreateResult(Value *Inst, Type *ExpectedType) const {
     if (auto *LI = dyn_cast<LoadInst>(Inst)) {
-      PassPrediction::PassPeeper(__FILE__, 2249); // if
+      PassPrediction::PassPeeper(2249); // if
       return LI;
     }
     if (auto *SI = dyn_cast<StoreInst>(Inst)) {
-      PassPrediction::PassPeeper(__FILE__, 2250); // if
+      PassPrediction::PassPeeper(2250); // if
       return SI->getValueOperand();
     }
     assert(isa<IntrinsicInst>(Inst) && "Instruction not supported");
@@ -570,7 +570,7 @@ private:
 
   void removeMSSA(Instruction *Inst) {
     if (!MSSA) {
-      PassPrediction::PassPeeper(__FILE__, 2251); // if
+      PassPrediction::PassPeeper(2251); // if
       return;
     }
     // Removing a store here can leave MemorySSA in an unoptimized state by
@@ -581,7 +581,7 @@ private:
     if (MemoryAccess *MA = MSSA->getMemoryAccess(Inst)) {
       // Optimize MemoryPhi nodes that may become redundant by having all the
       // same input values once MA is removed.
-      PassPrediction::PassPeeper(__FILE__, 2252); // if
+      PassPrediction::PassPeeper(2252); // if
       SmallSetVector<MemoryPhi *, 4> PhisToCheck;
       SmallVector<MemoryAccess *, 8> WorkQueue;
       WorkQueue.push_back(MA);
@@ -589,13 +589,13 @@ private:
       // we shouldn't be processing that many phis and this will avoid an
       // allocation in almost all cases.
       for (unsigned I = 0; I < WorkQueue.size(); ++I) {
-        PassPrediction::PassPeeper(__FILE__, 2253); // for
+        PassPrediction::PassPeeper(2253); // for
         MemoryAccess *WI = WorkQueue[I];
 
         for (auto *U : WI->users()) {
-          PassPrediction::PassPeeper(__FILE__, 2254); // for-range
+          PassPrediction::PassPeeper(2254); // for-range
           if (MemoryPhi *MP = dyn_cast<MemoryPhi>(U)) {
-            PassPrediction::PassPeeper(__FILE__, 2255); // if
+            PassPrediction::PassPeeper(2255); // if
             PhisToCheck.insert(MP);
           }
         }
@@ -603,11 +603,11 @@ private:
         MSSAUpdater->removeMemoryAccess(WI);
 
         for (MemoryPhi *MP : PhisToCheck) {
-          PassPrediction::PassPeeper(__FILE__, 2256); // for-range
+          PassPrediction::PassPeeper(2256); // for-range
           MemoryAccess *FirstIn = MP->getIncomingValue(0);
           if (all_of(MP->incoming_values(),
                      [=](Use &In) { return In == FirstIn; })) {
-            PassPrediction::PassPeeper(__FILE__, 2257); // if
+            PassPrediction::PassPeeper(2257); // if
             WorkQueue.push_back(MP);
           }
         }
@@ -640,12 +640,12 @@ bool EarlyCSE::isSameMemGeneration(unsigned EarlierGeneration,
                                    Instruction *LaterInst) {
   // Check the simple memory generation tracking first.
   if (EarlierGeneration == LaterGeneration) {
-    PassPrediction::PassPeeper(__FILE__, 2258); // if
+    PassPrediction::PassPeeper(2258); // if
     return true;
   }
 
   if (!MSSA) {
-    PassPrediction::PassPeeper(__FILE__, 2259); // if
+    PassPrediction::PassPeeper(2259); // if
     return false;
   }
 
@@ -658,12 +658,12 @@ bool EarlyCSE::isSameMemGeneration(unsigned EarlierGeneration,
   // with the default optimization pipeline.
   auto *EarlierMA = MSSA->getMemoryAccess(EarlierInst);
   if (!EarlierMA) {
-    PassPrediction::PassPeeper(__FILE__, 2260); // if
+    PassPrediction::PassPeeper(2260); // if
     return true;
   }
   auto *LaterMA = MSSA->getMemoryAccess(LaterInst);
   if (!LaterMA) {
-    PassPrediction::PassPeeper(__FILE__, 2261); // if
+    PassPrediction::PassPeeper(2261); // if
     return true;
   }
 
@@ -687,7 +687,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
   // just be conservative and invalidate memory if this block has multiple
   // predecessors.
   if (!BB->getSinglePredecessor()) {
-    PassPrediction::PassPeeper(__FILE__, 2262); // if
+    PassPrediction::PassPeeper(2262); // if
     ++CurrentGeneration;
   }
 
@@ -698,10 +698,10 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
   // value.  Since we're adding this to the scoped hash table (like any other
   // def), it will have been popped if we encounter a future merge block.
   if (BasicBlock *Pred = BB->getSinglePredecessor()) {
-    PassPrediction::PassPeeper(__FILE__, 2263); // if
+    PassPrediction::PassPeeper(2263); // if
     auto *BI = dyn_cast<BranchInst>(Pred->getTerminator());
     if (BI && BI->isConditional()) {
-      PassPrediction::PassPeeper(__FILE__, 2264); // if
+      PassPrediction::PassPeeper(2264); // if
       auto *CondInst = dyn_cast<Instruction>(BI->getCondition());
       if (CondInst && SimpleValue::canHandle(CondInst)) {
         assert(BI->getSuccessor(0) == BB || BI->getSuccessor(1) == BB);
@@ -715,7 +715,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
         // Replace all dominated uses with the known value.
         if (unsigned Count = replaceDominatedUsesWith(
                 CondInst, TorF, DT, BasicBlockEdge(Pred, BB))) {
-          PassPrediction::PassPeeper(__FILE__, 2265); // if
+          PassPrediction::PassPeeper(2265); // if
           Changed = true;
           NumCSECVP += Count;
         }
@@ -732,7 +732,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
   // See if any instructions in the block can be eliminated.  If so, do it.  If
   // not, add them to AvailableValues.
   for (BasicBlock::iterator I = BB->begin(), E = BB->end(); I != E;) {
-    PassPrediction::PassPeeper(__FILE__, 2266); // for
+    PassPrediction::PassPeeper(2266); // for
     Instruction *Inst = &*I++;
 
     // Dead instructions should just be removed.
@@ -750,7 +750,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     // and this pass will not bother with its removal. However, we should mark
     // its condition as true for all dominated blocks.
     if (match(Inst, m_Intrinsic<Intrinsic::assume>())) {
-      PassPrediction::PassPeeper(__FILE__, 2267); // if
+      PassPrediction::PassPeeper(2267); // if
       auto *CondI =
           dyn_cast<Instruction>(cast<CallInst>(Inst)->getArgOperand(0));
       if (CondI && SimpleValue::canHandle(CondI)) {
@@ -773,21 +773,21 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     // We can DSE the store to 30, since the store 40 to invariant location p
     // causes undefined behaviour.
     if (match(Inst, m_Intrinsic<Intrinsic::invariant_start>())) {
-      PassPrediction::PassPeeper(__FILE__, 2268); // if
+      PassPrediction::PassPeeper(2268); // if
       continue;
     }
 
     if (match(Inst, m_Intrinsic<Intrinsic::experimental_guard>())) {
-      PassPrediction::PassPeeper(__FILE__, 2269); // if
+      PassPrediction::PassPeeper(2269); // if
       if (auto *CondI =
               dyn_cast<Instruction>(cast<CallInst>(Inst)->getArgOperand(0))) {
-        PassPrediction::PassPeeper(__FILE__, 2270); // if
+        PassPrediction::PassPeeper(2270); // if
         if (SimpleValue::canHandle(CondI)) {
           // Do we already know the actual value of this condition?
-          PassPrediction::PassPeeper(__FILE__, 2271); // if
+          PassPrediction::PassPeeper(2271); // if
           if (auto *KnownCond = AvailableValues.lookup(CondI)) {
             // Is the condition known to be true?
-            PassPrediction::PassPeeper(__FILE__, 2272); // if
+            PassPrediction::PassPeeper(2272); // if
             if (isa<ConstantInt>(KnownCond) &&
                 cast<ConstantInt>(KnownCond)->isOne()) {
               DEBUG(dbgs() << "EarlyCSE removing guard: " << *Inst << '\n');
@@ -797,7 +797,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
               continue;
             } else {
               // Use the known value if it wasn't true.
-              PassPrediction::PassPeeper(__FILE__, 2273); // else
+              PassPrediction::PassPeeper(2273); // else
               cast<CallInst>(Inst)->setArgOperand(0, KnownCond);
             }
           }
@@ -820,23 +820,23 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
       DEBUG(dbgs() << "EarlyCSE Simplify: " << *Inst << "  to: " << *V << '\n');
       bool Killed = false;
       if (!Inst->use_empty()) {
-        PassPrediction::PassPeeper(__FILE__, 2274); // if
+        PassPrediction::PassPeeper(2274); // if
         Inst->replaceAllUsesWith(V);
         Changed = true;
       }
       if (isInstructionTriviallyDead(Inst, &TLI)) {
-        PassPrediction::PassPeeper(__FILE__, 2275); // if
+        PassPrediction::PassPeeper(2275); // if
         removeMSSA(Inst);
         Inst->eraseFromParent();
         Changed = true;
         Killed = true;
       }
       if (Changed) {
-        PassPrediction::PassPeeper(__FILE__, 2276); // if
+        PassPrediction::PassPeeper(2276); // if
         ++NumSimplify;
       }
       if (Killed) {
-        PassPrediction::PassPeeper(__FILE__, 2277); // if
+        PassPrediction::PassPeeper(2277); // if
         continue;
       }
     }
@@ -844,11 +844,11 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     // If this is a simple instruction that we can value number, process it.
     if (SimpleValue::canHandle(Inst)) {
       // See if the instruction has an available value.  If so, use it.
-      PassPrediction::PassPeeper(__FILE__, 2278); // if
+      PassPrediction::PassPeeper(2278); // if
       if (Value *V = AvailableValues.lookup(Inst)) {
         DEBUG(dbgs() << "EarlyCSE CSE: " << *Inst << "  to: " << *V << '\n');
         if (auto *I = dyn_cast<Instruction>(V)) {
-          PassPrediction::PassPeeper(__FILE__, 2279); // if
+          PassPrediction::PassPeeper(2279); // if
           I->andIRFlags(Inst);
         }
         Inst->replaceAllUsesWith(V);
@@ -869,9 +869,9 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     if (MemInst.isValid() && MemInst.isLoad()) {
       // (conservatively) we can't peak past the ordering implied by this
       // operation, but we can add this load to our set of available values
-      PassPrediction::PassPeeper(__FILE__, 2280); // if
+      PassPrediction::PassPeeper(2280); // if
       if (MemInst.isVolatile() || !MemInst.isUnordered()) {
-        PassPrediction::PassPeeper(__FILE__, 2281); // if
+        PassPrediction::PassPeeper(2281); // if
         LastStore = nullptr;
         ++CurrentGeneration;
       }
@@ -893,13 +893,13 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
           (InVal.IsInvariant || MemInst.isInvariantLoad() ||
            isSameMemGeneration(InVal.Generation, CurrentGeneration,
                                InVal.DefInst, Inst))) {
-        PassPrediction::PassPeeper(__FILE__, 2282); // if
+        PassPrediction::PassPeeper(2282); // if
         Value *Op = getOrCreateResult(InVal.DefInst, Inst->getType());
         if (Op != nullptr) {
           DEBUG(dbgs() << "EarlyCSE CSE LOAD: " << *Inst
                        << "  to: " << *InVal.DefInst << '\n');
           if (!Inst->use_empty()) {
-            PassPrediction::PassPeeper(__FILE__, 2283); // if
+            PassPrediction::PassPeeper(2283); // if
             Inst->replaceAllUsesWith(Op);
           }
           removeMSSA(Inst);
@@ -927,7 +927,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     // commoning purposes).
     if ((Inst->mayReadFromMemory() || Inst->mayThrow()) &&
         !(MemInst.isValid() && !MemInst.mayReadFromMemory())) {
-      PassPrediction::PassPeeper(__FILE__, 2284); // if
+      PassPrediction::PassPeeper(2284); // if
       LastStore = nullptr;
     }
 
@@ -935,7 +935,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     if (CallValue::canHandle(Inst)) {
       // If we have an available version of this call, and if it is the right
       // generation, replace this instruction.
-      PassPrediction::PassPeeper(__FILE__, 2285); // if
+      PassPrediction::PassPeeper(2285); // if
       std::pair<Instruction *, unsigned> InVal = AvailableCalls.lookup(Inst);
       if (InVal.first != nullptr &&
           isSameMemGeneration(InVal.second, CurrentGeneration, InVal.first,
@@ -943,7 +943,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
         DEBUG(dbgs() << "EarlyCSE CSE CALL: " << *Inst
                      << "  to: " << *InVal.first << '\n');
         if (!Inst->use_empty()) {
-          PassPrediction::PassPeeper(__FILE__, 2286); // if
+          PassPrediction::PassPeeper(2286); // if
           Inst->replaceAllUsesWith(InVal.first);
         }
         removeMSSA(Inst);
@@ -965,7 +965,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     // to advance the generation.  We do need to prevent DSE across the fence,
     // but that's handled above.
     if (FenceInst *FI = dyn_cast<FenceInst>(Inst)) {
-      PassPrediction::PassPeeper(__FILE__, 2287); // if
+      PassPrediction::PassPeeper(2287); // if
       if (FI->getOrdering() == AtomicOrdering::Release) {
         assert(Inst->mayReadFromMemory() && "relied on to prevent DSE above");
         continue;
@@ -978,7 +978,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     // the available load table to remain valid and value forward past where
     // the store originally was.
     if (MemInst.isValid() && MemInst.isStore()) {
-      PassPrediction::PassPeeper(__FILE__, 2288); // if
+      PassPrediction::PassPeeper(2288); // if
       LoadValue InVal = AvailableLoads.lookup(MemInst.getPointerOperand());
       if (InVal.DefInst &&
           InVal.DefInst == getOrCreateResult(Inst, InVal.DefInst->getType()) &&
@@ -1011,7 +1011,7 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
     // something that could modify memory.  If so, our available memory values
     // cannot be used so bump the generation count.
     if (Inst->mayWriteToMemory()) {
-      PassPrediction::PassPeeper(__FILE__, 2289); // if
+      PassPrediction::PassPeeper(2289); // if
       ++CurrentGeneration;
 
       if (MemInst.isValid() && MemInst.isStore()) {
@@ -1022,9 +1022,9 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
         // unordered atomics) about removing atomic stores only in favor of
         // other atomic stores since we we're going to execute the non-atomic
         // one anyway and the atomic one might never have become visible.
-        PassPrediction::PassPeeper(__FILE__, 2290); // if
+        PassPrediction::PassPeeper(2290); // if
         if (LastStore) {
-          PassPrediction::PassPeeper(__FILE__, 2291); // if
+          PassPrediction::PassPeeper(2291); // if
           ParseMemoryInst LastStoreMemInst(LastStore, TTI);
           assert(LastStoreMemInst.isUnordered() &&
                  !LastStoreMemInst.isVolatile() && "Violated invariant");
@@ -1058,10 +1058,10 @@ bool EarlyCSE::processNode(DomTreeNode *Node) {
         // it's not clear this is a profitable transform. Another option would
         // be to merge the ordering with that of the post dominating store.
         if (MemInst.isUnordered() && !MemInst.isVolatile()) {
-          PassPrediction::PassPeeper(__FILE__, 2292); // if
+          PassPrediction::PassPeeper(2292); // if
           LastStore = Inst;
         } else {
-          PassPrediction::PassPeeper(__FILE__, 2293); // else
+          PassPrediction::PassPeeper(2293); // else
           LastStore = nullptr;
         }
       }
@@ -1093,7 +1093,7 @@ bool EarlyCSE::run() {
   while (!nodesToProcess.empty()) {
     // Grab the first item off the stack. Set the current generation, remove
     // the node from the stack, and process it.
-    PassPrediction::PassPeeper(__FILE__, 2294); // while
+    PassPrediction::PassPeeper(2294); // while
     StackNode *NodeToProcess = nodesToProcess.back();
 
     // Initialize class members.
@@ -1102,13 +1102,13 @@ bool EarlyCSE::run() {
     // Check if the node needs to be processed.
     if (!NodeToProcess->isProcessed()) {
       // Process the node.
-      PassPrediction::PassPeeper(__FILE__, 2295); // if
+      PassPrediction::PassPeeper(2295); // if
       Changed |= processNode(NodeToProcess->node());
       NodeToProcess->childGeneration(CurrentGeneration);
       NodeToProcess->process();
     } else if (NodeToProcess->childIter() != NodeToProcess->end()) {
       // Push the next child onto the stack.
-      PassPrediction::PassPeeper(__FILE__, 2296); // if
+      PassPrediction::PassPeeper(2296); // if
       DomTreeNode *child = NodeToProcess->nextChild();
       nodesToProcess.push_back(
           new StackNode(AvailableValues, AvailableLoads, AvailableCalls,
@@ -1117,7 +1117,7 @@ bool EarlyCSE::run() {
     } else {
       // It has been processed, and there are no more children to process,
       // so delete it and pop it off the stack.
-      PassPrediction::PassPeeper(__FILE__, 2297); // else
+      PassPrediction::PassPeeper(2297); // else
       delete NodeToProcess;
       nodesToProcess.pop_back();
     }
@@ -1140,7 +1140,7 @@ PreservedAnalyses EarlyCSEPass::run(Function &F, FunctionAnalysisManager &AM) {
   EarlyCSE CSE(F.getParent()->getDataLayout(), TLI, TTI, DT, AC, MSSA);
 
   if (!CSE.run()) {
-    PassPrediction::PassPeeper(__FILE__, 2298); // if
+    PassPrediction::PassPeeper(2298); // if
     return PreservedAnalyses::all();
   }
 
@@ -1148,7 +1148,7 @@ PreservedAnalyses EarlyCSEPass::run(Function &F, FunctionAnalysisManager &AM) {
   PA.preserveSet<CFGAnalyses>();
   PA.preserve<GlobalsAA>();
   if (UseMemorySSA) {
-    PassPrediction::PassPeeper(__FILE__, 2299); // if
+    PassPrediction::PassPeeper(2299); // if
     PA.preserve<MemorySSAAnalysis>();
   }
   return PA;
@@ -1169,17 +1169,17 @@ public:
 
   EarlyCSELegacyCommonPass() : FunctionPass(ID) {
     if (UseMemorySSA) {
-      PassPrediction::PassPeeper(__FILE__, 2300); // if
+      PassPrediction::PassPeeper(2300); // if
       initializeEarlyCSEMemSSALegacyPassPass(*PassRegistry::getPassRegistry());
     } else {
-      PassPrediction::PassPeeper(__FILE__, 2301); // else
+      PassPrediction::PassPeeper(2301); // else
       initializeEarlyCSELegacyPassPass(*PassRegistry::getPassRegistry());
     }
   }
 
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 2302); // if
+      PassPrediction::PassPeeper(2302); // if
       return false;
     }
 
@@ -1201,7 +1201,7 @@ public:
     AU.addRequired<TargetLibraryInfoWrapperPass>();
     AU.addRequired<TargetTransformInfoWrapperPass>();
     if (UseMemorySSA) {
-      PassPrediction::PassPeeper(__FILE__, 2303); // if
+      PassPrediction::PassPeeper(2303); // if
       AU.addRequired<MemorySSAWrapperPass>();
       AU.addPreserved<MemorySSAWrapperPass>();
     }
@@ -1230,10 +1230,10 @@ template <> char EarlyCSEMemSSALegacyPass::ID = 0;
 
 FunctionPass *llvm::createEarlyCSEPass(bool UseMemorySSA) {
   if (UseMemorySSA) {
-    PassPrediction::PassPeeper(__FILE__, 2304); // if
+    PassPrediction::PassPeeper(2304); // if
     return new EarlyCSEMemSSALegacyPass();
   } else {
-    PassPrediction::PassPeeper(__FILE__, 2305); // else
+    PassPrediction::PassPeeper(2305); // else
     return new EarlyCSELegacyPass();
   }
 }

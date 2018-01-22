@@ -43,19 +43,19 @@ static bool AllUsesDominatedByBlock(Instruction *Inst, BasicBlock *BB,
   // user might not get the right info at runtime.
   for (Use &U : Inst->uses()) {
     // Determine the block of the use.
-    PassPrediction::PassPeeper(__FILE__, 2180); // for-range
+    PassPrediction::PassPeeper(2180); // for-range
     Instruction *UseInst = cast<Instruction>(U.getUser());
     BasicBlock *UseBlock = UseInst->getParent();
     if (PHINode *PN = dyn_cast<PHINode>(UseInst)) {
       // PHI nodes use the operand in the predecessor block, not the block with
       // the PHI.
-      PassPrediction::PassPeeper(__FILE__, 2181); // if
+      PassPrediction::PassPeeper(2181); // if
       unsigned Num = PHINode::getIncomingValueNumForOperand(U.getOperandNo());
       UseBlock = PN->getIncomingBlock(Num);
     }
     // Check that it dominates.
     if (!DT.dominates(BB, UseBlock)) {
-      PassPrediction::PassPeeper(__FILE__, 2182); // if
+      PassPrediction::PassPeeper(2182); // if
       return false;
     }
   }
@@ -66,18 +66,18 @@ static bool isSafeToMove(Instruction *Inst, AliasAnalysis &AA,
                          SmallPtrSetImpl<Instruction *> &Stores) {
 
   if (Inst->mayWriteToMemory()) {
-    PassPrediction::PassPeeper(__FILE__, 2183); // if
+    PassPrediction::PassPeeper(2183); // if
     Stores.insert(Inst);
     return false;
   }
 
   if (LoadInst *L = dyn_cast<LoadInst>(Inst)) {
-    PassPrediction::PassPeeper(__FILE__, 2184); // if
+    PassPrediction::PassPeeper(2184); // if
     MemoryLocation Loc = MemoryLocation::get(L);
     for (Instruction *S : Stores) {
-      PassPrediction::PassPeeper(__FILE__, 2185); // for-range
+      PassPrediction::PassPeeper(2185); // for-range
       if (AA.getModRefInfo(S, Loc) & MRI_Mod) {
-        PassPrediction::PassPeeper(__FILE__, 2186); // if
+        PassPrediction::PassPeeper(2186); // if
         return false;
       }
     }
@@ -85,23 +85,23 @@ static bool isSafeToMove(Instruction *Inst, AliasAnalysis &AA,
 
   if (isa<TerminatorInst>(Inst) || isa<PHINode>(Inst) || Inst->isEHPad() ||
       Inst->mayThrow()) {
-    PassPrediction::PassPeeper(__FILE__, 2187); // if
+    PassPrediction::PassPeeper(2187); // if
     return false;
   }
 
   if (auto CS = CallSite(Inst)) {
     // Convergent operations cannot be made control-dependent on additional
     // values.
-    PassPrediction::PassPeeper(__FILE__, 2188); // if
+    PassPrediction::PassPeeper(2188); // if
     if (CS.hasFnAttr(Attribute::Convergent)) {
-      PassPrediction::PassPeeper(__FILE__, 2189); // if
+      PassPrediction::PassPeeper(2189); // if
       return false;
     }
 
     for (Instruction *S : Stores) {
-      PassPrediction::PassPeeper(__FILE__, 2190); // for-range
+      PassPrediction::PassPeeper(2190); // for-range
       if (AA.getModRefInfo(S, CS) & MRI_Mod) {
-        PassPrediction::PassPeeper(__FILE__, 2191); // if
+        PassPrediction::PassPeeper(2191); // if
         return false;
       }
     }
@@ -120,14 +120,14 @@ static bool IsAcceptableTarget(Instruction *Inst, BasicBlock *SuccToSinkTo,
   // It is not possible to sink an instruction into its own block.  This can
   // happen with loops.
   if (Inst->getParent() == SuccToSinkTo) {
-    PassPrediction::PassPeeper(__FILE__, 2192); // if
+    PassPrediction::PassPeeper(2192); // if
     return false;
   }
 
   // It's never legal to sink an instruction into a block which terminates in an
   // EH-pad.
   if (SuccToSinkTo->getTerminator()->isExceptional()) {
-    PassPrediction::PassPeeper(__FILE__, 2193); // if
+    PassPrediction::PassPeeper(2193); // if
     return false;
   }
 
@@ -138,16 +138,16 @@ static bool IsAcceptableTarget(Instruction *Inst, BasicBlock *SuccToSinkTo,
   if (SuccToSinkTo->getUniquePredecessor() != Inst->getParent()) {
     // We cannot sink a load across a critical edge - there may be stores in
     // other code paths.
-    PassPrediction::PassPeeper(__FILE__, 2194); // if
+    PassPrediction::PassPeeper(2194); // if
     if (isa<LoadInst>(Inst)) {
-      PassPrediction::PassPeeper(__FILE__, 2195); // if
+      PassPrediction::PassPeeper(2195); // if
       return false;
     }
 
     // We don't want to sink across a critical edge if we don't dominate the
     // successor. We could be introducing calculations to new code paths.
     if (!DT.dominates(Inst->getParent(), SuccToSinkTo)) {
-      PassPrediction::PassPeeper(__FILE__, 2196); // if
+      PassPrediction::PassPeeper(2196); // if
       return false;
     }
 
@@ -155,7 +155,7 @@ static bool IsAcceptableTarget(Instruction *Inst, BasicBlock *SuccToSinkTo,
     Loop *succ = LI.getLoopFor(SuccToSinkTo);
     Loop *cur = LI.getLoopFor(Inst->getParent());
     if (succ != nullptr && succ != cur) {
-      PassPrediction::PassPeeper(__FILE__, 2197); // if
+      PassPrediction::PassPeeper(2197); // if
       return false;
     }
   }
@@ -174,16 +174,16 @@ static bool SinkInstruction(Instruction *Inst,
   // Don't sink static alloca instructions.  CodeGen assumes allocas outside the
   // entry block are dynamically sized stack objects.
   if (AllocaInst *AI = dyn_cast<AllocaInst>(Inst)) {
-    PassPrediction::PassPeeper(__FILE__, 2198); // if
+    PassPrediction::PassPeeper(2198); // if
     if (AI->isStaticAlloca()) {
-      PassPrediction::PassPeeper(__FILE__, 2199); // if
+      PassPrediction::PassPeeper(2199); // if
       return false;
     }
   }
 
   // Check if it's safe to move the instruction.
   if (!isSafeToMove(Inst, AA, Stores)) {
-    PassPrediction::PassPeeper(__FILE__, 2200); // if
+    PassPrediction::PassPeeper(2200); // if
     return false;
   }
 
@@ -205,12 +205,12 @@ static bool SinkInstruction(Instruction *Inst,
   DomTreeNode *DTN = DT.getNode(Inst->getParent());
   for (DomTreeNode::iterator I = DTN->begin(), E = DTN->end();
        I != E && SuccToSinkTo == nullptr; ++I) {
-    PassPrediction::PassPeeper(__FILE__, 2201); // for
+    PassPrediction::PassPeeper(2201); // for
     BasicBlock *Candidate = (*I)->getBlock();
     // A node always immediate-dominates its children on the dominator
     // tree.
     if (IsAcceptableTarget(Inst, Candidate, DT, LI)) {
-      PassPrediction::PassPeeper(__FILE__, 2202); // if
+      PassPrediction::PassPeeper(2202); // if
       SuccToSinkTo = Candidate;
     }
   }
@@ -220,16 +220,16 @@ static bool SinkInstruction(Instruction *Inst,
   for (succ_iterator I = succ_begin(Inst->getParent()),
                      E = succ_end(Inst->getParent());
        I != E && !SuccToSinkTo; ++I) {
-    PassPrediction::PassPeeper(__FILE__, 2203); // for
+    PassPrediction::PassPeeper(2203); // for
     if (IsAcceptableTarget(Inst, *I, DT, LI)) {
-      PassPrediction::PassPeeper(__FILE__, 2204); // if
+      PassPrediction::PassPeeper(2204); // if
       SuccToSinkTo = *I;
     }
   }
 
   // If we couldn't find a block to sink to, ignore this instruction.
   if (!SuccToSinkTo) {
-    PassPrediction::PassPeeper(__FILE__, 2205); // if
+    PassPrediction::PassPeeper(2205); // if
     return false;
   }
 
@@ -246,7 +246,7 @@ static bool ProcessBlock(BasicBlock &BB, DominatorTree &DT, LoopInfo &LI,
                          AAResults &AA) {
   // Can't sink anything out of a block that has less than two successors.
   if (BB.getTerminator()->getNumSuccessors() <= 1) {
-    PassPrediction::PassPeeper(__FILE__, 2206); // if
+    PassPrediction::PassPeeper(2206); // if
     return false;
   }
 
@@ -254,7 +254,7 @@ static bool ProcessBlock(BasicBlock &BB, DominatorTree &DT, LoopInfo &LI,
   // unprofitable, it can also lead to infinite looping, because in an
   // unreachable loop there may be nowhere to stop.
   if (!DT.isReachableFromEntry(&BB)) {
-    PassPrediction::PassPeeper(__FILE__, 2207); // if
+    PassPrediction::PassPeeper(2207); // if
     return false;
   }
 
@@ -266,24 +266,24 @@ static bool ProcessBlock(BasicBlock &BB, DominatorTree &DT, LoopInfo &LI,
   bool ProcessedBegin = false;
   SmallPtrSet<Instruction *, 8> Stores;
   do {
-    PassPrediction::PassPeeper(__FILE__, 2208); // do-while
-    Instruction *Inst = &*I;                    // The instruction to sink.
+    PassPrediction::PassPeeper(2208); // do-while
+    Instruction *Inst = &*I;          // The instruction to sink.
 
     // Predecrement I (if it's not begin) so that it isn't invalidated by
     // sinking.
     ProcessedBegin = I == BB.begin();
     if (!ProcessedBegin) {
-      PassPrediction::PassPeeper(__FILE__, 2209); // if
+      PassPrediction::PassPeeper(2209); // if
       --I;
     }
 
     if (isa<DbgInfoIntrinsic>(Inst)) {
-      PassPrediction::PassPeeper(__FILE__, 2210); // if
+      PassPrediction::PassPeeper(2210); // if
       continue;
     }
 
     if (SinkInstruction(Inst, Stores, DT, LI, AA)) {
-      PassPrediction::PassPeeper(__FILE__, 2211); // if
+      PassPrediction::PassPeeper(2211); // if
       ++NumSunk;
       MadeChange = true;
     }
@@ -299,12 +299,12 @@ static bool iterativelySinkInstructions(Function &F, DominatorTree &DT,
   bool MadeChange, EverMadeChange = false;
 
   do {
-    PassPrediction::PassPeeper(__FILE__, 2212); // do-while
+    PassPrediction::PassPeeper(2212); // do-while
     MadeChange = false;
     DEBUG(dbgs() << "Sinking iteration " << NumSinkIter << "\n");
     // Process all basic blocks.
     for (BasicBlock &I : F) {
-      PassPrediction::PassPeeper(__FILE__, 2213); // for-range
+      PassPrediction::PassPeeper(2213); // for-range
       MadeChange |= ProcessBlock(I, DT, LI, AA);
     }
     EverMadeChange |= MadeChange;
@@ -320,7 +320,7 @@ PreservedAnalyses SinkingPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &AA = AM.getResult<AAManager>(F);
 
   if (!iterativelySinkInstructions(F, DT, LI, AA)) {
-    PassPrediction::PassPeeper(__FILE__, 2214); // if
+    PassPrediction::PassPeeper(2214); // if
     return PreservedAnalyses::all();
   }
 

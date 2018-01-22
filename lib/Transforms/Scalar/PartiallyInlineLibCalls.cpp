@@ -30,13 +30,13 @@ static bool optimizeSQRT(CallInst *Call, Function *CalledFunc,
   // There is no need to change the IR, since backend will emit sqrt
   // instruction if the call has already been marked read-only.
   if (Call->onlyReadsMemory()) {
-    PassPrediction::PassPeeper(__FILE__, 2433); // if
+    PassPrediction::PassPeeper(2433); // if
     return false;
   }
 
   // The call must have the expected result type.
   if (!Call->getType()->isFloatingPointTy()) {
-    PassPrediction::PassPeeper(__FILE__, 2434); // if
+    PassPrediction::PassPeeper(2434); // if
     return false;
   }
 
@@ -90,17 +90,17 @@ static bool runPartiallyInlineLibCalls(Function &F, TargetLibraryInfo *TLI,
 
   Function::iterator CurrBB;
   for (Function::iterator BB = F.begin(), BE = F.end(); BB != BE;) {
-    PassPrediction::PassPeeper(__FILE__, 2435); // for
+    PassPrediction::PassPeeper(2435); // for
     CurrBB = BB++;
 
     for (BasicBlock::iterator II = CurrBB->begin(), IE = CurrBB->end();
          II != IE; ++II) {
-      PassPrediction::PassPeeper(__FILE__, 2436); // for
+      PassPrediction::PassPeeper(2436); // for
       CallInst *Call = dyn_cast<CallInst>(&*II);
       Function *CalledFunc;
 
       if (!Call || !(CalledFunc = Call->getCalledFunction())) {
-        PassPrediction::PassPeeper(__FILE__, 2437); // if
+        PassPrediction::PassPeeper(2437); // if
         continue;
       }
 
@@ -109,20 +109,20 @@ static bool runPartiallyInlineLibCalls(Function &F, TargetLibraryInfo *TLI,
       LibFunc LF;
       if (CalledFunc->hasLocalLinkage() || !CalledFunc->hasName() ||
           !TLI->getLibFunc(CalledFunc->getName(), LF)) {
-        PassPrediction::PassPeeper(__FILE__, 2438); // if
+        PassPrediction::PassPeeper(2438); // if
         continue;
       }
 
       switch (LF) {
       case LibFunc_sqrtf:
-        PassPrediction::PassPeeper(__FILE__, 2439); // case
+        PassPrediction::PassPeeper(2439); // case
 
       case LibFunc_sqrt:
-        PassPrediction::PassPeeper(__FILE__, 2440); // case
+        PassPrediction::PassPeeper(2440); // case
 
         if (TTI->haveFastSqrt(Call->getType()) &&
             optimizeSQRT(Call, CalledFunc, *CurrBB, BB)) {
-          PassPrediction::PassPeeper(__FILE__, 2441); // if
+          PassPrediction::PassPeeper(2441); // if
           break;
         }
         continue;
@@ -131,7 +131,7 @@ static bool runPartiallyInlineLibCalls(Function &F, TargetLibraryInfo *TLI,
       }
 
       Changed = true;
-      PassPrediction::PassPeeper(__FILE__, 2442); // break
+      PassPrediction::PassPeeper(2442); // break
       break;
     }
   }
@@ -144,7 +144,7 @@ PartiallyInlineLibCallsPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
   auto &TTI = AM.getResult<TargetIRAnalysis>(F);
   if (!runPartiallyInlineLibCalls(F, &TLI, &TTI)) {
-    PassPrediction::PassPeeper(__FILE__, 2443); // if
+    PassPrediction::PassPeeper(2443); // if
     return PreservedAnalyses::all();
   }
   return PreservedAnalyses::none();
@@ -168,7 +168,7 @@ public:
 
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 2444); // if
+      PassPrediction::PassPeeper(2444); // if
       return false;
     }
 

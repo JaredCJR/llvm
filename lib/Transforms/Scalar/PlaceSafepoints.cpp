@@ -124,7 +124,7 @@ struct PlaceBackedgeSafepointsImpl : public FunctionPass {
   void runOnLoopAndSubLoops(Loop *L) {
     // Visit all the subloops
     for (Loop *I : *L) {
-      PassPrediction::PassPeeper(__FILE__, 2335); // for-range
+      PassPrediction::PassPeeper(2335); // for-range
       runOnLoopAndSubLoops(I);
     }
     runOnLoop(L);
@@ -135,7 +135,7 @@ struct PlaceBackedgeSafepointsImpl : public FunctionPass {
     DT = &getAnalysis<DominatorTreeWrapperPass>().getDomTree();
     LI = &getAnalysis<LoopInfoWrapperPass>().getLoopInfo();
     for (Loop *I : *LI) {
-      PassPrediction::PassPeeper(__FILE__, 2336); // for-range
+      PassPrediction::PassPeeper(2336); // for-range
       runOnLoopAndSubLoops(I);
     }
     return false;
@@ -182,14 +182,14 @@ InsertSafepointPoll(Instruction *InsertBefore,
 
 static bool needsStatepoint(const CallSite &CS) {
   if (callsGCLeafFunction(CS)) {
-    PassPrediction::PassPeeper(__FILE__, 2337); // if
+    PassPrediction::PassPeeper(2337); // if
     return false;
   }
   if (CS.isCall()) {
-    PassPrediction::PassPeeper(__FILE__, 2338); // if
+    PassPrediction::PassPeeper(2338); // if
     CallInst *call = cast<CallInst>(CS.getInstruction());
     if (call->isInlineAsm()) {
-      PassPrediction::PassPeeper(__FILE__, 2339); // if
+      PassPrediction::PassPeeper(2339); // if
       return false;
     }
   }
@@ -218,9 +218,9 @@ static bool containsUnconditionalCallSafepoint(Loop *L, BasicBlock *Header,
 
   BasicBlock *Current = Pred;
   while (true) {
-    PassPrediction::PassPeeper(__FILE__, 2340); // while
+    PassPrediction::PassPeeper(2340); // while
     for (Instruction &I : *Current) {
-      PassPrediction::PassPeeper(__FILE__, 2341); // for-range
+      PassPrediction::PassPeeper(2341); // for-range
       if (auto CS = CallSite(&I)) {
         // Note: Technically, needing a safepoint isn't quite the right
         // condition here.  We should instead be checking if the target method
@@ -228,16 +228,16 @@ static bool containsUnconditionalCallSafepoint(Loop *L, BasicBlock *Header,
         // unconditional poll. In practice, this is only a theoretical concern
         // since we don't have any methods with conditional-only safepoint
         // polls.
-        PassPrediction::PassPeeper(__FILE__, 2342); // if
+        PassPrediction::PassPeeper(2342); // if
         if (needsStatepoint(CS)) {
-          PassPrediction::PassPeeper(__FILE__, 2343); // if
+          PassPrediction::PassPeeper(2343); // if
           return true;
         }
       }
     }
 
     if (Current == Header) {
-      PassPrediction::PassPeeper(__FILE__, 2344); // if
+      PassPrediction::PassPeeper(2344); // if
       break;
     }
     Current = DT.getNode(Current)->getIDom()->getBlock();
@@ -257,7 +257,7 @@ static bool mustBeFiniteCountedLoop(Loop *L, ScalarEvolution *SE,
   if (MaxTrips != SE->getCouldNotCompute() &&
       SE->getUnsignedRange(MaxTrips).getUnsignedMax().isIntN(
           CountedLoopTripWidth)) {
-    PassPrediction::PassPeeper(__FILE__, 2345); // if
+    PassPrediction::PassPeeper(2345); // if
     return true;
   }
 
@@ -267,12 +267,12 @@ static bool mustBeFiniteCountedLoop(Loop *L, ScalarEvolution *SE,
   if (L->isLoopExiting(Pred)) {
     // This returns an exact expression only.  TODO: We really only need an
     // upper bound here, but SE doesn't expose that.
-    PassPrediction::PassPeeper(__FILE__, 2346); // if
+    PassPrediction::PassPeeper(2346); // if
     const SCEV *MaxExec = SE->getExitCount(L, Pred);
     if (MaxExec != SE->getCouldNotCompute() &&
         SE->getUnsignedRange(MaxExec).getUnsignedMax().isIntN(
             CountedLoopTripWidth)) {
-      PassPrediction::PassPeeper(__FILE__, 2347); // if
+      PassPrediction::PassPeeper(2347); // if
       return true;
     }
   }
@@ -287,9 +287,9 @@ static void scanOneBB(Instruction *Start, Instruction *End,
   for (BasicBlock::iterator BBI(Start), BBE0 = Start->getParent()->end(),
                                         BBE1 = BasicBlock::iterator(End);
        BBI != BBE0 && BBI != BBE1; BBI++) {
-    PassPrediction::PassPeeper(__FILE__, 2348); // for
+    PassPrediction::PassPeeper(2348); // for
     if (CallInst *CI = dyn_cast<CallInst>(&*BBI)) {
-      PassPrediction::PassPeeper(__FILE__, 2349); // if
+      PassPrediction::PassPeeper(2349); // if
       Calls.push_back(CI);
     }
 
@@ -300,12 +300,12 @@ static void scanOneBB(Instruction *Start, Instruction *End,
     // Only add the successor blocks if we reach the terminator instruction
     // without encountering end first
     if (BBI->isTerminator()) {
-      PassPrediction::PassPeeper(__FILE__, 2350); // if
+      PassPrediction::PassPeeper(2350); // if
       BasicBlock *BB = BBI->getParent();
       for (BasicBlock *Succ : successors(BB)) {
-        PassPrediction::PassPeeper(__FILE__, 2351); // for-range
+        PassPrediction::PassPeeper(2351); // for-range
         if (Seen.insert(Succ).second) {
-          PassPrediction::PassPeeper(__FILE__, 2352); // if
+          PassPrediction::PassPeeper(2352); // if
           Worklist.push_back(Succ);
         }
       }
@@ -321,7 +321,7 @@ static void scanInlinedCode(Instruction *Start, Instruction *End,
   Seen.insert(Start->getParent());
   scanOneBB(Start, End, Calls, Seen, Worklist);
   while (!Worklist.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 2353); // while
+    PassPrediction::PassPeeper(2353); // while
     BasicBlock *BB = Worklist.back();
     Worklist.pop_back();
     scanOneBB(&*BB->begin(), End, Calls, Seen, Worklist);
@@ -344,7 +344,7 @@ bool PlaceBackedgeSafepointsImpl::runOnLoop(Loop *L) {
     // not.  Note that this is about unburdening the optimizer in loops, not
     // avoiding the runtime cost of the actual safepoint.
     if (!AllBackedges) {
-      PassPrediction::PassPeeper(__FILE__, 2354); // if
+      PassPrediction::PassPeeper(2354); // if
       if (mustBeFiniteCountedLoop(L, SE, Pred)) {
         DEBUG(dbgs() << "skipping safepoint placement in finite loop\n");
         FiniteExecution++;
@@ -385,16 +385,16 @@ bool PlaceBackedgeSafepointsImpl::runOnLoop(Loop *L) {
 static bool doesNotRequireEntrySafepointBefore(const CallSite &CS) {
   Instruction *Inst = CS.getInstruction();
   if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(Inst)) {
-    PassPrediction::PassPeeper(__FILE__, 2355); // if
+    PassPrediction::PassPeeper(2355); // if
     switch (II->getIntrinsicID()) {
     case Intrinsic::experimental_gc_statepoint:
-      PassPrediction::PassPeeper(__FILE__, 2356); // case
+      PassPrediction::PassPeeper(2356); // case
 
     case Intrinsic::experimental_patchpoint_void:
-      PassPrediction::PassPeeper(__FILE__, 2357); // case
+      PassPrediction::PassPeeper(2357); // case
 
     case Intrinsic::experimental_patchpoint_i64:
-      PassPrediction::PassPeeper(__FILE__, 2358); // case
+      PassPrediction::PassPeeper(2358); // case
 
       // The can wrap an actual call which may grow the stack by an unbounded
       // amount or run forever.
@@ -427,7 +427,7 @@ static Instruction *findLocationForEntrySafepoint(Function &F,
 
   auto HasNextInstruction = [](Instruction *I) {
     if (!I->isTerminator()) {
-      PassPrediction::PassPeeper(__FILE__, 2359); // if
+      PassPrediction::PassPeeper(2359); // if
       return true;
     }
 
@@ -440,7 +440,7 @@ static Instruction *findLocationForEntrySafepoint(Function &F,
            "first check if there is a next instruction!");
 
     if (I->isTerminator()) {
-      PassPrediction::PassPeeper(__FILE__, 2360); // if
+      PassPrediction::PassPeeper(2360); // if
       return &I->getParent()->getUniqueSuccessor()->front();
     }
     return &*++I->getIterator();
@@ -457,14 +457,14 @@ static Instruction *findLocationForEntrySafepoint(Function &F,
     // which can grow the stack by an unbounded amount.  This isn't required
     // for GC semantics per se, but is a common requirement for languages
     // which detect stack overflow via guard pages and then throw exceptions.
-    PassPrediction::PassPeeper(__FILE__, 2361); // for
+    PassPrediction::PassPeeper(2361); // for
     if (auto CS = CallSite(Cursor)) {
-      PassPrediction::PassPeeper(__FILE__, 2362); // if
+      PassPrediction::PassPeeper(2362); // if
       if (doesNotRequireEntrySafepointBefore(CS)) {
-        PassPrediction::PassPeeper(__FILE__, 2363); // if
+        PassPrediction::PassPeeper(2363); // if
         continue;
       }
-      PassPrediction::PassPeeper(__FILE__, 2364); // break
+      PassPrediction::PassPeeper(2364); // break
       break;
     }
   }
@@ -487,14 +487,14 @@ static bool isGCSafepointPoll(Function &F) {
 static bool shouldRewriteFunction(Function &F) {
   // TODO: This should check the GCStrategy
   if (F.hasGC()) {
-    PassPrediction::PassPeeper(__FILE__, 2365); // if
+    PassPrediction::PassPeeper(2365); // if
     const auto &FunctionGCName = F.getGC();
     const StringRef StatepointExampleName("statepoint-example");
     const StringRef CoreCLRName("coreclr");
     return (StatepointExampleName == FunctionGCName) ||
            (CoreCLRName == FunctionGCName);
   } else {
-    PassPrediction::PassPeeper(__FILE__, 2366); // else
+    PassPrediction::PassPeeper(2366); // else
     return false;
   }
 }
@@ -509,7 +509,7 @@ bool PlaceSafepoints::runOnFunction(Function &F) {
   if (F.isDeclaration() || F.empty()) {
     // This is a declaration, nothing to do.  Must exit early to avoid crash in
     // dom tree calculation
-    PassPrediction::PassPeeper(__FILE__, 2367); // if
+    PassPrediction::PassPeeper(2367); // if
     return false;
   }
 
@@ -517,12 +517,12 @@ bool PlaceSafepoints::runOnFunction(Function &F) {
     // Given we're inlining this inside of safepoint poll insertion, this
     // doesn't make any sense.  Note that we do make any contained calls
     // parseable after we inline a poll.
-    PassPrediction::PassPeeper(__FILE__, 2368); // if
+    PassPrediction::PassPeeper(2368); // if
     return false;
   }
 
   if (!shouldRewriteFunction(F)) {
-    PassPrediction::PassPeeper(__FILE__, 2369); // if
+    PassPrediction::PassPeeper(2369); // if
     return false;
   }
 
@@ -549,7 +549,7 @@ bool PlaceSafepoints::runOnFunction(Function &F) {
     // need the pass manager to handle scheduling all the loop passes
     // appropriately.  Doing this by hand is painful and just not worth messing
     // with for the moment.
-    PassPrediction::PassPeeper(__FILE__, 2370); // if
+    PassPrediction::PassPeeper(2370); // if
     legacy::FunctionPassManager FPM(F.getParent());
     bool CanAssumeCallSafepoints = enableCallSafepoints(F);
     auto *PBS = new PlaceBackedgeSafepointsImpl(CanAssumeCallSafepoints);
@@ -579,7 +579,7 @@ bool PlaceSafepoints::runOnFunction(Function &F) {
     // The poll location must be the terminator of a loop latch block.
     for (TerminatorInst *Term : PollLocations) {
       // We are inserting a poll, the function is modified
-      PassPrediction::PassPeeper(__FILE__, 2371); // for-range
+      PassPrediction::PassPeeper(2371); // for-range
       Modified = true;
 
       if (SplitBackedge) {
@@ -593,13 +593,13 @@ bool PlaceSafepoints::runOnFunction(Function &F) {
         // it. Its possible that we have a) duplicate edges to the same header
         // and b) edges to distinct loop headers.  We need to insert pools on
         // each.
-        PassPrediction::PassPeeper(__FILE__, 2372); // if
+        PassPrediction::PassPeeper(2372); // if
         SetVector<BasicBlock *> Headers;
         for (unsigned i = 0; i < Term->getNumSuccessors(); i++) {
-          PassPrediction::PassPeeper(__FILE__, 2374); // for
+          PassPrediction::PassPeeper(2374); // for
           BasicBlock *Succ = Term->getSuccessor(i);
           if (DT.dominates(Succ, Term->getParent())) {
-            PassPrediction::PassPeeper(__FILE__, 2375); // if
+            PassPrediction::PassPeeper(2375); // if
             Headers.insert(Succ);
           }
         }
@@ -610,14 +610,14 @@ bool PlaceSafepoints::runOnFunction(Function &F) {
         // date and use a more natural merged loop.
         SetVector<BasicBlock *> SplitBackedges;
         for (BasicBlock *Header : Headers) {
-          PassPrediction::PassPeeper(__FILE__, 2376); // for-range
+          PassPrediction::PassPeeper(2376); // for-range
           BasicBlock *NewBB = SplitEdge(Term->getParent(), Header, &DT);
           PollsNeeded.push_back(NewBB->getTerminator());
           NumBackedgeSafepoints++;
         }
       } else {
         // Split the latch block itself, right before the terminator.
-        PassPrediction::PassPeeper(__FILE__, 2373); // else
+        PassPrediction::PassPeeper(2373); // else
         PollsNeeded.push_back(Term);
         NumBackedgeSafepoints++;
       }
@@ -625,9 +625,9 @@ bool PlaceSafepoints::runOnFunction(Function &F) {
   }
 
   if (enableEntrySafepoints(F)) {
-    PassPrediction::PassPeeper(__FILE__, 2377); // if
+    PassPrediction::PassPeeper(2377); // if
     if (Instruction *Location = findLocationForEntrySafepoint(F, DT)) {
-      PassPrediction::PassPeeper(__FILE__, 2378); // if
+      PassPrediction::PassPeeper(2378); // if
       PollsNeeded.push_back(Location);
       Modified = true;
       NumEntrySafepoints++;
@@ -639,7 +639,7 @@ bool PlaceSafepoints::runOnFunction(Function &F) {
   // Now that we've identified all the needed safepoint poll locations, insert
   // safepoint polls themselves.
   for (Instruction *PollLocation : PollsNeeded) {
-    PassPrediction::PassPeeper(__FILE__, 2379); // for-range
+    PassPrediction::PassPeeper(2379); // for-range
     std::vector<CallSite> RuntimeCalls;
     InsertSafepointPoll(PollLocation, RuntimeCalls);
     ParsePointNeeded.insert(ParsePointNeeded.end(), RuntimeCalls.begin(),
@@ -694,10 +694,10 @@ InsertSafepointPoll(Instruction *InsertBefore,
   BasicBlock::iterator Before(PollCall), After(PollCall);
   bool IsBegin = false;
   if (Before == OrigBB->begin()) {
-    PassPrediction::PassPeeper(__FILE__, 2380); // if
+    PassPrediction::PassPeeper(2380); // if
     IsBegin = true;
   } else {
-    PassPrediction::PassPeeper(__FILE__, 2381); // else
+    PassPrediction::PassPeeper(2381); // else
     Before--;
   }
 
@@ -734,9 +734,9 @@ InsertSafepointPoll(Instruction *InsertBefore,
   assert(ParsePointsNeeded.empty());
   for (auto *CI : Calls) {
     // No safepoint needed or wanted
-    PassPrediction::PassPeeper(__FILE__, 2382); // for-range
+    PassPrediction::PassPeeper(2382); // for-range
     if (!needsStatepoint(CI)) {
-      PassPrediction::PassPeeper(__FILE__, 2383); // if
+      PassPrediction::PassPeeper(2383); // if
       continue;
     }
 

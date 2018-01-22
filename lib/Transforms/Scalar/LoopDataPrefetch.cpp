@@ -83,7 +83,7 @@ private:
 
   unsigned getMinPrefetchStride() {
     if (MinPrefetchStride.getNumOccurrences() > 0) {
-      PassPrediction::PassPeeper(__FILE__, 591); // if
+      PassPrediction::PassPeeper(591); // if
       return MinPrefetchStride;
     }
     return TTI->getMinPrefetchStride();
@@ -91,7 +91,7 @@ private:
 
   unsigned getPrefetchDistance() {
     if (PrefetchDistance.getNumOccurrences() > 0) {
-      PassPrediction::PassPeeper(__FILE__, 592); // if
+      PassPrediction::PassPeeper(592); // if
       return PrefetchDistance;
     }
     return TTI->getPrefetchDistance();
@@ -99,7 +99,7 @@ private:
 
   unsigned getMaxPrefetchIterationsAhead() {
     if (MaxPrefetchIterationsAhead.getNumOccurrences() > 0) {
-      PassPrediction::PassPeeper(__FILE__, 593); // if
+      PassPrediction::PassPeeper(593); // if
       return MaxPrefetchIterationsAhead;
     }
     return TTI->getMaxPrefetchIterationsAhead();
@@ -156,7 +156,7 @@ bool LoopDataPrefetch::isStrideLargeEnough(const SCEVAddRecExpr *AR) {
   unsigned TargetMinStride = getMinPrefetchStride();
   // No need to check if any stride goes.
   if (TargetMinStride <= 1) {
-    PassPrediction::PassPeeper(__FILE__, 594); // if
+    PassPrediction::PassPeeper(594); // if
     return true;
   }
 
@@ -164,7 +164,7 @@ bool LoopDataPrefetch::isStrideLargeEnough(const SCEVAddRecExpr *AR) {
   // If MinStride is set, don't prefetch unless we can ensure that stride is
   // larger.
   if (!ConstStride) {
-    PassPrediction::PassPeeper(__FILE__, 595); // if
+    PassPrediction::PassPeeper(595); // if
     return false;
   }
 
@@ -185,7 +185,7 @@ PreservedAnalyses LoopDataPrefetchPass::run(Function &F,
   bool Changed = LDP.run();
 
   if (Changed) {
-    PassPrediction::PassPeeper(__FILE__, 596); // if
+    PassPrediction::PassPeeper(596); // if
     PreservedAnalyses PA;
     PA.preserve<DominatorTreeAnalysis>();
     PA.preserve<LoopAnalysis>();
@@ -197,7 +197,7 @@ PreservedAnalyses LoopDataPrefetchPass::run(Function &F,
 
 bool LoopDataPrefetchLegacyPass::runOnFunction(Function &F) {
   if (skipFunction(F)) {
-    PassPrediction::PassPeeper(__FILE__, 597); // if
+    PassPrediction::PassPeeper(597); // if
     return false;
   }
 
@@ -219,7 +219,7 @@ bool LoopDataPrefetch::run() {
   // opportunity for targets to run this pass for selected subtargets only
   // (whose TTI sets PrefetchDistance).
   if (getPrefetchDistance() == 0) {
-    PassPrediction::PassPeeper(__FILE__, 598); // if
+    PassPrediction::PassPeeper(598); // if
     return false;
   }
   assert(TTI->getCacheLineSize() && "Cache line size is not set for target");
@@ -227,9 +227,9 @@ bool LoopDataPrefetch::run() {
   bool MadeChange = false;
 
   for (Loop *I : *LI) {
-    PassPrediction::PassPeeper(__FILE__, 599); // for-range
+    PassPrediction::PassPeeper(599); // for-range
     for (auto L = df_begin(I), LE = df_end(I); L != LE; ++L) {
-      PassPrediction::PassPeeper(__FILE__, 600); // for
+      PassPrediction::PassPeeper(600); // for
       MadeChange |= runOnLoop(*L);
     }
   }
@@ -242,7 +242,7 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
 
   // Only prefetch in the inner-most loop
   if (!L->empty()) {
-    PassPrediction::PassPeeper(__FILE__, 601); // if
+    PassPrediction::PassPeeper(601); // if
     return MadeChange;
   }
 
@@ -254,15 +254,15 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
   for (const auto BB : L->blocks()) {
     // If the loop already has prefetches, then assume that the user knows
     // what they are doing and don't add any more.
-    PassPrediction::PassPeeper(__FILE__, 602); // for-range
+    PassPrediction::PassPeeper(602); // for-range
     for (auto &I : *BB) {
-      PassPrediction::PassPeeper(__FILE__, 603); // for-range
+      PassPrediction::PassPeeper(603); // for-range
       if (CallInst *CI = dyn_cast<CallInst>(&I)) {
-        PassPrediction::PassPeeper(__FILE__, 604); // if
+        PassPrediction::PassPeeper(604); // if
         if (Function *F = CI->getCalledFunction()) {
-          PassPrediction::PassPeeper(__FILE__, 605); // if
+          PassPrediction::PassPeeper(605); // if
           if (F->getIntrinsicID() == Intrinsic::prefetch) {
-            PassPrediction::PassPeeper(__FILE__, 606); // if
+            PassPrediction::PassPeeper(606); // if
             return MadeChange;
           }
         }
@@ -273,18 +273,18 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
   }
   unsigned LoopSize = Metrics.NumInsts;
   if (!LoopSize) {
-    PassPrediction::PassPeeper(__FILE__, 607); // if
+    PassPrediction::PassPeeper(607); // if
     LoopSize = 1;
   }
 
   unsigned ItersAhead = getPrefetchDistance() / LoopSize;
   if (!ItersAhead) {
-    PassPrediction::PassPeeper(__FILE__, 608); // if
+    PassPrediction::PassPeeper(608); // if
     ItersAhead = 1;
   }
 
   if (ItersAhead > getMaxPrefetchIterationsAhead()) {
-    PassPrediction::PassPeeper(__FILE__, 609); // if
+    PassPrediction::PassPeeper(609); // if
     return MadeChange;
   }
 
@@ -294,50 +294,50 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
 
   SmallVector<std::pair<Instruction *, const SCEVAddRecExpr *>, 16> PrefLoads;
   for (const auto BB : L->blocks()) {
-    PassPrediction::PassPeeper(__FILE__, 610); // for-range
+    PassPrediction::PassPeeper(610); // for-range
     for (auto &I : *BB) {
-      PassPrediction::PassPeeper(__FILE__, 611); // for-range
+      PassPrediction::PassPeeper(611); // for-range
       Value *PtrValue;
       Instruction *MemI;
 
       if (LoadInst *LMemI = dyn_cast<LoadInst>(&I)) {
-        PassPrediction::PassPeeper(__FILE__, 612); // if
+        PassPrediction::PassPeeper(612); // if
         MemI = LMemI;
         PtrValue = LMemI->getPointerOperand();
       } else if (StoreInst *SMemI = dyn_cast<StoreInst>(&I)) {
-        PassPrediction::PassPeeper(__FILE__, 613); // if
+        PassPrediction::PassPeeper(613); // if
         if (!PrefetchWrites) {
           continue;
         }
         MemI = SMemI;
         PtrValue = SMemI->getPointerOperand();
       } else {
-        PassPrediction::PassPeeper(__FILE__, 614); // else
+        PassPrediction::PassPeeper(614); // else
         continue;
       }
 
       unsigned PtrAddrSpace = PtrValue->getType()->getPointerAddressSpace();
       if (PtrAddrSpace) {
-        PassPrediction::PassPeeper(__FILE__, 615); // if
+        PassPrediction::PassPeeper(615); // if
         continue;
       }
 
       if (L->isLoopInvariant(PtrValue)) {
-        PassPrediction::PassPeeper(__FILE__, 616); // if
+        PassPrediction::PassPeeper(616); // if
         continue;
       }
 
       const SCEV *LSCEV = SE->getSCEV(PtrValue);
       const SCEVAddRecExpr *LSCEVAddRec = dyn_cast<SCEVAddRecExpr>(LSCEV);
       if (!LSCEVAddRec) {
-        PassPrediction::PassPeeper(__FILE__, 617); // if
+        PassPrediction::PassPeeper(617); // if
         continue;
       }
 
       // Check if the the stride of the accesses is large enough to warrant a
       // prefetch.
       if (!isStrideLargeEnough(LSCEVAddRec)) {
-        PassPrediction::PassPeeper(__FILE__, 618); // if
+        PassPrediction::PassPeeper(618); // if
         continue;
       }
 
@@ -346,22 +346,22 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
       // already been prefetched, then don't prefetch this one as well.
       bool DupPref = false;
       for (const auto &PrefLoad : PrefLoads) {
-        PassPrediction::PassPeeper(__FILE__, 619); // for-range
+        PassPrediction::PassPeeper(619); // for-range
         const SCEV *PtrDiff = SE->getMinusSCEV(LSCEVAddRec, PrefLoad.second);
         if (const SCEVConstant *ConstPtrDiff =
                 dyn_cast<SCEVConstant>(PtrDiff)) {
-          PassPrediction::PassPeeper(__FILE__, 620); // if
+          PassPrediction::PassPeeper(620); // if
           int64_t PD = std::abs(ConstPtrDiff->getValue()->getSExtValue());
           if (PD < (int64_t)TTI->getCacheLineSize()) {
-            PassPrediction::PassPeeper(__FILE__, 621); // if
+            PassPrediction::PassPeeper(621); // if
             DupPref = true;
-            PassPrediction::PassPeeper(__FILE__, 622); // break
+            PassPrediction::PassPeeper(622); // break
             break;
           }
         }
       }
       if (DupPref) {
-        PassPrediction::PassPeeper(__FILE__, 623); // if
+        PassPrediction::PassPeeper(623); // if
         continue;
       }
 
@@ -370,7 +370,7 @@ bool LoopDataPrefetch::runOnLoop(Loop *L) {
           SE->getMulExpr(SE->getConstant(LSCEVAddRec->getType(), ItersAhead),
                          LSCEVAddRec->getStepRecurrence(*SE)));
       if (!isSafeToExpand(NextLSCEV, *SE)) {
-        PassPrediction::PassPeeper(__FILE__, 624); // if
+        PassPrediction::PassPeeper(624); // if
         continue;
       }
 

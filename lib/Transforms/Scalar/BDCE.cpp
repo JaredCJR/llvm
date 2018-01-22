@@ -48,10 +48,10 @@ static void clearAssumptionsOfUsers(Instruction *I, DemandedBits &DB) {
   for (User *JU : I->users()) {
     // If all bits of a user are demanded, then we know that nothing below that
     // in the def-use chain needs to be changed.
-    PassPrediction::PassPeeper(__FILE__, 580); // for-range
+    PassPrediction::PassPeeper(580); // for-range
     auto *J = dyn_cast<Instruction>(JU);
     if (J && !DB.getDemandedBits(J).isAllOnesValue()) {
-      PassPrediction::PassPeeper(__FILE__, 581); // if
+      PassPrediction::PassPeeper(581); // if
       WorkList.push_back(J);
     }
   }
@@ -59,7 +59,7 @@ static void clearAssumptionsOfUsers(Instruction *I, DemandedBits &DB) {
   // DFS through subsequent users while tracking visits to avoid cycles.
   SmallPtrSet<Instruction *, 16> Visited;
   while (!WorkList.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 582); // while
+    PassPrediction::PassPeeper(582); // while
     Instruction *J = WorkList.pop_back_val();
 
     // NSW, NUW, and exact are based on operands that might have changed.
@@ -74,10 +74,10 @@ static void clearAssumptionsOfUsers(Instruction *I, DemandedBits &DB) {
     for (User *KU : J->users()) {
       // If all bits of a user are demanded, then we know that nothing below
       // that in the def-use chain needs to be changed.
-      PassPrediction::PassPeeper(__FILE__, 583); // for-range
+      PassPrediction::PassPeeper(583); // for-range
       auto *K = dyn_cast<Instruction>(KU);
       if (K && !Visited.count(K) && !DB.getDemandedBits(K).isAllOnesValue()) {
-        PassPrediction::PassPeeper(__FILE__, 584); // if
+        PassPrediction::PassPeeper(584); // if
         WorkList.push_back(K);
       }
     }
@@ -91,9 +91,9 @@ static bool bitTrackingDCE(Function &F, DemandedBits &DB) {
     // If the instruction has side effects and no non-dbg uses,
     // skip it. This way we avoid computing known bits on an instruction
     // that will not help us.
-    PassPrediction::PassPeeper(__FILE__, 585); // for-range
+    PassPrediction::PassPeeper(585); // for-range
     if (I.mayHaveSideEffects() && I.use_empty()) {
-      PassPrediction::PassPeeper(__FILE__, 586); // if
+      PassPrediction::PassPeeper(586); // if
       continue;
     }
 
@@ -114,7 +114,7 @@ static bool bitTrackingDCE(Function &F, DemandedBits &DB) {
       Changed = true;
     }
     if (!DB.isInstructionDead(&I)) {
-      PassPrediction::PassPeeper(__FILE__, 587); // if
+      PassPrediction::PassPeeper(587); // if
       continue;
     }
 
@@ -124,7 +124,7 @@ static bool bitTrackingDCE(Function &F, DemandedBits &DB) {
   }
 
   for (Instruction *&I : Worklist) {
-    PassPrediction::PassPeeper(__FILE__, 588); // for-range
+    PassPrediction::PassPeeper(588); // for-range
     ++NumRemoved;
     I->eraseFromParent();
   }
@@ -135,7 +135,7 @@ static bool bitTrackingDCE(Function &F, DemandedBits &DB) {
 PreservedAnalyses BDCEPass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &DB = AM.getResult<DemandedBitsAnalysis>(F);
   if (!bitTrackingDCE(F, DB)) {
-    PassPrediction::PassPeeper(__FILE__, 589); // if
+    PassPrediction::PassPeeper(589); // if
     return PreservedAnalyses::all();
   }
 
@@ -154,7 +154,7 @@ struct BDCELegacyPass : public FunctionPass {
 
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 590); // if
+      PassPrediction::PassPeeper(590); // if
       return false;
     }
     auto &DB = getAnalysis<DemandedBitsWrapperPass>().getDemandedBits();

@@ -82,7 +82,7 @@ deleteDeadInstruction(Instruction *I, BasicBlock::iterator *BBI,
 
   // Before we touch this instruction, remove it from memdep!
   do {
-    PassPrediction::PassPeeper(__FILE__, 2045); // do-while
+    PassPrediction::PassPeeper(2045); // do-while
     Instruction *DeadInst = NowDeadInsts.pop_back_val();
     ++NumFastOther;
 
@@ -92,37 +92,37 @@ deleteDeadInstruction(Instruction *I, BasicBlock::iterator *BBI,
     MD.removeInstruction(DeadInst);
 
     for (unsigned op = 0, e = DeadInst->getNumOperands(); op != e; ++op) {
-      PassPrediction::PassPeeper(__FILE__, 2046); // for
+      PassPrediction::PassPeeper(2046); // for
       Value *Op = DeadInst->getOperand(op);
       DeadInst->setOperand(op, nullptr);
 
       // If this operand just became dead, add it to the NowDeadInsts list.
       if (!Op->use_empty()) {
-        PassPrediction::PassPeeper(__FILE__, 2047); // if
+        PassPrediction::PassPeeper(2047); // if
         continue;
       }
 
       if (Instruction *OpI = dyn_cast<Instruction>(Op)) {
-        PassPrediction::PassPeeper(__FILE__, 2048); // if
+        PassPrediction::PassPeeper(2048); // if
         if (isInstructionTriviallyDead(OpI, &TLI)) {
-          PassPrediction::PassPeeper(__FILE__, 2049); // if
+          PassPrediction::PassPeeper(2049); // if
           NowDeadInsts.push_back(OpI);
         }
       }
     }
 
     if (ValueSet) {
-      PassPrediction::PassPeeper(__FILE__, 2050); // if
+      PassPrediction::PassPeeper(2050); // if
       ValueSet->remove(DeadInst);
     }
     InstrOrdering->erase(DeadInst);
     IOL.erase(DeadInst);
 
     if (NewIter == DeadInst->getIterator()) {
-      PassPrediction::PassPeeper(__FILE__, 2051); // if
+      PassPrediction::PassPeeper(2051); // if
       NewIter = DeadInst->eraseFromParent();
     } else {
-      PassPrediction::PassPeeper(__FILE__, 2052); // else
+      PassPrediction::PassPeeper(2052); // else
       DeadInst->eraseFromParent();
     }
   } while (!NowDeadInsts.empty());
@@ -133,51 +133,51 @@ deleteDeadInstruction(Instruction *I, BasicBlock::iterator *BBI,
 /// that we can analyze with other helpers below.
 static bool hasMemoryWrite(Instruction *I, const TargetLibraryInfo &TLI) {
   if (isa<StoreInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2053); // if
+    PassPrediction::PassPeeper(2053); // if
     return true;
   }
   if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2054); // if
+    PassPrediction::PassPeeper(2054); // if
     switch (II->getIntrinsicID()) {
     default:
       return false;
     case Intrinsic::memset:
-      PassPrediction::PassPeeper(__FILE__, 2055); // case
+      PassPrediction::PassPeeper(2055); // case
 
     case Intrinsic::memmove:
-      PassPrediction::PassPeeper(__FILE__, 2056); // case
+      PassPrediction::PassPeeper(2056); // case
 
     case Intrinsic::memcpy:
-      PassPrediction::PassPeeper(__FILE__, 2057); // case
+      PassPrediction::PassPeeper(2057); // case
 
     case Intrinsic::init_trampoline:
-      PassPrediction::PassPeeper(__FILE__, 2058); // case
+      PassPrediction::PassPeeper(2058); // case
 
     case Intrinsic::lifetime_end:
-      PassPrediction::PassPeeper(__FILE__, 2059); // case
+      PassPrediction::PassPeeper(2059); // case
 
       return true;
     }
   }
   if (auto CS = CallSite(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2060); // if
+    PassPrediction::PassPeeper(2060); // if
     if (Function *F = CS.getCalledFunction()) {
-      PassPrediction::PassPeeper(__FILE__, 2061); // if
+      PassPrediction::PassPeeper(2061); // if
       StringRef FnName = F->getName();
       if (TLI.has(LibFunc_strcpy) && FnName == TLI.getName(LibFunc_strcpy)) {
-        PassPrediction::PassPeeper(__FILE__, 2062); // if
+        PassPrediction::PassPeeper(2062); // if
         return true;
       }
       if (TLI.has(LibFunc_strncpy) && FnName == TLI.getName(LibFunc_strncpy)) {
-        PassPrediction::PassPeeper(__FILE__, 2063); // if
+        PassPrediction::PassPeeper(2063); // if
         return true;
       }
       if (TLI.has(LibFunc_strcat) && FnName == TLI.getName(LibFunc_strcat)) {
-        PassPrediction::PassPeeper(__FILE__, 2064); // if
+        PassPrediction::PassPeeper(2064); // if
         return true;
       }
       if (TLI.has(LibFunc_strncat) && FnName == TLI.getName(LibFunc_strncat)) {
-        PassPrediction::PassPeeper(__FILE__, 2065); // if
+        PassPrediction::PassPeeper(2065); // if
         return true;
       }
     }
@@ -190,20 +190,20 @@ static bool hasMemoryWrite(Instruction *I, const TargetLibraryInfo &TLI) {
 /// operations for this instruction.
 static MemoryLocation getLocForWrite(Instruction *Inst, AliasAnalysis &AA) {
   if (StoreInst *SI = dyn_cast<StoreInst>(Inst)) {
-    PassPrediction::PassPeeper(__FILE__, 2066); // if
+    PassPrediction::PassPeeper(2066); // if
     return MemoryLocation::get(SI);
   }
 
   if (MemIntrinsic *MI = dyn_cast<MemIntrinsic>(Inst)) {
     // memcpy/memmove/memset.
-    PassPrediction::PassPeeper(__FILE__, 2067); // if
+    PassPrediction::PassPeeper(2067); // if
     MemoryLocation Loc = MemoryLocation::getForDest(MI);
     return Loc;
   }
 
   IntrinsicInst *II = dyn_cast<IntrinsicInst>(Inst);
   if (!II) {
-    PassPrediction::PassPeeper(__FILE__, 2068); // if
+    PassPrediction::PassPeeper(2068); // if
     return MemoryLocation();
   }
 
@@ -211,13 +211,13 @@ static MemoryLocation getLocForWrite(Instruction *Inst, AliasAnalysis &AA) {
   default:
     return MemoryLocation(); // Unhandled intrinsic.
   case Intrinsic::init_trampoline:
-    PassPrediction::PassPeeper(__FILE__, 2069); // case
+    PassPrediction::PassPeeper(2069); // case
 
     // FIXME: We don't know the size of the trampoline, so we can't really
     // handle it here.
     return MemoryLocation(II->getArgOperand(0));
   case Intrinsic::lifetime_end:
-    PassPrediction::PassPeeper(__FILE__, 2070); // case
+    PassPrediction::PassPeeper(2070); // case
     {
       uint64_t Len = cast<ConstantInt>(II->getArgOperand(0))->getZExtValue();
       return MemoryLocation(II->getArgOperand(1), Len);
@@ -234,7 +234,7 @@ static MemoryLocation getLocForRead(Instruction *Inst,
   // The only instructions that both read and write are the mem transfer
   // instructions (memcpy/memmove).
   if (MemTransferInst *MTI = dyn_cast<MemTransferInst>(Inst)) {
-    PassPrediction::PassPeeper(__FILE__, 2071); // if
+    PassPrediction::PassPeeper(2071); // if
     return MemoryLocation::getForSource(MTI);
   }
   return MemoryLocation();
@@ -245,35 +245,35 @@ static MemoryLocation getLocForRead(Instruction *Inst,
 static bool isRemovable(Instruction *I) {
   // Don't remove volatile/atomic stores.
   if (StoreInst *SI = dyn_cast<StoreInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2072); // if
+    PassPrediction::PassPeeper(2072); // if
     return SI->isUnordered();
   }
 
   if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2073); // if
+    PassPrediction::PassPeeper(2073); // if
     switch (II->getIntrinsicID()) {
     default:
       llvm_unreachable("doesn't pass 'hasMemoryWrite' predicate");
     case Intrinsic::lifetime_end:
-      PassPrediction::PassPeeper(__FILE__, 2074); // case
+      PassPrediction::PassPeeper(2074); // case
 
       // Never remove dead lifetime_end's, e.g. because it is followed by a
       // free.
       return false;
     case Intrinsic::init_trampoline:
-      PassPrediction::PassPeeper(__FILE__, 2075); // case
+      PassPrediction::PassPeeper(2075); // case
 
       // Always safe to remove init_trampoline.
       return true;
 
     case Intrinsic::memset:
-      PassPrediction::PassPeeper(__FILE__, 2076); // case
+      PassPrediction::PassPeeper(2076); // case
 
     case Intrinsic::memmove:
-      PassPrediction::PassPeeper(__FILE__, 2077); // case
+      PassPrediction::PassPeeper(2077); // case
 
     case Intrinsic::memcpy:
-      PassPrediction::PassPeeper(__FILE__, 2078); // case
+      PassPrediction::PassPeeper(2078); // case
 
       // Don't remove volatile memory intrinsics.
       return !cast<MemIntrinsic>(II)->isVolatile();
@@ -281,7 +281,7 @@ static bool isRemovable(Instruction *I) {
   }
 
   if (auto CS = CallSite(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2079); // if
+    PassPrediction::PassPeeper(2079); // if
     return CS.getInstruction()->use_empty();
   }
 
@@ -293,20 +293,20 @@ static bool isRemovable(Instruction *I) {
 static bool isShortenableAtTheEnd(Instruction *I) {
   // Don't shorten stores for now
   if (isa<StoreInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2080); // if
+    PassPrediction::PassPeeper(2080); // if
     return false;
   }
 
   if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2081); // if
+    PassPrediction::PassPeeper(2081); // if
     switch (II->getIntrinsicID()) {
     default:
       return false;
     case Intrinsic::memset:
-      PassPrediction::PassPeeper(__FILE__, 2082); // case
+      PassPrediction::PassPeeper(2082); // case
 
     case Intrinsic::memcpy:
-      PassPrediction::PassPeeper(__FILE__, 2083); // case
+      PassPrediction::PassPeeper(2083); // case
 
       // Do shorten memory intrinsics.
       // FIXME: Add memmove if it's also safe to transform.
@@ -331,21 +331,21 @@ static bool isShortenableAtTheBeginning(Instruction *I) {
 /// Return the pointer that is being written to.
 static Value *getStoredPointerOperand(Instruction *I) {
   if (StoreInst *SI = dyn_cast<StoreInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2084); // if
+    PassPrediction::PassPeeper(2084); // if
     return SI->getPointerOperand();
   }
   if (MemIntrinsic *MI = dyn_cast<MemIntrinsic>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2085); // if
+    PassPrediction::PassPeeper(2085); // if
     return MI->getDest();
   }
 
   if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2086); // if
+    PassPrediction::PassPeeper(2086); // if
     switch (II->getIntrinsicID()) {
     default:
       llvm_unreachable("Unexpected intrinsic!");
     case Intrinsic::init_trampoline:
-      PassPrediction::PassPeeper(__FILE__, 2087); // case
+      PassPrediction::PassPeeper(2087); // case
 
       return II->getArgOperand(0);
     }
@@ -361,7 +361,7 @@ static uint64_t getPointerSize(const Value *V, const DataLayout &DL,
                                const TargetLibraryInfo &TLI) {
   uint64_t Size;
   if (getObjectSize(V, Size, DL, &TLI)) {
-    PassPrediction::PassPeeper(__FILE__, 2088); // if
+    PassPrediction::PassPeeper(2088); // if
     return Size;
   }
   return MemoryLocation::UnknownSize;
@@ -384,7 +384,7 @@ isOverwrite(const MemoryLocation &Later, const MemoryLocation &Earlier,
   // If we don't know the sizes of either access, then we can't do a comparison.
   if (Later.Size == MemoryLocation::UnknownSize ||
       Earlier.Size == MemoryLocation::UnknownSize) {
-    PassPrediction::PassPeeper(__FILE__, 2089); // if
+    PassPrediction::PassPeeper(2089); // if
     return OW_Unknown;
   }
 
@@ -395,9 +395,9 @@ isOverwrite(const MemoryLocation &Later, const MemoryLocation &Earlier,
   // the later store was larger than the earlier store.
   if (P1 == P2) {
     // Make sure that the Later size is >= the Earlier size.
-    PassPrediction::PassPeeper(__FILE__, 2090); // if
+    PassPrediction::PassPeeper(2090); // if
     if (Later.Size >= Earlier.Size) {
-      PassPrediction::PassPeeper(__FILE__, 2091); // if
+      PassPrediction::PassPeeper(2091); // if
       return OW_Complete;
     }
   }
@@ -411,16 +411,16 @@ isOverwrite(const MemoryLocation &Later, const MemoryLocation &Earlier,
   // If we can't resolve the same pointers to the same object, then we can't
   // analyze them at all.
   if (UO1 != UO2) {
-    PassPrediction::PassPeeper(__FILE__, 2092); // if
+    PassPrediction::PassPeeper(2092); // if
     return OW_Unknown;
   }
 
   // If the "Later" store is to a recognizable object, get its size.
   uint64_t ObjectSize = getPointerSize(UO2, DL, TLI);
   if (ObjectSize != MemoryLocation::UnknownSize) {
-    PassPrediction::PassPeeper(__FILE__, 2093); // if
+    PassPrediction::PassPeeper(2093); // if
     if (ObjectSize == Later.Size && ObjectSize >= Earlier.Size) {
-      PassPrediction::PassPeeper(__FILE__, 2094); // if
+      PassPrediction::PassPeeper(2094); // if
       return OW_Complete;
     }
   }
@@ -435,7 +435,7 @@ isOverwrite(const MemoryLocation &Later, const MemoryLocation &Earlier,
 
   // If the base pointers still differ, we have two completely different stores.
   if (BP1 != BP2) {
-    PassPrediction::PassPeeper(__FILE__, 2095); // if
+    PassPrediction::PassPeeper(2095); // if
     return OW_Unknown;
   }
 
@@ -456,7 +456,7 @@ isOverwrite(const MemoryLocation &Later, const MemoryLocation &Earlier,
   // We have to be careful here as *Off is signed while *.Size is unsigned.
   if (EarlierOff >= LaterOff && Later.Size >= Earlier.Size &&
       uint64_t(EarlierOff - LaterOff) + Earlier.Size <= Later.Size) {
-    PassPrediction::PassPeeper(__FILE__, 2096); // if
+    PassPrediction::PassPeeper(2096); // if
     return OW_Complete;
   }
 
@@ -470,7 +470,7 @@ isOverwrite(const MemoryLocation &Later, const MemoryLocation &Earlier,
       int64_t(LaterOff + Later.Size) >= EarlierOff) {
 
     // Insert our part of the overlap into the map.
-    PassPrediction::PassPeeper(__FILE__, 2097); // if
+    PassPrediction::PassPeeper(2097); // if
     auto &IM = IOL[DepWrite];
     DEBUG(dbgs() << "DSE: Partial overwrite: Earlier [" << EarlierOff << ", "
                  << int64_t(EarlierOff + Earlier.Size) << ") Later ["
@@ -490,7 +490,7 @@ isOverwrite(const MemoryLocation &Later, const MemoryLocation &Earlier,
       // This existing interval is overlapped with the current store somewhere
       // in [LaterIntStart, LaterIntEnd]. Merge them by erasing the existing
       // intervals and adjusting our start and end.
-      PassPrediction::PassPeeper(__FILE__, 2098); // if
+      PassPrediction::PassPeeper(2098); // if
       LaterIntStart = std::min(LaterIntStart, ILI->second);
       LaterIntEnd = std::max(LaterIntEnd, ILI->first);
       ILI = IM.erase(ILI);
@@ -533,7 +533,7 @@ isOverwrite(const MemoryLocation &Later, const MemoryLocation &Earlier,
   if (!EnablePartialOverwriteTracking &&
       (LaterOff > EarlierOff && LaterOff < int64_t(EarlierOff + Earlier.Size) &&
        int64_t(LaterOff + Later.Size) >= int64_t(EarlierOff + Earlier.Size))) {
-    PassPrediction::PassPeeper(__FILE__, 2099); // if
+    PassPrediction::PassPeeper(2099); // if
     return OW_End;
   }
 
@@ -579,13 +579,13 @@ static bool isPossibleSelfRead(Instruction *Inst,
   // location read.
   MemoryLocation InstReadLoc = getLocForRead(Inst, TLI);
   if (!InstReadLoc.Ptr) {
-    PassPrediction::PassPeeper(__FILE__, 2100); // if
-    return false;                               // Not a reading instruction.
+    PassPrediction::PassPeeper(2100); // if
+    return false;                     // Not a reading instruction.
   }
 
   // If the read and written loc obviously don't alias, it isn't a read.
   if (AA.isNoAlias(InstReadLoc, InstStoreLoc)) {
-    PassPrediction::PassPeeper(__FILE__, 2101); // if
+    PassPrediction::PassPeeper(2101); // if
     return false;
   }
 
@@ -600,7 +600,7 @@ static bool isPossibleSelfRead(Instruction *Inst,
   MemoryLocation DepReadLoc = getLocForRead(DepWrite, TLI);
 
   if (DepReadLoc.Ptr && AA.isMustAlias(InstReadLoc.Ptr, DepReadLoc.Ptr)) {
-    PassPrediction::PassPeeper(__FILE__, 2102); // if
+    PassPrediction::PassPeeper(2102); // if
     return false;
   }
 
@@ -630,7 +630,7 @@ static bool memoryIsNotModifiedBetween(Instruction *FirstI,
 
   // Check all blocks going backward until we reach the load-block.
   while (!WorkList.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 2103); // while
+    PassPrediction::PassPeeper(2103); // while
     BasicBlock *B = WorkList.pop_back_val();
 
     // Ignore instructions before LI if this is the FirstBB.
@@ -645,17 +645,17 @@ static bool memoryIsNotModifiedBetween(Instruction *FirstI,
     } else {
       // It's not SecondBB or (in case of a loop) the second visit of SecondBB.
       // In this case we also have to look at instructions after SI.
-      PassPrediction::PassPeeper(__FILE__, 2104); // else
+      PassPrediction::PassPeeper(2104); // else
       EI = B->end();
     }
     for (; BI != EI; ++BI) {
-      PassPrediction::PassPeeper(__FILE__, 2105); // for
+      PassPrediction::PassPeeper(2105); // for
       Instruction *I = &*BI;
       if (I->mayWriteToMemory() && I != SecondI) {
-        PassPrediction::PassPeeper(__FILE__, 2106); // if
+        PassPrediction::PassPeeper(2106); // if
         auto Res = AA->getModRefInfo(I, MemLoc);
         if (Res & MRI_Mod) {
-          PassPrediction::PassPeeper(__FILE__, 2107); // if
+          PassPrediction::PassPeeper(2107); // if
           return false;
         }
       }
@@ -665,9 +665,9 @@ static bool memoryIsNotModifiedBetween(Instruction *FirstI,
           B != &FirstBB->getParent()->getEntryBlock() &&
           "Should not hit the entry block because SI must be dominated by LI");
       for (auto PredI = pred_begin(B), PE = pred_end(B); PredI != PE; ++PredI) {
-        PassPrediction::PassPeeper(__FILE__, 2108); // for
+        PassPrediction::PassPeeper(2108); // for
         if (!Visited.insert(*PredI).second) {
-          PassPrediction::PassPeeper(__FILE__, 2109); // if
+          PassPrediction::PassPeeper(2109); // if
           continue;
         }
         WorkList.push_back(*PredI);
@@ -682,20 +682,20 @@ static bool memoryIsNotModifiedBetween(Instruction *FirstI,
 static void findUnconditionalPreds(SmallVectorImpl<BasicBlock *> &Blocks,
                                    BasicBlock *BB, DominatorTree *DT) {
   for (pred_iterator I = pred_begin(BB), E = pred_end(BB); I != E; ++I) {
-    PassPrediction::PassPeeper(__FILE__, 2110); // for
+    PassPrediction::PassPeeper(2110); // for
     BasicBlock *Pred = *I;
     if (Pred == BB) {
-      PassPrediction::PassPeeper(__FILE__, 2111); // if
+      PassPrediction::PassPeeper(2111); // if
       continue;
     }
     TerminatorInst *PredTI = Pred->getTerminator();
     if (PredTI->getNumSuccessors() != 1) {
-      PassPrediction::PassPeeper(__FILE__, 2112); // if
+      PassPrediction::PassPeeper(2112); // if
       continue;
     }
 
     if (DT->isReachableFromEntry(Pred)) {
-      PassPrediction::PassPeeper(__FILE__, 2113); // if
+      PassPrediction::PassPeeper(2113); // if
       Blocks.push_back(Pred);
     }
   }
@@ -716,21 +716,21 @@ static bool handleFree(CallInst *F, AliasAnalysis *AA,
   const DataLayout &DL = F->getModule()->getDataLayout();
 
   while (!Blocks.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 2114); // while
+    PassPrediction::PassPeeper(2114); // while
     BasicBlock *BB = Blocks.pop_back_val();
     Instruction *InstPt = BB->getTerminator();
     if (BB == F->getParent()) {
-      PassPrediction::PassPeeper(__FILE__, 2115); // if
+      PassPrediction::PassPeeper(2115); // if
       InstPt = F;
     }
 
     MemDepResult Dep =
         MD->getPointerDependencyFrom(Loc, false, InstPt->getIterator(), BB);
     while (Dep.isDef() || Dep.isClobber()) {
-      PassPrediction::PassPeeper(__FILE__, 2116); // while
+      PassPrediction::PassPeeper(2116); // while
       Instruction *Dependency = Dep.getInst();
       if (!hasMemoryWrite(Dependency, *TLI) || !isRemovable(Dependency)) {
-        PassPrediction::PassPeeper(__FILE__, 2117); // if
+        PassPrediction::PassPeeper(2117); // if
         break;
       }
 
@@ -739,7 +739,7 @@ static bool handleFree(CallInst *F, AliasAnalysis *AA,
 
       // Check for aliasing.
       if (!AA->isMustAlias(F->getArgOperand(0), DepPointer)) {
-        PassPrediction::PassPeeper(__FILE__, 2118); // if
+        PassPrediction::PassPeeper(2118); // if
         break;
       }
 
@@ -761,7 +761,7 @@ static bool handleFree(CallInst *F, AliasAnalysis *AA,
     }
 
     if (Dep.isNonLocal()) {
-      PassPrediction::PassPeeper(__FILE__, 2119); // if
+      PassPrediction::PassPeeper(2119); // if
       findUnconditionalPreds(Blocks, BB, DT);
     }
   }
@@ -780,14 +780,14 @@ static void removeAccessedObjects(const MemoryLocation &LoadedLoc,
 
   // A constant can't be in the dead pointer set.
   if (isa<Constant>(UnderlyingPointer)) {
-    PassPrediction::PassPeeper(__FILE__, 2120); // if
+    PassPrediction::PassPeeper(2120); // if
     return;
   }
 
   // If the kill pointer can be easily reduced to an alloca, don't bother doing
   // extraneous AA queries.
   if (isa<AllocaInst>(UnderlyingPointer) || isa<Argument>(UnderlyingPointer)) {
-    PassPrediction::PassPeeper(__FILE__, 2121); // if
+    PassPrediction::PassPeeper(2121); // if
     DeadStackObjects.remove(const_cast<Value *>(UnderlyingPointer));
     return;
   }
@@ -820,16 +820,16 @@ static bool handleEndBlock(BasicBlock &BB, AliasAnalysis *AA,
   // Find all of the alloca'd pointers in the entry block.
   BasicBlock &Entry = BB.getParent()->front();
   for (Instruction &I : Entry) {
-    PassPrediction::PassPeeper(__FILE__, 2122); // for-range
+    PassPrediction::PassPeeper(2122); // for-range
     if (isa<AllocaInst>(&I)) {
-      PassPrediction::PassPeeper(__FILE__, 2123); // if
+      PassPrediction::PassPeeper(2123); // if
       DeadStackObjects.insert(&I);
 
       // Okay, so these are dead heap objects, but if the pointer never escapes
       // then it's leaked by this function anyways.
     } else if (isAllocLikeFn(&I, TLI) &&
                !PointerMayBeCaptured(&I, true, true)) {
-      PassPrediction::PassPeeper(__FILE__, 2124); // if
+      PassPrediction::PassPeeper(2124); // if
       DeadStackObjects.insert(&I);
     }
   }
@@ -837,9 +837,9 @@ static bool handleEndBlock(BasicBlock &BB, AliasAnalysis *AA,
   // Treat byval or inalloca arguments the same, stores to them are dead at the
   // end of the function.
   for (Argument &AI : BB.getParent()->args()) {
-    PassPrediction::PassPeeper(__FILE__, 2125); // for-range
+    PassPrediction::PassPeeper(2125); // for-range
     if (AI.hasByValOrInAllocaAttr()) {
-      PassPrediction::PassPeeper(__FILE__, 2126); // if
+      PassPrediction::PassPeeper(2126); // if
       DeadStackObjects.insert(&AI);
     }
   }
@@ -848,30 +848,30 @@ static bool handleEndBlock(BasicBlock &BB, AliasAnalysis *AA,
 
   // Scan the basic block backwards
   for (BasicBlock::iterator BBI = BB.end(); BBI != BB.begin();) {
-    PassPrediction::PassPeeper(__FILE__, 2127); // for
+    PassPrediction::PassPeeper(2127); // for
     --BBI;
 
     // If we find a store, check to see if it points into a dead stack value.
     if (hasMemoryWrite(&*BBI, *TLI) && isRemovable(&*BBI)) {
       // See through pointer-to-pointer bitcasts
-      PassPrediction::PassPeeper(__FILE__, 2128); // if
+      PassPrediction::PassPeeper(2128); // if
       SmallVector<Value *, 4> Pointers;
       GetUnderlyingObjects(getStoredPointerOperand(&*BBI), Pointers, DL);
 
       // Stores to stack values are valid candidates for removal.
       bool AllDead = true;
       for (Value *Pointer : Pointers) {
-        PassPrediction::PassPeeper(__FILE__, 2129); // for-range
+        PassPrediction::PassPeeper(2129); // for-range
         if (!DeadStackObjects.count(Pointer)) {
-          PassPrediction::PassPeeper(__FILE__, 2130); // if
+          PassPrediction::PassPeeper(2130); // if
           AllDead = false;
-          PassPrediction::PassPeeper(__FILE__, 2131); // break
+          PassPrediction::PassPeeper(2131); // break
           break;
         }
       }
 
       if (AllDead) {
-        PassPrediction::PassPeeper(__FILE__, 2132); // if
+        PassPrediction::PassPeeper(2132); // if
         Instruction *Dead = &*BBI;
 
         DEBUG(dbgs() << "DSE: Dead Store at End of Block:\n  DEAD: " << *Dead
@@ -908,7 +908,7 @@ static bool handleEndBlock(BasicBlock &BB, AliasAnalysis *AA,
     if (isa<AllocaInst>(BBI)) {
       // Remove allocas from the list of dead stack objects; there can't be
       // any references before the definition.
-      PassPrediction::PassPeeper(__FILE__, 2133); // if
+      PassPrediction::PassPeeper(2133); // if
       DeadStackObjects.remove(&*BBI);
       continue;
     }
@@ -916,16 +916,16 @@ static bool handleEndBlock(BasicBlock &BB, AliasAnalysis *AA,
     if (auto CS = CallSite(&*BBI)) {
       // Remove allocation function calls from the list of dead stack objects;
       // there can't be any references before the definition.
-      PassPrediction::PassPeeper(__FILE__, 2134); // if
+      PassPrediction::PassPeeper(2134); // if
       if (isAllocLikeFn(&*BBI, TLI)) {
-        PassPrediction::PassPeeper(__FILE__, 2135); // if
+        PassPrediction::PassPeeper(2135); // if
         DeadStackObjects.remove(&*BBI);
       }
 
       // If this call does not access memory, it can't be loading any of our
       // pointers.
       if (AA->doesNotAccessMemory(CS)) {
-        PassPrediction::PassPeeper(__FILE__, 2136); // if
+        PassPrediction::PassPeeper(2136); // if
         continue;
       }
 
@@ -941,7 +941,7 @@ static bool handleEndBlock(BasicBlock &BB, AliasAnalysis *AA,
       // If all of the allocas were clobbered by the call then we're not going
       // to find anything else to process.
       if (DeadStackObjects.empty()) {
-        PassPrediction::PassPeeper(__FILE__, 2137); // if
+        PassPrediction::PassPeeper(2137); // if
         break;
       }
 
@@ -954,7 +954,7 @@ static bool handleEndBlock(BasicBlock &BB, AliasAnalysis *AA,
     // threads. So, skipping over a fence does not change a store from being
     // dead.
     if (isa<FenceInst>(*BBI)) {
-      PassPrediction::PassPeeper(__FILE__, 2138); // if
+      PassPrediction::PassPeeper(2138); // if
       continue;
     }
 
@@ -962,26 +962,26 @@ static bool handleEndBlock(BasicBlock &BB, AliasAnalysis *AA,
 
     // If we encounter a use of the pointer, it is no longer considered dead
     if (LoadInst *L = dyn_cast<LoadInst>(BBI)) {
-      PassPrediction::PassPeeper(__FILE__, 2139); // if
+      PassPrediction::PassPeeper(2139); // if
       if (!L->isUnordered()) { // Be conservative with atomic/volatile load
-        PassPrediction::PassPeeper(__FILE__, 2140); // if
+        PassPrediction::PassPeeper(2140); // if
         break;
       }
       LoadedLoc = MemoryLocation::get(L);
     } else if (VAArgInst *V = dyn_cast<VAArgInst>(BBI)) {
-      PassPrediction::PassPeeper(__FILE__, 2141); // if
+      PassPrediction::PassPeeper(2141); // if
       LoadedLoc = MemoryLocation::get(V);
     } else if (MemTransferInst *MTI = dyn_cast<MemTransferInst>(BBI)) {
-      PassPrediction::PassPeeper(__FILE__, 2142); // if
+      PassPrediction::PassPeeper(2142); // if
       LoadedLoc = MemoryLocation::getForSource(MTI);
     } else if (!BBI->mayReadFromMemory()) {
       // Instruction doesn't read memory.  Note that stores that weren't removed
       // above will hit this case.
-      PassPrediction::PassPeeper(__FILE__, 2143); // if
+      PassPrediction::PassPeeper(2143); // if
       continue;
     } else {
       // Unknown inst; assume it clobbers everything.
-      PassPrediction::PassPeeper(__FILE__, 2144); // else
+      PassPrediction::PassPeeper(2144); // else
       break;
     }
 
@@ -992,7 +992,7 @@ static bool handleEndBlock(BasicBlock &BB, AliasAnalysis *AA,
     // If all of the allocas were clobbered by the access then we're not going
     // to find anything else to process.
     if (DeadStackObjects.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 2145); // if
+      PassPrediction::PassPeeper(2145); // if
       break;
     }
   }
@@ -1012,13 +1012,13 @@ static bool tryToShorten(Instruction *EarlierWrite, int64_t &EarlierOffset,
   MemIntrinsic *EarlierIntrinsic = cast<MemIntrinsic>(EarlierWrite);
   unsigned EarlierWriteAlign = EarlierIntrinsic->getAlignment();
   if (!IsOverwriteEnd) {
-    PassPrediction::PassPeeper(__FILE__, 2146); // if
+    PassPrediction::PassPeeper(2146); // if
     LaterOffset = int64_t(LaterOffset + LaterSize);
   }
 
   if (!(llvm::isPowerOf2_64(LaterOffset) && EarlierWriteAlign <= LaterOffset) &&
       !((EarlierWriteAlign != 0) && LaterOffset % EarlierWriteAlign == 0)) {
-    PassPrediction::PassPeeper(__FILE__, 2147); // if
+    PassPrediction::PassPeeper(2147); // if
     return false;
   }
 
@@ -1038,7 +1038,7 @@ static bool tryToShorten(Instruction *EarlierWrite, int64_t &EarlierOffset,
 
   EarlierSize = NewLength;
   if (!IsOverwriteEnd) {
-    PassPrediction::PassPeeper(__FILE__, 2148); // if
+    PassPrediction::PassPeeper(2148); // if
     int64_t OffsetMoved = (LaterOffset - EarlierOffset);
     Value *Indices[1] = {
         ConstantInt::get(EarlierWriteLength->getType(), OffsetMoved)};
@@ -1054,7 +1054,7 @@ static bool tryToShortenEnd(Instruction *EarlierWrite,
                             OverlapIntervalsTy &IntervalMap,
                             int64_t &EarlierStart, int64_t &EarlierSize) {
   if (IntervalMap.empty() || !isShortenableAtTheEnd(EarlierWrite)) {
-    PassPrediction::PassPeeper(__FILE__, 2149); // if
+    PassPrediction::PassPeeper(2149); // if
     return false;
   }
 
@@ -1064,10 +1064,10 @@ static bool tryToShortenEnd(Instruction *EarlierWrite,
 
   if (LaterStart > EarlierStart && LaterStart < EarlierStart + EarlierSize &&
       LaterStart + LaterSize >= EarlierStart + EarlierSize) {
-    PassPrediction::PassPeeper(__FILE__, 2150); // if
+    PassPrediction::PassPeeper(2150); // if
     if (tryToShorten(EarlierWrite, EarlierStart, EarlierSize, LaterStart,
                      LaterSize, true)) {
-      PassPrediction::PassPeeper(__FILE__, 2151); // if
+      PassPrediction::PassPeeper(2151); // if
       IntervalMap.erase(OII);
       return true;
     }
@@ -1079,7 +1079,7 @@ static bool tryToShortenBegin(Instruction *EarlierWrite,
                               OverlapIntervalsTy &IntervalMap,
                               int64_t &EarlierStart, int64_t &EarlierSize) {
   if (IntervalMap.empty() || !isShortenableAtTheBeginning(EarlierWrite)) {
-    PassPrediction::PassPeeper(__FILE__, 2152); // if
+    PassPrediction::PassPeeper(2152); // if
     return false;
   }
 
@@ -1092,7 +1092,7 @@ static bool tryToShortenBegin(Instruction *EarlierWrite,
            "Should have been handled as OW_Complete");
     if (tryToShorten(EarlierWrite, EarlierStart, EarlierSize, LaterStart,
                      LaterSize, false)) {
-      PassPrediction::PassPeeper(__FILE__, 2153); // if
+      PassPrediction::PassPeeper(2153); // if
       IntervalMap.erase(OII);
       return true;
     }
@@ -1105,7 +1105,7 @@ static bool removePartiallyOverlappedStores(AliasAnalysis *AA,
                                             InstOverlapIntervalsTy &IOL) {
   bool Changed = false;
   for (auto OI : IOL) {
-    PassPrediction::PassPeeper(__FILE__, 2154); // for-range
+    PassPrediction::PassPeeper(2154); // for-range
     Instruction *EarlierWrite = OI.first;
     MemoryLocation Loc = getLocForWrite(EarlierWrite, *AA);
     assert(isRemovable(EarlierWrite) && "Expect only removable instruction");
@@ -1119,7 +1119,7 @@ static bool removePartiallyOverlappedStores(AliasAnalysis *AA,
     Changed |=
         tryToShortenEnd(EarlierWrite, IntervalMap, EarlierStart, EarlierSize);
     if (IntervalMap.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 2155); // if
+      PassPrediction::PassPeeper(2155); // if
       continue;
     }
     Changed |=
@@ -1137,14 +1137,14 @@ static bool eliminateNoopStore(Instruction *Inst, BasicBlock::iterator &BBI,
   // Must be a store instruction.
   StoreInst *SI = dyn_cast<StoreInst>(Inst);
   if (!SI) {
-    PassPrediction::PassPeeper(__FILE__, 2156); // if
+    PassPrediction::PassPeeper(2156); // if
     return false;
   }
 
   // If we're storing the same value back to a pointer that we just loaded from,
   // then the store can be removed.
   if (LoadInst *DepLoad = dyn_cast<LoadInst>(SI->getValueOperand())) {
-    PassPrediction::PassPeeper(__FILE__, 2157); // if
+    PassPrediction::PassPeeper(2157); // if
     if (SI->getPointerOperand() == DepLoad->getPointerOperand() &&
         isRemovable(SI) && memoryIsNotModifiedBetween(DepLoad, SI, AA)) {
 
@@ -1160,7 +1160,7 @@ static bool eliminateNoopStore(Instruction *Inst, BasicBlock::iterator &BBI,
   // Remove null stores into the calloc'ed objects
   Constant *StoredConstant = dyn_cast<Constant>(SI->getValueOperand());
   if (StoredConstant && StoredConstant->isNullValue() && isRemovable(SI)) {
-    PassPrediction::PassPeeper(__FILE__, 2158); // if
+    PassPrediction::PassPeeper(2158); // if
     Instruction *UnderlyingPointer =
         dyn_cast<Instruction>(GetUnderlyingObject(SI->getPointerOperand(), DL));
 
@@ -1196,9 +1196,9 @@ static bool eliminateDeadStores(BasicBlock &BB, AliasAnalysis *AA,
   // Do a top-down walk on the BB.
   for (BasicBlock::iterator BBI = BB.begin(), BBE = BB.end(); BBI != BBE;) {
     // Handle 'free' calls specially.
-    PassPrediction::PassPeeper(__FILE__, 2159); // for
+    PassPrediction::PassPeeper(2159); // for
     if (CallInst *F = isFreeCall(&*BBI, TLI)) {
-      PassPrediction::PassPeeper(__FILE__, 2160); // if
+      PassPrediction::PassPeeper(2160); // if
       MadeChange |= handleFree(F, AA, MD, DT, TLI, IOL, &InstrOrdering);
       // Increment BBI after handleFree has potentially deleted instructions.
       // This ensures we maintain a valid iterator.
@@ -1211,20 +1211,20 @@ static bool eliminateDeadStores(BasicBlock &BB, AliasAnalysis *AA,
     size_t CurInstNumber = InstrIndex++;
     InstrOrdering.insert(std::make_pair(Inst, CurInstNumber));
     if (Inst->mayThrow()) {
-      PassPrediction::PassPeeper(__FILE__, 2161); // if
+      PassPrediction::PassPeeper(2161); // if
       LastThrowingInstIndex = CurInstNumber;
       continue;
     }
 
     // Check to see if Inst writes to memory.  If not, continue.
     if (!hasMemoryWrite(Inst, *TLI)) {
-      PassPrediction::PassPeeper(__FILE__, 2162); // if
+      PassPrediction::PassPeeper(2162); // if
       continue;
     }
 
     // eliminateNoopStore will update in iterator, if necessary.
     if (eliminateNoopStore(Inst, BBI, AA, MD, DL, TLI, IOL, &InstrOrdering)) {
-      PassPrediction::PassPeeper(__FILE__, 2163); // if
+      PassPrediction::PassPeeper(2163); // if
       MadeChange = true;
       continue;
     }
@@ -1235,7 +1235,7 @@ static bool eliminateDeadStores(BasicBlock &BB, AliasAnalysis *AA,
     // Ignore any store where we can't find a local dependence.
     // FIXME: cross-block DSE would be fun. :)
     if (!InstDep.isDef() && !InstDep.isClobber()) {
-      PassPrediction::PassPeeper(__FILE__, 2164); // if
+      PassPrediction::PassPeeper(2164); // if
       continue;
     }
 
@@ -1244,7 +1244,7 @@ static bool eliminateDeadStores(BasicBlock &BB, AliasAnalysis *AA,
 
     // If we didn't get a useful location, fail.
     if (!Loc.Ptr) {
-      PassPrediction::PassPeeper(__FILE__, 2165); // if
+      PassPrediction::PassPeeper(2165); // if
       continue;
     }
 
@@ -1263,12 +1263,12 @@ static bool eliminateDeadStores(BasicBlock &BB, AliasAnalysis *AA,
       // that overwrites the memory location we *can* potentially optimize it.
       //
       // Find out what memory location the dependent instruction stores.
-      PassPrediction::PassPeeper(__FILE__, 2166); // while
+      PassPrediction::PassPeeper(2166); // while
       Instruction *DepWrite = InstDep.getInst();
       MemoryLocation DepLoc = getLocForWrite(DepWrite, *AA);
       // If we didn't get a useful location, or if it isn't a size, bail out.
       if (!DepLoc.Ptr) {
-        PassPrediction::PassPeeper(__FILE__, 2167); // if
+        PassPrediction::PassPeeper(2167); // if
         break;
       }
 
@@ -1283,7 +1283,7 @@ static bool eliminateDeadStores(BasicBlock &BB, AliasAnalysis *AA,
       size_t DepIndex = InstrOrdering.lookup(DepWrite);
       assert(DepIndex && "Unexpected instruction");
       if (DepIndex <= LastThrowingInstIndex) {
-        PassPrediction::PassPeeper(__FILE__, 2168); // if
+        PassPrediction::PassPeeper(2168); // if
         const Value *Underlying = GetUnderlyingObject(DepLoc.Ptr, DL);
         bool IsStoreDeadOnUnwind = isa<AllocaInst>(Underlying);
         if (!IsStoreDeadOnUnwind) {
@@ -1291,12 +1291,12 @@ static bool eliminateDeadStores(BasicBlock &BB, AliasAnalysis *AA,
           // where the allocation doesn't escape before the last
           // throwing instruction; PointerMayBeCaptured
           // reasonably fast approximation.
-          PassPrediction::PassPeeper(__FILE__, 2169); // if
+          PassPrediction::PassPeeper(2169); // if
           IsStoreDeadOnUnwind = isAllocLikeFn(Underlying, TLI) &&
                                 !PointerMayBeCaptured(Underlying, false, true);
         }
         if (!IsStoreDeadOnUnwind) {
-          PassPrediction::PassPeeper(__FILE__, 2170); // if
+          PassPrediction::PassPeeper(2170); // if
           break;
         }
       }
@@ -1306,7 +1306,7 @@ static bool eliminateDeadStores(BasicBlock &BB, AliasAnalysis *AA,
       // 'Inst' doesn't load from, then we can remove it.
       if (isRemovable(DepWrite) &&
           !isPossibleSelfRead(Inst, Loc, DepWrite, *TLI, *AA)) {
-        PassPrediction::PassPeeper(__FILE__, 2171); // if
+        PassPrediction::PassPeeper(2171); // if
         int64_t InstWriteOffset, DepWriteOffset;
         OverwriteResult OR = isOverwrite(Loc, DepLoc, DL, *TLI, DepWriteOffset,
                                          InstWriteOffset, DepWrite, IOL);
@@ -1346,13 +1346,13 @@ static bool eliminateDeadStores(BasicBlock &BB, AliasAnalysis *AA,
       // we can remove the first store to P even though we don't know if P and Q
       // alias.
       if (DepWrite == &BB.front()) {
-        PassPrediction::PassPeeper(__FILE__, 2172); // if
+        PassPrediction::PassPeeper(2172); // if
         break;
       }
 
       // Can't look past this instruction if it might read 'Loc'.
       if (AA->getModRefInfo(DepWrite, Loc) & MRI_Ref) {
-        PassPrediction::PassPeeper(__FILE__, 2173); // if
+        PassPrediction::PassPeeper(2173); // if
         break;
       }
 
@@ -1363,14 +1363,14 @@ static bool eliminateDeadStores(BasicBlock &BB, AliasAnalysis *AA,
   }
 
   if (EnablePartialOverwriteTracking) {
-    PassPrediction::PassPeeper(__FILE__, 2174); // if
+    PassPrediction::PassPeeper(2174); // if
     MadeChange |= removePartiallyOverlappedStores(AA, DL, IOL);
   }
 
   // If this block ends in a return, unwind, or unreachable, all allocas are
   // dead at its end, which means stores to them are also dead.
   if (BB.getTerminator()->getNumSuccessors() == 0) {
-    PassPrediction::PassPeeper(__FILE__, 2175); // if
+    PassPrediction::PassPeeper(2175); // if
     MadeChange |= handleEndBlock(BB, AA, MD, TLI, IOL, &InstrOrdering);
   }
 
@@ -1384,9 +1384,9 @@ static bool eliminateDeadStores(Function &F, AliasAnalysis *AA,
   for (BasicBlock &BB : F) {
     // Only check non-dead blocks.  Dead blocks may have strange pointer
     // cycles that will confuse alias analysis.
-    PassPrediction::PassPeeper(__FILE__, 2176); // for-range
+    PassPrediction::PassPeeper(2176); // for-range
     if (DT->isReachableFromEntry(&BB)) {
-      PassPrediction::PassPeeper(__FILE__, 2177); // if
+      PassPrediction::PassPeeper(2177); // if
       MadeChange |= eliminateDeadStores(BB, AA, MD, DT, TLI);
     }
   }
@@ -1404,7 +1404,7 @@ PreservedAnalyses DSEPass::run(Function &F, FunctionAnalysisManager &AM) {
   const TargetLibraryInfo *TLI = &AM.getResult<TargetLibraryAnalysis>(F);
 
   if (!eliminateDeadStores(F, AA, MD, DT, TLI)) {
-    PassPrediction::PassPeeper(__FILE__, 2178); // if
+    PassPrediction::PassPeeper(2178); // if
     return PreservedAnalyses::all();
   }
 
@@ -1425,7 +1425,7 @@ public:
 
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 2179); // if
+      PassPrediction::PassPeeper(2179); // if
       return false;
     }
 

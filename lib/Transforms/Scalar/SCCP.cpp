@@ -100,7 +100,7 @@ public:
   /// markOverdefined - Return true if this is a change in status.
   bool markOverdefined() {
     if (isOverdefined()) {
-      PassPrediction::PassPeeper(__FILE__, 1263); // if
+      PassPrediction::PassPeeper(1263); // if
       return false;
     }
 
@@ -116,7 +116,7 @@ public:
     }
 
     if (isUnknown()) {
-      PassPrediction::PassPeeper(__FILE__, 1264); // if
+      PassPrediction::PassPeeper(1264); // if
       Val.setInt(constant);
       assert(V && "Marking constant with NULL");
       Val.setPointer(V);
@@ -125,7 +125,7 @@ public:
              "Cannot move from overdefined to constant!");
       // Stay at forcedconstant if the constant is the same.
       if (V == getConstant()) {
-        PassPrediction::PassPeeper(__FILE__, 1265); // if
+        PassPrediction::PassPeeper(1265); // if
         return false;
       }
 
@@ -141,7 +141,7 @@ public:
   /// otherwise return null.
   ConstantInt *getConstantInt() const {
     if (isConstant()) {
-      PassPrediction::PassPeeper(__FILE__, 1266); // if
+      PassPrediction::PassPeeper(1266); // if
       return dyn_cast<ConstantInt>(getConstant());
     }
     return nullptr;
@@ -151,7 +151,7 @@ public:
   /// it, otherwise return null.
   BlockAddress *getBlockAddress() const {
     if (isConstant()) {
-      PassPrediction::PassPeeper(__FILE__, 1267); // if
+      PassPrediction::PassPeeper(1267); // if
       return dyn_cast<BlockAddress>(getConstant());
     }
     return nullptr;
@@ -234,7 +234,7 @@ public:
   /// This returns true if the block was not considered live before.
   bool MarkBlockExecutable(BasicBlock *BB) {
     if (!BBExecutable.insert(BB).second) {
-      PassPrediction::PassPeeper(__FILE__, 1268); // if
+      PassPrediction::PassPeeper(1268); // if
       return false;
     }
     DEBUG(dbgs() << "Marking Block Executable: " << BB->getName() << '\n');
@@ -249,10 +249,10 @@ public:
   void TrackValueOfGlobalVariable(GlobalVariable *GV) {
     // We only track the contents of scalar globals.
     if (GV->getValueType()->isSingleValueType()) {
-      PassPrediction::PassPeeper(__FILE__, 1269); // if
+      PassPrediction::PassPeeper(1269); // if
       LatticeVal &IV = TrackedGlobals[GV];
       if (!isa<UndefValue>(GV->getInitializer())) {
-        PassPrediction::PassPeeper(__FILE__, 1270); // if
+        PassPrediction::PassPeeper(1270); // if
         IV.markConstant(GV->getInitializer());
       }
     }
@@ -264,15 +264,15 @@ public:
   void AddTrackedFunction(Function *F) {
     // Add an entry, F -> undef.
     if (auto *STy = dyn_cast<StructType>(F->getReturnType())) {
-      PassPrediction::PassPeeper(__FILE__, 1271); // if
+      PassPrediction::PassPeeper(1271); // if
       MRVFunctionsTracked.insert(F);
       for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
-        PassPrediction::PassPeeper(__FILE__, 1273); // for
+        PassPrediction::PassPeeper(1273); // for
         TrackedMultipleRetVals.insert(
             std::make_pair(std::make_pair(F, i), LatticeVal()));
       }
     } else {
-      PassPrediction::PassPeeper(__FILE__, 1272); // else
+      PassPrediction::PassPeeper(1272); // else
       TrackedRetVals.insert(std::make_pair(F, LatticeVal()));
     }
   }
@@ -301,7 +301,7 @@ public:
     auto *STy = dyn_cast<StructType>(V->getType());
     assert(STy && "getStructLatticeValueFor() can be called only on structs");
     for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
-      PassPrediction::PassPeeper(__FILE__, 1274); // for
+      PassPrediction::PassPeeper(1274); // for
       auto I = StructValueState.find(std::make_pair(V, i));
       assert(I != StructValueState.end() && "Value not in valuemap!");
       StructValues.push_back(I->second);
@@ -337,13 +337,13 @@ public:
   /// works with both scalars and structs.
   void markOverdefined(Value *V) {
     if (auto *STy = dyn_cast<StructType>(V->getType())) {
-      PassPrediction::PassPeeper(__FILE__, 1275); // if
+      PassPrediction::PassPeeper(1275); // if
       for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
-        PassPrediction::PassPeeper(__FILE__, 1277); // for
+        PassPrediction::PassPeeper(1277); // for
         markOverdefined(getStructValueState(V, i), V);
       }
     } else {
-      PassPrediction::PassPeeper(__FILE__, 1276); // else
+      PassPrediction::PassPeeper(1276); // else
       markOverdefined(ValueState[V], V);
     }
   }
@@ -353,12 +353,12 @@ public:
   // false otherwise.
   bool isStructLatticeConstant(Function *F, StructType *STy) {
     for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
-      PassPrediction::PassPeeper(__FILE__, 1278); // for
+      PassPrediction::PassPeeper(1278); // for
       const auto &It = TrackedMultipleRetVals.find(std::make_pair(F, i));
       assert(It != TrackedMultipleRetVals.end());
       LatticeVal LV = It->second;
       if (LV.isOverdefined()) {
-        PassPrediction::PassPeeper(__FILE__, 1279); // if
+        PassPrediction::PassPeeper(1279); // if
         return false;
       }
     }
@@ -369,7 +369,7 @@ private:
   // pushToWorkList - Helper for markConstant/markForcedConstant/markOverdefined
   void pushToWorkList(LatticeVal &IV, Value *V) {
     if (IV.isOverdefined()) {
-      PassPrediction::PassPeeper(__FILE__, 1280); // if
+      PassPrediction::PassPeeper(1280); // if
       return OverdefinedInstWorkList.push_back(V);
     }
     InstWorkList.push_back(V);
@@ -381,7 +381,7 @@ private:
   //
   void markConstant(LatticeVal &IV, Value *V, Constant *C) {
     if (!IV.markConstant(C)) {
-      PassPrediction::PassPeeper(__FILE__, 1281); // if
+      PassPrediction::PassPeeper(1281); // if
       return;
     }
     DEBUG(dbgs() << "markConstant: " << *C << ": " << *V << '\n');
@@ -406,7 +406,7 @@ private:
   // work list so that the users of the instruction are updated later.
   void markOverdefined(LatticeVal &IV, Value *V) {
     if (!IV.markOverdefined()) {
-      PassPrediction::PassPeeper(__FILE__, 1282); // if
+      PassPrediction::PassPeeper(1282); // if
       return;
     }
 
@@ -420,19 +420,19 @@ private:
 
   void mergeInValue(LatticeVal &IV, Value *V, LatticeVal MergeWithV) {
     if (IV.isOverdefined() || MergeWithV.isUnknown()) {
-      PassPrediction::PassPeeper(__FILE__, 1283); // if
-      return;                                     // Noop.
+      PassPrediction::PassPeeper(1283); // if
+      return;                           // Noop.
     }
     if (MergeWithV.isOverdefined()) {
-      PassPrediction::PassPeeper(__FILE__, 1284); // if
+      PassPrediction::PassPeeper(1284); // if
       return markOverdefined(IV, V);
     }
     if (IV.isUnknown()) {
-      PassPrediction::PassPeeper(__FILE__, 1285); // if
+      PassPrediction::PassPeeper(1285); // if
       return markConstant(IV, V, MergeWithV.getConstant());
     }
     if (IV.getConstant() != MergeWithV.getConstant()) {
-      PassPrediction::PassPeeper(__FILE__, 1286); // if
+      PassPrediction::PassPeeper(1286); // if
       return markOverdefined(IV, V);
     }
   }
@@ -454,16 +454,16 @@ private:
     LatticeVal &LV = I.first->second;
 
     if (!I.second) {
-      PassPrediction::PassPeeper(__FILE__, 1287); // if
-      return LV; // Common case, already in the map.
+      PassPrediction::PassPeeper(1287); // if
+      return LV;                        // Common case, already in the map.
     }
 
     if (auto *C = dyn_cast<Constant>(V)) {
       // Undef values remain unknown.
-      PassPrediction::PassPeeper(__FILE__, 1288); // if
+      PassPrediction::PassPeeper(1288); // if
       if (!isa<UndefValue>(V)) {
-        PassPrediction::PassPeeper(__FILE__, 1289); // if
-        LV.markConstant(C);                         // Constants are constant
+        PassPrediction::PassPeeper(1289); // if
+        LV.markConstant(C);               // Constants are constant
       }
     }
 
@@ -486,23 +486,23 @@ private:
     LatticeVal &LV = I.first->second;
 
     if (!I.second) {
-      PassPrediction::PassPeeper(__FILE__, 1290); // if
-      return LV; // Common case, already in the map.
+      PassPrediction::PassPeeper(1290); // if
+      return LV;                        // Common case, already in the map.
     }
 
     if (auto *C = dyn_cast<Constant>(V)) {
-      PassPrediction::PassPeeper(__FILE__, 1291); // if
+      PassPrediction::PassPeeper(1291); // if
       Constant *Elt = C->getAggregateElement(i);
 
       if (!Elt) {
-        PassPrediction::PassPeeper(__FILE__, 1292); // if
-        LV.markOverdefined();                       // Unknown sort of constant.
+        PassPrediction::PassPeeper(1292); // if
+        LV.markOverdefined();             // Unknown sort of constant.
       } else if (isa<UndefValue>(Elt)) {
-        PassPrediction::PassPeeper(__FILE__, 1293); // if
-        ; // Undef values remain unknown.
+        PassPrediction::PassPeeper(1293); // if
+        ;                                 // Undef values remain unknown.
       } else {
-        PassPrediction::PassPeeper(__FILE__, 1294); // else
-        LV.markConstant(Elt);                       // Constants are constant.
+        PassPrediction::PassPeeper(1294); // else
+        LV.markConstant(Elt);             // Constants are constant.
       }
     }
 
@@ -514,7 +514,7 @@ private:
   /// work list if it is not already executable.
   void markEdgeExecutable(BasicBlock *Source, BasicBlock *Dest) {
     if (!KnownFeasibleEdges.insert(Edge(Source, Dest)).second) {
-      PassPrediction::PassPeeper(__FILE__, 1295); // if
+      PassPrediction::PassPeeper(1295); // if
       return; // This edge is already known to be executable!
     }
 
@@ -528,7 +528,7 @@ private:
       PHINode *PN;
       for (BasicBlock::iterator I = Dest->begin(); (PN = dyn_cast<PHINode>(I));
            ++I) {
-        PassPrediction::PassPeeper(__FILE__, 1296); // for
+        PassPrediction::PassPeeper(1296); // for
         visitPHINode(*PN);
       }
     }
@@ -549,8 +549,8 @@ private:
   // information, we need to update the specified user of this instruction.
   //
   void OperandChangedState(Instruction *I) {
-    if (BBExecutable.count(I->getParent())) {     // Inst is executable?
-      PassPrediction::PassPeeper(__FILE__, 1297); // if
+    if (BBExecutable.count(I->getParent())) { // Inst is executable?
+      PassPrediction::PassPeeper(1297);       // if
       visit(*I);
     }
   }
@@ -611,9 +611,9 @@ void SCCPSolver::getFeasibleSuccessors(TerminatorInst &TI,
                                        SmallVectorImpl<bool> &Succs) {
   Succs.resize(TI.getNumSuccessors());
   if (auto *BI = dyn_cast<BranchInst>(&TI)) {
-    PassPrediction::PassPeeper(__FILE__, 1298); // if
+    PassPrediction::PassPeeper(1298); // if
     if (BI->isUnconditional()) {
-      PassPrediction::PassPeeper(__FILE__, 1299); // if
+      PassPrediction::PassPeeper(1299); // if
       Succs[0] = true;
       return;
     }
@@ -623,9 +623,9 @@ void SCCPSolver::getFeasibleSuccessors(TerminatorInst &TI,
     if (!CI) {
       // Overdefined condition variables, and branches on unfoldable constant
       // conditions, mean the branch could go either way.
-      PassPrediction::PassPeeper(__FILE__, 1300); // if
+      PassPrediction::PassPeeper(1300); // if
       if (!BCValue.isUnknown()) {
-        PassPrediction::PassPeeper(__FILE__, 1301); // if
+        PassPrediction::PassPeeper(1301); // if
         Succs[0] = Succs[1] = true;
       }
       return;
@@ -638,15 +638,15 @@ void SCCPSolver::getFeasibleSuccessors(TerminatorInst &TI,
 
   // Unwinding instructions successors are always executable.
   if (TI.isExceptional()) {
-    PassPrediction::PassPeeper(__FILE__, 1302); // if
+    PassPrediction::PassPeeper(1302); // if
     Succs.assign(TI.getNumSuccessors(), true);
     return;
   }
 
   if (auto *SI = dyn_cast<SwitchInst>(&TI)) {
-    PassPrediction::PassPeeper(__FILE__, 1303); // if
+    PassPrediction::PassPeeper(1303); // if
     if (!SI->getNumCases()) {
-      PassPrediction::PassPeeper(__FILE__, 1304); // if
+      PassPrediction::PassPeeper(1304); // if
       Succs[0] = true;
       return;
     }
@@ -655,9 +655,9 @@ void SCCPSolver::getFeasibleSuccessors(TerminatorInst &TI,
 
     if (!CI) { // Overdefined or unknown condition?
       // All destinations are executable!
-      PassPrediction::PassPeeper(__FILE__, 1305); // if
+      PassPrediction::PassPeeper(1305); // if
       if (!SCValue.isUnknown()) {
-        PassPrediction::PassPeeper(__FILE__, 1306); // if
+        PassPrediction::PassPeeper(1306); // if
         Succs.assign(TI.getNumSuccessors(), true);
       }
       return;
@@ -671,14 +671,14 @@ void SCCPSolver::getFeasibleSuccessors(TerminatorInst &TI,
   // the target as executable.
   if (auto *IBR = dyn_cast<IndirectBrInst>(&TI)) {
     // Casts are folded by visitCastInst.
-    PassPrediction::PassPeeper(__FILE__, 1307); // if
+    PassPrediction::PassPeeper(1307); // if
     LatticeVal IBRValue = getValueState(IBR->getAddress());
     BlockAddress *Addr = IBRValue.getBlockAddress();
     if (!Addr) { // Overdefined or unknown condition?
       // All destinations are executable!
-      PassPrediction::PassPeeper(__FILE__, 1308); // if
+      PassPrediction::PassPeeper(1308); // if
       if (!IBRValue.isUnknown()) {
-        PassPrediction::PassPeeper(__FILE__, 1309); // if
+        PassPrediction::PassPeeper(1309); // if
         Succs.assign(TI.getNumSuccessors(), true);
       }
       return;
@@ -689,9 +689,9 @@ void SCCPSolver::getFeasibleSuccessors(TerminatorInst &TI,
            "Block address of a different function ?");
     for (unsigned i = 0; i < IBR->getNumSuccessors(); ++i) {
       // This is the target.
-      PassPrediction::PassPeeper(__FILE__, 1310); // for
+      PassPrediction::PassPeeper(1310); // for
       if (IBR->getDestination(i) == T) {
-        PassPrediction::PassPeeper(__FILE__, 1311); // if
+        PassPrediction::PassPeeper(1311); // if
         Succs[i] = true;
         return;
       }
@@ -714,16 +714,16 @@ bool SCCPSolver::isEdgeFeasible(BasicBlock *From, BasicBlock *To) {
 
   // Make sure the source basic block is executable!!
   if (!BBExecutable.count(From)) {
-    PassPrediction::PassPeeper(__FILE__, 1312); // if
+    PassPrediction::PassPeeper(1312); // if
     return false;
   }
 
   // Check to make sure this edge itself is actually feasible now.
   TerminatorInst *TI = From->getTerminator();
   if (auto *BI = dyn_cast<BranchInst>(TI)) {
-    PassPrediction::PassPeeper(__FILE__, 1313); // if
+    PassPrediction::PassPeeper(1313); // if
     if (BI->isUnconditional()) {
-      PassPrediction::PassPeeper(__FILE__, 1314); // if
+      PassPrediction::PassPeeper(1314); // if
       return true;
     }
 
@@ -733,7 +733,7 @@ bool SCCPSolver::isEdgeFeasible(BasicBlock *From, BasicBlock *To) {
     // undef conditions mean that neither edge is feasible yet.
     ConstantInt *CI = BCValue.getConstantInt();
     if (!CI) {
-      PassPrediction::PassPeeper(__FILE__, 1315); // if
+      PassPrediction::PassPeeper(1315); // if
       return !BCValue.isUnknown();
     }
 
@@ -743,14 +743,14 @@ bool SCCPSolver::isEdgeFeasible(BasicBlock *From, BasicBlock *To) {
 
   // Unwinding instructions successors are always executable.
   if (TI->isExceptional()) {
-    PassPrediction::PassPeeper(__FILE__, 1316); // if
+    PassPrediction::PassPeeper(1316); // if
     return true;
   }
 
   if (auto *SI = dyn_cast<SwitchInst>(TI)) {
-    PassPrediction::PassPeeper(__FILE__, 1317); // if
+    PassPrediction::PassPeeper(1317); // if
     if (SI->getNumCases() < 1) {
-      PassPrediction::PassPeeper(__FILE__, 1318); // if
+      PassPrediction::PassPeeper(1318); // if
       return true;
     }
 
@@ -758,7 +758,7 @@ bool SCCPSolver::isEdgeFeasible(BasicBlock *From, BasicBlock *To) {
     ConstantInt *CI = SCValue.getConstantInt();
 
     if (!CI) {
-      PassPrediction::PassPeeper(__FILE__, 1319); // if
+      PassPrediction::PassPeeper(1319); // if
       return !SCValue.isUnknown();
     }
 
@@ -768,12 +768,12 @@ bool SCCPSolver::isEdgeFeasible(BasicBlock *From, BasicBlock *To) {
   // In case of indirect branch and its address is a blockaddress, we mark
   // the target as executable.
   if (auto *IBR = dyn_cast<IndirectBrInst>(TI)) {
-    PassPrediction::PassPeeper(__FILE__, 1320); // if
+    PassPrediction::PassPeeper(1320); // if
     LatticeVal IBRValue = getValueState(IBR->getAddress());
     BlockAddress *Addr = IBRValue.getBlockAddress();
 
     if (!Addr) {
-      PassPrediction::PassPeeper(__FILE__, 1321); // if
+      PassPrediction::PassPeeper(1321); // if
       return !IBRValue.isUnknown();
     }
 
@@ -807,19 +807,19 @@ void SCCPSolver::visitPHINode(PHINode &PN) {
   // If this PN returns a struct, just mark the result overdefined.
   // TODO: We could do a lot better than this if code actually uses this.
   if (PN.getType()->isStructTy()) {
-    PassPrediction::PassPeeper(__FILE__, 1322); // if
+    PassPrediction::PassPeeper(1322); // if
     return markOverdefined(&PN);
   }
 
   if (getValueState(&PN).isOverdefined()) {
-    PassPrediction::PassPeeper(__FILE__, 1323); // if
-    return;                                     // Quick exit
+    PassPrediction::PassPeeper(1323); // if
+    return;                           // Quick exit
   }
 
   // Super-extra-high-degree PHI nodes are unlikely to ever be marked constant,
   // and slow us down a lot.  Just mark them overdefined.
   if (PN.getNumIncomingValues() > 64) {
-    PassPrediction::PassPeeper(__FILE__, 1324); // if
+    PassPrediction::PassPeeper(1324); // if
     return markOverdefined(&PN);
   }
 
@@ -831,25 +831,25 @@ void SCCPSolver::visitPHINode(PHINode &PN) {
   //
   Constant *OperandVal = nullptr;
   for (unsigned i = 0, e = PN.getNumIncomingValues(); i != e; ++i) {
-    PassPrediction::PassPeeper(__FILE__, 1325); // for
+    PassPrediction::PassPeeper(1325); // for
     LatticeVal IV = getValueState(PN.getIncomingValue(i));
     if (IV.isUnknown()) {
-      PassPrediction::PassPeeper(__FILE__, 1326); // if
-      continue;                                   // Doesn't influence PHI node.
+      PassPrediction::PassPeeper(1326); // if
+      continue;                         // Doesn't influence PHI node.
     }
 
     if (!isEdgeFeasible(PN.getIncomingBlock(i), PN.getParent())) {
-      PassPrediction::PassPeeper(__FILE__, 1327); // if
+      PassPrediction::PassPeeper(1327); // if
       continue;
     }
 
-    if (IV.isOverdefined()) { // PHI node becomes overdefined!
-      PassPrediction::PassPeeper(__FILE__, 1328); // if
+    if (IV.isOverdefined()) {           // PHI node becomes overdefined!
+      PassPrediction::PassPeeper(1328); // if
       return markOverdefined(&PN);
     }
 
-    if (!OperandVal) {                            // Grab the first value.
-      PassPrediction::PassPeeper(__FILE__, 1329); // if
+    if (!OperandVal) {                  // Grab the first value.
+      PassPrediction::PassPeeper(1329); // if
       OperandVal = IV.getConstant();
       continue;
     }
@@ -861,7 +861,7 @@ void SCCPSolver::visitPHINode(PHINode &PN) {
     // Check to see if there are two different constants merging, if so, the PHI
     // node is overdefined.
     if (IV.getConstant() != OperandVal) {
-      PassPrediction::PassPeeper(__FILE__, 1330); // if
+      PassPrediction::PassPeeper(1330); // if
       return markOverdefined(&PN);
     }
   }
@@ -872,15 +872,15 @@ void SCCPSolver::visitPHINode(PHINode &PN) {
   // this is the case, the PHI remains unknown.
   //
   if (OperandVal) {
-    PassPrediction::PassPeeper(__FILE__, 1331); // if
-    markConstant(&PN, OperandVal);              // Acquire operand value
+    PassPrediction::PassPeeper(1331); // if
+    markConstant(&PN, OperandVal);    // Acquire operand value
   }
 }
 
 void SCCPSolver::visitReturnInst(ReturnInst &I) {
   if (I.getNumOperands() == 0) {
-    PassPrediction::PassPeeper(__FILE__, 1332); // if
-    return;                                     // ret void
+    PassPrediction::PassPeeper(1332); // if
+    return;                           // ret void
   }
 
   Function *F = I.getParent()->getParent();
@@ -888,10 +888,10 @@ void SCCPSolver::visitReturnInst(ReturnInst &I) {
 
   // If we are tracking the return value of this function, merge it in.
   if (!TrackedRetVals.empty() && !ResultOp->getType()->isStructTy()) {
-    PassPrediction::PassPeeper(__FILE__, 1333); // if
+    PassPrediction::PassPeeper(1333); // if
     DenseMap<Function *, LatticeVal>::iterator TFRVI = TrackedRetVals.find(F);
     if (TFRVI != TrackedRetVals.end()) {
-      PassPrediction::PassPeeper(__FILE__, 1334); // if
+      PassPrediction::PassPeeper(1334); // if
       mergeInValue(TFRVI->second, F, getValueState(ResultOp));
       return;
     }
@@ -899,13 +899,13 @@ void SCCPSolver::visitReturnInst(ReturnInst &I) {
 
   // Handle functions that return multiple values.
   if (!TrackedMultipleRetVals.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 1335); // if
+    PassPrediction::PassPeeper(1335); // if
     if (auto *STy = dyn_cast<StructType>(ResultOp->getType())) {
-      PassPrediction::PassPeeper(__FILE__, 1336); // if
+      PassPrediction::PassPeeper(1336); // if
       if (MRVFunctionsTracked.count(F)) {
-        PassPrediction::PassPeeper(__FILE__, 1337); // if
+        PassPrediction::PassPeeper(1337); // if
         for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
-          PassPrediction::PassPeeper(__FILE__, 1338); // for
+          PassPrediction::PassPeeper(1338); // for
           mergeInValue(TrackedMultipleRetVals[std::make_pair(F, i)], F,
                        getStructValueState(ResultOp, i));
         }
@@ -922,9 +922,9 @@ void SCCPSolver::visitTerminatorInst(TerminatorInst &TI) {
 
   // Mark all feasible successors executable.
   for (unsigned i = 0, e = SuccFeasible.size(); i != e; ++i) {
-    PassPrediction::PassPeeper(__FILE__, 1339); // for
+    PassPrediction::PassPeeper(1339); // for
     if (SuccFeasible[i]) {
-      PassPrediction::PassPeeper(__FILE__, 1340); // if
+      PassPrediction::PassPeeper(1340); // if
       markEdgeExecutable(BB, TI.getSuccessor(i));
     }
   }
@@ -932,16 +932,16 @@ void SCCPSolver::visitTerminatorInst(TerminatorInst &TI) {
 
 void SCCPSolver::visitCastInst(CastInst &I) {
   LatticeVal OpSt = getValueState(I.getOperand(0));
-  if (OpSt.isOverdefined()) { // Inherit overdefinedness of operand
-    PassPrediction::PassPeeper(__FILE__, 1341); // if
+  if (OpSt.isOverdefined()) {         // Inherit overdefinedness of operand
+    PassPrediction::PassPeeper(1341); // if
     markOverdefined(&I);
   } else if (OpSt.isConstant()) {
     // Fold the constant as we build.
-    PassPrediction::PassPeeper(__FILE__, 1342); // if
+    PassPrediction::PassPeeper(1342); // if
     Constant *C = ConstantFoldCastOperand(I.getOpcode(), OpSt.getConstant(),
                                           I.getType(), DL);
     if (isa<UndefValue>(C)) {
-      PassPrediction::PassPeeper(__FILE__, 1343); // if
+      PassPrediction::PassPeeper(1343); // if
       return;
     }
     // Propagate constant value
@@ -953,25 +953,25 @@ void SCCPSolver::visitExtractValueInst(ExtractValueInst &EVI) {
   // If this returns a struct, mark all elements over defined, we don't track
   // structs in structs.
   if (EVI.getType()->isStructTy()) {
-    PassPrediction::PassPeeper(__FILE__, 1344); // if
+    PassPrediction::PassPeeper(1344); // if
     return markOverdefined(&EVI);
   }
 
   // If this is extracting from more than one level of struct, we don't know.
   if (EVI.getNumIndices() != 1) {
-    PassPrediction::PassPeeper(__FILE__, 1345); // if
+    PassPrediction::PassPeeper(1345); // if
     return markOverdefined(&EVI);
   }
 
   Value *AggVal = EVI.getAggregateOperand();
   if (AggVal->getType()->isStructTy()) {
-    PassPrediction::PassPeeper(__FILE__, 1346); // if
+    PassPrediction::PassPeeper(1346); // if
     unsigned i = *EVI.idx_begin();
     LatticeVal EltVal = getStructValueState(AggVal, i);
     mergeInValue(getValueState(&EVI), &EVI, EltVal);
   } else {
     // Otherwise, must be extracting from an array.
-    PassPrediction::PassPeeper(__FILE__, 1347); // else
+    PassPrediction::PassPeeper(1347); // else
     return markOverdefined(&EVI);
   }
 }
@@ -979,14 +979,14 @@ void SCCPSolver::visitExtractValueInst(ExtractValueInst &EVI) {
 void SCCPSolver::visitInsertValueInst(InsertValueInst &IVI) {
   auto *STy = dyn_cast<StructType>(IVI.getType());
   if (!STy) {
-    PassPrediction::PassPeeper(__FILE__, 1348); // if
+    PassPrediction::PassPeeper(1348); // if
     return markOverdefined(&IVI);
   }
 
   // If this has more than one index, we can't handle it, drive all results to
   // undef.
   if (IVI.getNumIndices() != 1) {
-    PassPrediction::PassPeeper(__FILE__, 1349); // if
+    PassPrediction::PassPeeper(1349); // if
     return markOverdefined(&IVI);
   }
 
@@ -996,9 +996,9 @@ void SCCPSolver::visitInsertValueInst(InsertValueInst &IVI) {
   // Compute the result based on what we're inserting.
   for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
     // This passes through all values that aren't the inserted element.
-    PassPrediction::PassPeeper(__FILE__, 1350); // for
+    PassPrediction::PassPeeper(1350); // for
     if (i != Idx) {
-      PassPrediction::PassPeeper(__FILE__, 1351); // if
+      PassPrediction::PassPeeper(1351); // if
       LatticeVal EltVal = getStructValueState(Aggr, i);
       mergeInValue(getStructValueState(&IVI, i), &IVI, EltVal);
       continue;
@@ -1007,10 +1007,10 @@ void SCCPSolver::visitInsertValueInst(InsertValueInst &IVI) {
     Value *Val = IVI.getInsertedValueOperand();
     if (Val->getType()->isStructTy()) {
       // We don't track structs in structs.
-      PassPrediction::PassPeeper(__FILE__, 1352); // if
+      PassPrediction::PassPeeper(1352); // if
       markOverdefined(getStructValueState(&IVI, i), &IVI);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 1353); // else
+      PassPrediction::PassPeeper(1353); // else
       LatticeVal InVal = getValueState(Val);
       mergeInValue(getStructValueState(&IVI, i), &IVI, InVal);
     }
@@ -1021,18 +1021,18 @@ void SCCPSolver::visitSelectInst(SelectInst &I) {
   // If this select returns a struct, just mark the result overdefined.
   // TODO: We could do a lot better than this if code actually uses this.
   if (I.getType()->isStructTy()) {
-    PassPrediction::PassPeeper(__FILE__, 1354); // if
+    PassPrediction::PassPeeper(1354); // if
     return markOverdefined(&I);
   }
 
   LatticeVal CondValue = getValueState(I.getCondition());
   if (CondValue.isUnknown()) {
-    PassPrediction::PassPeeper(__FILE__, 1355); // if
+    PassPrediction::PassPeeper(1355); // if
     return;
   }
 
   if (ConstantInt *CondCB = CondValue.getConstantInt()) {
-    PassPrediction::PassPeeper(__FILE__, 1356); // if
+    PassPrediction::PassPeeper(1356); // if
     Value *OpVal = CondCB->isZero() ? I.getFalseValue() : I.getTrueValue();
     mergeInValue(&I, getValueState(OpVal));
     return;
@@ -1047,16 +1047,16 @@ void SCCPSolver::visitSelectInst(SelectInst &I) {
   // select ?, C, C -> C.
   if (TVal.isConstant() && FVal.isConstant() &&
       TVal.getConstant() == FVal.getConstant()) {
-    PassPrediction::PassPeeper(__FILE__, 1357); // if
+    PassPrediction::PassPeeper(1357); // if
     return markConstant(&I, FVal.getConstant());
   }
 
-  if (TVal.isUnknown()) {                       // select ?, undef, X -> X.
-    PassPrediction::PassPeeper(__FILE__, 1358); // if
+  if (TVal.isUnknown()) {             // select ?, undef, X -> X.
+    PassPrediction::PassPeeper(1358); // if
     return mergeInValue(&I, FVal);
   }
-  if (FVal.isUnknown()) {                       // select ?, X, undef -> X.
-    PassPrediction::PassPeeper(__FILE__, 1359); // if
+  if (FVal.isUnknown()) {             // select ?, X, undef -> X.
+    PassPrediction::PassPeeper(1359); // if
     return mergeInValue(&I, TVal);
   }
   markOverdefined(&I);
@@ -1069,17 +1069,17 @@ void SCCPSolver::visitBinaryOperator(Instruction &I) {
 
   LatticeVal &IV = ValueState[&I];
   if (IV.isOverdefined()) {
-    PassPrediction::PassPeeper(__FILE__, 1360); // if
+    PassPrediction::PassPeeper(1360); // if
     return;
   }
 
   if (V1State.isConstant() && V2State.isConstant()) {
-    PassPrediction::PassPeeper(__FILE__, 1361); // if
+    PassPrediction::PassPeeper(1361); // if
     Constant *C = ConstantExpr::get(I.getOpcode(), V1State.getConstant(),
                                     V2State.getConstant());
     // X op Y -> undef.
     if (isa<UndefValue>(C)) {
-      PassPrediction::PassPeeper(__FILE__, 1362); // if
+      PassPrediction::PassPeeper(1362); // if
       return;
     }
     return markConstant(IV, &I, C);
@@ -1087,7 +1087,7 @@ void SCCPSolver::visitBinaryOperator(Instruction &I) {
 
   // If something is undef, wait for it to resolve.
   if (!V1State.isOverdefined() && !V2State.isOverdefined()) {
-    PassPrediction::PassPeeper(__FILE__, 1363); // if
+    PassPrediction::PassPeeper(1363); // if
     return;
   }
 
@@ -1097,9 +1097,9 @@ void SCCPSolver::visitBinaryOperator(Instruction &I) {
   // overdefined, and we can replace it with zero.
   if (I.getOpcode() == Instruction::UDiv ||
       I.getOpcode() == Instruction::SDiv) {
-    PassPrediction::PassPeeper(__FILE__, 1364); // if
+    PassPrediction::PassPeeper(1364); // if
     if (V1State.isConstant() && V1State.getConstant()->isNullValue()) {
-      PassPrediction::PassPeeper(__FILE__, 1365); // if
+      PassPrediction::PassPeeper(1365); // if
       return markConstant(IV, &I, V1State.getConstant());
     }
   }
@@ -1110,20 +1110,20 @@ void SCCPSolver::visitBinaryOperator(Instruction &I) {
   // it doesn't matter that the other operand is overdefined.
   if (I.getOpcode() == Instruction::And || I.getOpcode() == Instruction::Mul ||
       I.getOpcode() == Instruction::Or) {
-    PassPrediction::PassPeeper(__FILE__, 1366); // if
+    PassPrediction::PassPeeper(1366); // if
     LatticeVal *NonOverdefVal = nullptr;
     if (!V1State.isOverdefined()) {
-      PassPrediction::PassPeeper(__FILE__, 1367); // if
+      PassPrediction::PassPeeper(1367); // if
       NonOverdefVal = &V1State;
     } else if (!V2State.isOverdefined()) {
-      PassPrediction::PassPeeper(__FILE__, 1368); // if
+      PassPrediction::PassPeeper(1368); // if
       NonOverdefVal = &V2State;
     }
 
     if (NonOverdefVal) {
-      PassPrediction::PassPeeper(__FILE__, 1369); // if
+      PassPrediction::PassPeeper(1369); // if
       if (NonOverdefVal->isUnknown()) {
-        PassPrediction::PassPeeper(__FILE__, 1370); // if
+        PassPrediction::PassPeeper(1370); // if
         return;
       }
 
@@ -1131,18 +1131,18 @@ void SCCPSolver::visitBinaryOperator(Instruction &I) {
           I.getOpcode() == Instruction::Mul) {
         // X and 0 = 0
         // X * 0 = 0
-        PassPrediction::PassPeeper(__FILE__, 1371); // if
+        PassPrediction::PassPeeper(1371); // if
         if (NonOverdefVal->getConstant()->isNullValue()) {
-          PassPrediction::PassPeeper(__FILE__, 1373); // if
+          PassPrediction::PassPeeper(1373); // if
           return markConstant(IV, &I, NonOverdefVal->getConstant());
         }
       } else {
         // X or -1 = -1
-        PassPrediction::PassPeeper(__FILE__, 1372); // else
+        PassPrediction::PassPeeper(1372); // else
         if (ConstantInt *CI = NonOverdefVal->getConstantInt()) {
-          PassPrediction::PassPeeper(__FILE__, 1374); // if
+          PassPrediction::PassPeeper(1374); // if
           if (CI->isMinusOne()) {
-            PassPrediction::PassPeeper(__FILE__, 1375); // if
+            PassPrediction::PassPeeper(1375); // if
             return markConstant(IV, &I, NonOverdefVal->getConstant());
           }
         }
@@ -1160,16 +1160,16 @@ void SCCPSolver::visitCmpInst(CmpInst &I) {
 
   LatticeVal &IV = ValueState[&I];
   if (IV.isOverdefined()) {
-    PassPrediction::PassPeeper(__FILE__, 1376); // if
+    PassPrediction::PassPeeper(1376); // if
     return;
   }
 
   if (V1State.isConstant() && V2State.isConstant()) {
-    PassPrediction::PassPeeper(__FILE__, 1377); // if
+    PassPrediction::PassPeeper(1377); // if
     Constant *C = ConstantExpr::getCompare(
         I.getPredicate(), V1State.getConstant(), V2State.getConstant());
     if (isa<UndefValue>(C)) {
-      PassPrediction::PassPeeper(__FILE__, 1378); // if
+      PassPrediction::PassPeeper(1378); // if
       return;
     }
     return markConstant(IV, &I, C);
@@ -1177,7 +1177,7 @@ void SCCPSolver::visitCmpInst(CmpInst &I) {
 
   // If operands are still unknown, wait for it to resolve.
   if (!V1State.isOverdefined() && !V2State.isOverdefined()) {
-    PassPrediction::PassPeeper(__FILE__, 1379); // if
+    PassPrediction::PassPeeper(1379); // if
     return;
   }
 
@@ -1189,7 +1189,7 @@ void SCCPSolver::visitCmpInst(CmpInst &I) {
 //
 void SCCPSolver::visitGetElementPtrInst(GetElementPtrInst &I) {
   if (ValueState[&I].isOverdefined()) {
-    PassPrediction::PassPeeper(__FILE__, 1380); // if
+    PassPrediction::PassPeeper(1380); // if
     return;
   }
 
@@ -1197,15 +1197,15 @@ void SCCPSolver::visitGetElementPtrInst(GetElementPtrInst &I) {
   Operands.reserve(I.getNumOperands());
 
   for (unsigned i = 0, e = I.getNumOperands(); i != e; ++i) {
-    PassPrediction::PassPeeper(__FILE__, 1381); // for
+    PassPrediction::PassPeeper(1381); // for
     LatticeVal State = getValueState(I.getOperand(i));
     if (State.isUnknown()) {
-      PassPrediction::PassPeeper(__FILE__, 1382); // if
-      return; // Operands are not resolved yet.
+      PassPrediction::PassPeeper(1382); // if
+      return;                           // Operands are not resolved yet.
     }
 
     if (State.isOverdefined()) {
-      PassPrediction::PassPeeper(__FILE__, 1383); // if
+      PassPrediction::PassPeeper(1383); // if
       return markOverdefined(&I);
     }
 
@@ -1218,7 +1218,7 @@ void SCCPSolver::visitGetElementPtrInst(GetElementPtrInst &I) {
   Constant *C =
       ConstantExpr::getGetElementPtr(I.getSourceElementType(), Ptr, Indices);
   if (isa<UndefValue>(C)) {
-    PassPrediction::PassPeeper(__FILE__, 1384); // if
+    PassPrediction::PassPeeper(1384); // if
     return;
   }
   markConstant(&I, C);
@@ -1227,27 +1227,27 @@ void SCCPSolver::visitGetElementPtrInst(GetElementPtrInst &I) {
 void SCCPSolver::visitStoreInst(StoreInst &SI) {
   // If this store is of a struct, ignore it.
   if (SI.getOperand(0)->getType()->isStructTy()) {
-    PassPrediction::PassPeeper(__FILE__, 1385); // if
+    PassPrediction::PassPeeper(1385); // if
     return;
   }
 
   if (TrackedGlobals.empty() || !isa<GlobalVariable>(SI.getOperand(1))) {
-    PassPrediction::PassPeeper(__FILE__, 1386); // if
+    PassPrediction::PassPeeper(1386); // if
     return;
   }
 
   GlobalVariable *GV = cast<GlobalVariable>(SI.getOperand(1));
   DenseMap<GlobalVariable *, LatticeVal>::iterator I = TrackedGlobals.find(GV);
   if (I == TrackedGlobals.end() || I->second.isOverdefined()) {
-    PassPrediction::PassPeeper(__FILE__, 1387); // if
+    PassPrediction::PassPeeper(1387); // if
     return;
   }
 
   // Get the value we are storing into the global, then merge it.
   mergeInValue(I->second, GV, getValueState(SI.getOperand(0)));
   if (I->second.isOverdefined()) {
-    PassPrediction::PassPeeper(__FILE__, 1388); // if
-    TrackedGlobals.erase(I); // No need to keep tracking this!
+    PassPrediction::PassPeeper(1388); // if
+    TrackedGlobals.erase(I);          // No need to keep tracking this!
   }
 }
 
@@ -1256,24 +1256,24 @@ void SCCPSolver::visitStoreInst(StoreInst &SI) {
 void SCCPSolver::visitLoadInst(LoadInst &I) {
   // If this load is of a struct, just mark the result overdefined.
   if (I.getType()->isStructTy()) {
-    PassPrediction::PassPeeper(__FILE__, 1389); // if
+    PassPrediction::PassPeeper(1389); // if
     return markOverdefined(&I);
   }
 
   LatticeVal PtrVal = getValueState(I.getOperand(0));
   if (PtrVal.isUnknown()) {
-    PassPrediction::PassPeeper(__FILE__, 1390); // if
-    return; // The pointer is not resolved yet!
+    PassPrediction::PassPeeper(1390); // if
+    return;                           // The pointer is not resolved yet!
   }
 
   LatticeVal &IV = ValueState[&I];
   if (IV.isOverdefined()) {
-    PassPrediction::PassPeeper(__FILE__, 1391); // if
+    PassPrediction::PassPeeper(1391); // if
     return;
   }
 
   if (!PtrVal.isConstant() || I.isVolatile()) {
-    PassPrediction::PassPeeper(__FILE__, 1392); // if
+    PassPrediction::PassPeeper(1392); // if
     return markOverdefined(IV, &I);
   }
 
@@ -1281,20 +1281,20 @@ void SCCPSolver::visitLoadInst(LoadInst &I) {
 
   // load null is undefined.
   if (isa<ConstantPointerNull>(Ptr) && I.getPointerAddressSpace() == 0) {
-    PassPrediction::PassPeeper(__FILE__, 1393); // if
+    PassPrediction::PassPeeper(1393); // if
     return;
   }
 
   // Transform load (constant global) into the value loaded.
   if (auto *GV = dyn_cast<GlobalVariable>(Ptr)) {
-    PassPrediction::PassPeeper(__FILE__, 1394); // if
+    PassPrediction::PassPeeper(1394); // if
     if (!TrackedGlobals.empty()) {
       // If we are tracking this global, merge in the known value for it.
-      PassPrediction::PassPeeper(__FILE__, 1395); // if
+      PassPrediction::PassPeeper(1395); // if
       DenseMap<GlobalVariable *, LatticeVal>::iterator It =
           TrackedGlobals.find(GV);
       if (It != TrackedGlobals.end()) {
-        PassPrediction::PassPeeper(__FILE__, 1396); // if
+        PassPrediction::PassPeeper(1396); // if
         mergeInValue(IV, &I, It->second);
         return;
       }
@@ -1303,9 +1303,9 @@ void SCCPSolver::visitLoadInst(LoadInst &I) {
 
   // Transform load from a constant into a constant if possible.
   if (Constant *C = ConstantFoldLoadFromConstPtr(Ptr, I.getType(), DL)) {
-    PassPrediction::PassPeeper(__FILE__, 1397); // if
+    PassPrediction::PassPeeper(1397); // if
     if (isa<UndefValue>(C)) {
-      PassPrediction::PassPeeper(__FILE__, 1398); // if
+      PassPrediction::PassPeeper(1398); // if
       return;
     }
     return markConstant(IV, &I, C);
@@ -1324,11 +1324,11 @@ void SCCPSolver::visitCallSite(CallSite CS) {
   // are not doing interprocedural analysis or the callee is indirect, or is
   // external.  Handle these cases first.
   if (!F || F->isDeclaration()) {
-    PassPrediction::PassPeeper(__FILE__, 1399); // if
+    PassPrediction::PassPeeper(1399); // if
   CallOverdefined:
     // Void return and not tracking callee, just bail.
     if (I->getType()->isVoidTy()) {
-      PassPrediction::PassPeeper(__FILE__, 1400); // if
+      PassPrediction::PassPeeper(1400); // if
       return;
     }
 
@@ -1337,19 +1337,19 @@ void SCCPSolver::visitCallSite(CallSite CS) {
     if (F && F->isDeclaration() && !I->getType()->isStructTy() &&
         canConstantFoldCallTo(CS, F)) {
 
-      PassPrediction::PassPeeper(__FILE__, 1401); // if
+      PassPrediction::PassPeeper(1401); // if
       SmallVector<Constant *, 8> Operands;
       for (CallSite::arg_iterator AI = CS.arg_begin(), E = CS.arg_end();
            AI != E; ++AI) {
-        PassPrediction::PassPeeper(__FILE__, 1402); // for
+        PassPrediction::PassPeeper(1402); // for
         LatticeVal State = getValueState(*AI);
 
         if (State.isUnknown()) {
-          PassPrediction::PassPeeper(__FILE__, 1403); // if
-          return; // Operands are not resolved yet.
+          PassPrediction::PassPeeper(1403); // if
+          return;                           // Operands are not resolved yet.
         }
         if (State.isOverdefined()) {
-          PassPrediction::PassPeeper(__FILE__, 1404); // if
+          PassPrediction::PassPeeper(1404); // if
           return markOverdefined(I);
         }
         assert(State.isConstant() && "Unknown state!");
@@ -1357,7 +1357,7 @@ void SCCPSolver::visitCallSite(CallSite CS) {
       }
 
       if (getValueState(I).isOverdefined()) {
-        PassPrediction::PassPeeper(__FILE__, 1405); // if
+        PassPrediction::PassPeeper(1405); // if
         return;
       }
 
@@ -1365,9 +1365,9 @@ void SCCPSolver::visitCallSite(CallSite CS) {
       // constant.
       if (Constant *C = ConstantFoldCall(CS, F, Operands, TLI)) {
         // call -> undef.
-        PassPrediction::PassPeeper(__FILE__, 1406); // if
+        PassPrediction::PassPeeper(1406); // if
         if (isa<UndefValue>(C)) {
-          PassPrediction::PassPeeper(__FILE__, 1407); // if
+          PassPrediction::PassPeeper(1407); // if
           return;
         }
         return markConstant(I, C);
@@ -1383,7 +1383,7 @@ void SCCPSolver::visitCallSite(CallSite CS) {
   // the formal arguments of the function.
   if (!TrackingIncomingArguments.empty() &&
       TrackingIncomingArguments.count(F)) {
-    PassPrediction::PassPeeper(__FILE__, 1408); // if
+    PassPrediction::PassPeeper(1408); // if
     MarkBlockExecutable(&F->front());
 
     // Propagate information from this call site into the callee.
@@ -1392,22 +1392,22 @@ void SCCPSolver::visitCallSite(CallSite CS) {
          ++AI, ++CAI) {
       // If this argument is byval, and if the function is not readonly, there
       // will be an implicit copy formed of the input aggregate.
-      PassPrediction::PassPeeper(__FILE__, 1409); // for
+      PassPrediction::PassPeeper(1409); // for
       if (AI->hasByValAttr() && !F->onlyReadsMemory()) {
-        PassPrediction::PassPeeper(__FILE__, 1410); // if
+        PassPrediction::PassPeeper(1410); // if
         markOverdefined(&*AI);
         continue;
       }
 
       if (auto *STy = dyn_cast<StructType>(AI->getType())) {
-        PassPrediction::PassPeeper(__FILE__, 1411); // if
+        PassPrediction::PassPeeper(1411); // if
         for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
-          PassPrediction::PassPeeper(__FILE__, 1413); // for
+          PassPrediction::PassPeeper(1413); // for
           LatticeVal CallArg = getStructValueState(*CAI, i);
           mergeInValue(getStructValueState(&*AI, i), &*AI, CallArg);
         }
       } else {
-        PassPrediction::PassPeeper(__FILE__, 1412); // else
+        PassPrediction::PassPeeper(1412); // else
         mergeInValue(&*AI, getValueState(*CAI));
       }
     }
@@ -1415,25 +1415,25 @@ void SCCPSolver::visitCallSite(CallSite CS) {
 
   // If this is a single/zero retval case, see if we're tracking the function.
   if (auto *STy = dyn_cast<StructType>(F->getReturnType())) {
-    PassPrediction::PassPeeper(__FILE__, 1414); // if
+    PassPrediction::PassPeeper(1414); // if
     if (!MRVFunctionsTracked.count(F)) {
-      PassPrediction::PassPeeper(__FILE__, 1416); // if
-      goto CallOverdefined;                       // Not tracking this callee.
+      PassPrediction::PassPeeper(1416); // if
+      goto CallOverdefined;             // Not tracking this callee.
     }
 
     // If we are tracking this callee, propagate the result of the function
     // into this call site.
     for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
-      PassPrediction::PassPeeper(__FILE__, 1417); // for
+      PassPrediction::PassPeeper(1417); // for
       mergeInValue(getStructValueState(I, i), I,
                    TrackedMultipleRetVals[std::make_pair(F, i)]);
     }
   } else {
-    PassPrediction::PassPeeper(__FILE__, 1415); // else
+    PassPrediction::PassPeeper(1415); // else
     DenseMap<Function *, LatticeVal>::iterator TFRVI = TrackedRetVals.find(F);
     if (TFRVI == TrackedRetVals.end()) {
-      PassPrediction::PassPeeper(__FILE__, 1418); // if
-      goto CallOverdefined;                       // Not tracking this callee.
+      PassPrediction::PassPeeper(1418); // if
+      goto CallOverdefined;             // Not tracking this callee.
     }
 
     // If so, propagate the return value of the callee into this call result.
@@ -1447,9 +1447,9 @@ void SCCPSolver::Solve() {
          !OverdefinedInstWorkList.empty()) {
     // Process the overdefined instruction's work list first, which drives other
     // things to overdefined more quickly.
-    PassPrediction::PassPeeper(__FILE__, 1419); // while
+    PassPrediction::PassPeeper(1419); // while
     while (!OverdefinedInstWorkList.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 1420); // while
+      PassPrediction::PassPeeper(1420); // while
       Value *I = OverdefinedInstWorkList.pop_back_val();
 
       DEBUG(dbgs() << "\nPopped off OI-WL: " << *I << '\n');
@@ -1462,9 +1462,9 @@ void SCCPSolver::Solve() {
       // Update all of the users of this instruction's value.
       //
       for (User *U : I->users()) {
-        PassPrediction::PassPeeper(__FILE__, 1421); // for-range
+        PassPrediction::PassPeeper(1421); // for-range
         if (auto *UI = dyn_cast<Instruction>(U)) {
-          PassPrediction::PassPeeper(__FILE__, 1422); // if
+          PassPrediction::PassPeeper(1422); // if
           OperandChangedState(UI);
         }
       }
@@ -1472,7 +1472,7 @@ void SCCPSolver::Solve() {
 
     // Process the instruction work list.
     while (!InstWorkList.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 1423); // while
+      PassPrediction::PassPeeper(1423); // while
       Value *I = InstWorkList.pop_back_val();
 
       DEBUG(dbgs() << "\nPopped off I-WL: " << *I << '\n');
@@ -1485,11 +1485,11 @@ void SCCPSolver::Solve() {
       // Update all of the users of this instruction's value.
       //
       if (I->getType()->isStructTy() || !getValueState(I).isOverdefined()) {
-        PassPrediction::PassPeeper(__FILE__, 1424); // if
+        PassPrediction::PassPeeper(1424); // if
         for (User *U : I->users()) {
-          PassPrediction::PassPeeper(__FILE__, 1425); // for-range
+          PassPrediction::PassPeeper(1425); // for-range
           if (auto *UI = dyn_cast<Instruction>(U)) {
-            PassPrediction::PassPeeper(__FILE__, 1426); // if
+            PassPrediction::PassPeeper(1426); // if
             OperandChangedState(UI);
           }
         }
@@ -1498,7 +1498,7 @@ void SCCPSolver::Solve() {
 
     // Process the basic block work list.
     while (!BBWorkList.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 1427); // while
+      PassPrediction::PassPeeper(1427); // while
       BasicBlock *BB = BBWorkList.back();
       BBWorkList.pop_back();
 
@@ -1531,15 +1531,15 @@ void SCCPSolver::Solve() {
 /// even if X isn't defined.
 bool SCCPSolver::ResolvedUndefsIn(Function &F) {
   for (BasicBlock &BB : F) {
-    PassPrediction::PassPeeper(__FILE__, 1428); // for-range
+    PassPrediction::PassPeeper(1428); // for-range
     if (!BBExecutable.count(&BB)) {
-      PassPrediction::PassPeeper(__FILE__, 1429); // if
+      PassPrediction::PassPeeper(1429); // if
       continue;
     }
 
     for (Instruction &I : BB) {
       // Look for instructions which produce undef values.
-      PassPrediction::PassPeeper(__FILE__, 1430); // for-range
+      PassPrediction::PassPeeper(1430); // for-range
       if (I.getType()->isVoidTy()) {
         continue;
       }
@@ -1548,13 +1548,13 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
         // Only a few things that can be structs matter for undef.
 
         // Tracked calls must never be marked overdefined in ResolvedUndefsIn.
-        PassPrediction::PassPeeper(__FILE__, 1431); // if
+        PassPrediction::PassPeeper(1431); // if
         if (CallSite CS = CallSite(&I)) {
-          PassPrediction::PassPeeper(__FILE__, 1432); // if
+          PassPrediction::PassPeeper(1432); // if
           if (Function *F = CS.getCalledFunction()) {
-            PassPrediction::PassPeeper(__FILE__, 1433); // if
+            PassPrediction::PassPeeper(1433); // if
             if (MRVFunctionsTracked.count(F)) {
-              PassPrediction::PassPeeper(__FILE__, 1434); // if
+              PassPrediction::PassPeeper(1434); // if
               continue;
             }
           }
@@ -1563,17 +1563,17 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
         // extractvalue and insertvalue don't need to be marked; they are
         // tracked as precisely as their operands.
         if (isa<ExtractValueInst>(I) || isa<InsertValueInst>(I)) {
-          PassPrediction::PassPeeper(__FILE__, 1435); // if
+          PassPrediction::PassPeeper(1435); // if
           continue;
         }
 
         // Send the results of everything else to overdefined.  We could be
         // more precise than this but it isn't worth bothering.
         for (unsigned i = 0, e = STy->getNumElements(); i != e; ++i) {
-          PassPrediction::PassPeeper(__FILE__, 1436); // for
+          PassPrediction::PassPeeper(1436); // for
           LatticeVal &LV = getStructValueState(&I, i);
           if (LV.isUnknown()) {
-            PassPrediction::PassPeeper(__FILE__, 1437); // if
+            PassPrediction::PassPeeper(1437); // if
             markOverdefined(LV, &I);
           }
         }
@@ -1582,13 +1582,13 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
 
       LatticeVal &LV = getValueState(&I);
       if (!LV.isUnknown()) {
-        PassPrediction::PassPeeper(__FILE__, 1438); // if
+        PassPrediction::PassPeeper(1438); // if
         continue;
       }
 
       // extractvalue is safe; check here because the argument is a struct.
       if (isa<ExtractValueInst>(I)) {
-        PassPrediction::PassPeeper(__FILE__, 1439); // if
+        PassPrediction::PassPeeper(1439); // if
         continue;
       }
 
@@ -1596,16 +1596,16 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
       // Anything taking a struct is conservatively assumed to require
       // overdefined markings.
       if (I.getOperand(0)->getType()->isStructTy()) {
-        PassPrediction::PassPeeper(__FILE__, 1440); // if
+        PassPrediction::PassPeeper(1440); // if
         markOverdefined(&I);
         return true;
       }
       LatticeVal Op0LV = getValueState(I.getOperand(0));
       LatticeVal Op1LV;
       if (I.getNumOperands() == 2) {
-        PassPrediction::PassPeeper(__FILE__, 1441); // if
+        PassPrediction::PassPeeper(1441); // if
         if (I.getOperand(1)->getType()->isStructTy()) {
-          PassPrediction::PassPeeper(__FILE__, 1442); // if
+          PassPrediction::PassPeeper(1442); // if
           markOverdefined(&I);
           return true;
         }
@@ -1617,85 +1617,85 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
       Type *ITy = I.getType();
       switch (I.getOpcode()) {
       case Instruction::Add:
-        PassPrediction::PassPeeper(__FILE__, 1443); // case
+        PassPrediction::PassPeeper(1443); // case
 
       case Instruction::Sub:
-        PassPrediction::PassPeeper(__FILE__, 1444); // case
+        PassPrediction::PassPeeper(1444); // case
 
       case Instruction::Trunc:
-        PassPrediction::PassPeeper(__FILE__, 1445); // case
+        PassPrediction::PassPeeper(1445); // case
 
       case Instruction::FPTrunc:
-        PassPrediction::PassPeeper(__FILE__, 1446); // case
+        PassPrediction::PassPeeper(1446); // case
 
       case Instruction::BitCast:
-        PassPrediction::PassPeeper(__FILE__, 1447); // case
+        PassPrediction::PassPeeper(1447); // case
 
-        PassPrediction::PassPeeper(__FILE__, 1448); // break
-        break;                                      // Any undef -> undef
+        PassPrediction::PassPeeper(1448); // break
+        break;                            // Any undef -> undef
       case Instruction::FSub:
-        PassPrediction::PassPeeper(__FILE__, 1449); // case
+        PassPrediction::PassPeeper(1449); // case
 
       case Instruction::FAdd:
-        PassPrediction::PassPeeper(__FILE__, 1450); // case
+        PassPrediction::PassPeeper(1450); // case
 
       case Instruction::FMul:
-        PassPrediction::PassPeeper(__FILE__, 1451); // case
+        PassPrediction::PassPeeper(1451); // case
 
       case Instruction::FDiv:
-        PassPrediction::PassPeeper(__FILE__, 1452); // case
+        PassPrediction::PassPeeper(1452); // case
 
       case Instruction::FRem:
-        PassPrediction::PassPeeper(__FILE__, 1453); // case
+        PassPrediction::PassPeeper(1453); // case
 
         // Floating-point binary operation: be conservative.
         if (Op0LV.isUnknown() && Op1LV.isUnknown()) {
-          PassPrediction::PassPeeper(__FILE__, 1454); // if
+          PassPrediction::PassPeeper(1454); // if
           markForcedConstant(&I, Constant::getNullValue(ITy));
         } else {
-          PassPrediction::PassPeeper(__FILE__, 1455); // else
+          PassPrediction::PassPeeper(1455); // else
           markOverdefined(&I);
         }
         return true;
       case Instruction::ZExt:
-        PassPrediction::PassPeeper(__FILE__, 1456); // case
+        PassPrediction::PassPeeper(1456); // case
 
       case Instruction::SExt:
-        PassPrediction::PassPeeper(__FILE__, 1457); // case
+        PassPrediction::PassPeeper(1457); // case
 
       case Instruction::FPToUI:
-        PassPrediction::PassPeeper(__FILE__, 1458); // case
+        PassPrediction::PassPeeper(1458); // case
 
       case Instruction::FPToSI:
-        PassPrediction::PassPeeper(__FILE__, 1459); // case
+        PassPrediction::PassPeeper(1459); // case
 
       case Instruction::FPExt:
-        PassPrediction::PassPeeper(__FILE__, 1460); // case
+        PassPrediction::PassPeeper(1460); // case
 
       case Instruction::PtrToInt:
-        PassPrediction::PassPeeper(__FILE__, 1461); // case
+        PassPrediction::PassPeeper(1461); // case
 
       case Instruction::IntToPtr:
-        PassPrediction::PassPeeper(__FILE__, 1462); // case
+        PassPrediction::PassPeeper(1462); // case
 
       case Instruction::SIToFP:
-        PassPrediction::PassPeeper(__FILE__, 1463); // case
+        PassPrediction::PassPeeper(1463); // case
 
       case Instruction::UIToFP:
-        PassPrediction::PassPeeper(__FILE__, 1464); // case
+        PassPrediction::PassPeeper(1464); // case
 
         // undef -> 0; some outputs are impossible
         markForcedConstant(&I, Constant::getNullValue(ITy));
         return true;
       case Instruction::Mul:
-        PassPrediction::PassPeeper(__FILE__, 1465); // case
+        PassPrediction::PassPeeper(1465); // case
 
       case Instruction::And:
-        PassPrediction::PassPeeper(__FILE__, 1466); // case
+        PassPrediction::PassPeeper(1466); // case
 
         // Both operands undef -> undef
         if (Op0LV.isUnknown() && Op1LV.isUnknown()) {
-          PassPrediction::PassPeeper(__FILE__, 1467); // if
+          PassPrediction::PassPeeper(1467); // if
           break;
         }
         // undef * X -> 0.   X could be zero.
@@ -1704,11 +1704,11 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
         return true;
 
       case Instruction::Or:
-        PassPrediction::PassPeeper(__FILE__, 1468); // case
+        PassPrediction::PassPeeper(1468); // case
 
         // Both operands undef -> undef
         if (Op0LV.isUnknown() && Op1LV.isUnknown()) {
-          PassPrediction::PassPeeper(__FILE__, 1469); // if
+          PassPrediction::PassPeeper(1469); // if
           break;
         }
         // undef | X -> -1.   X could be -1.
@@ -1716,43 +1716,43 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
         return true;
 
       case Instruction::Xor:
-        PassPrediction::PassPeeper(__FILE__, 1470); // case
+        PassPrediction::PassPeeper(1470); // case
 
         // undef ^ undef -> 0; strictly speaking, this is not strictly
         // necessary, but we try to be nice to people who expect this
         // behavior in simple cases
         if (Op0LV.isUnknown() && Op1LV.isUnknown()) {
-          PassPrediction::PassPeeper(__FILE__, 1471); // if
+          PassPrediction::PassPeeper(1471); // if
           markForcedConstant(&I, Constant::getNullValue(ITy));
           return true;
         }
         // undef ^ X -> undef
-        PassPrediction::PassPeeper(__FILE__, 1472); // break
+        PassPrediction::PassPeeper(1472); // break
         break;
 
       case Instruction::SDiv:
-        PassPrediction::PassPeeper(__FILE__, 1473); // case
+        PassPrediction::PassPeeper(1473); // case
 
       case Instruction::UDiv:
-        PassPrediction::PassPeeper(__FILE__, 1474); // case
+        PassPrediction::PassPeeper(1474); // case
 
       case Instruction::SRem:
-        PassPrediction::PassPeeper(__FILE__, 1475); // case
+        PassPrediction::PassPeeper(1475); // case
 
       case Instruction::URem:
-        PassPrediction::PassPeeper(__FILE__, 1476); // case
+        PassPrediction::PassPeeper(1476); // case
 
         // X / undef -> undef.  No change.
         // X % undef -> undef.  No change.
         if (Op1LV.isUnknown()) {
-          PassPrediction::PassPeeper(__FILE__, 1477); // if
+          PassPrediction::PassPeeper(1477); // if
           break;
         }
 
         // X / 0 -> undef.  No change.
         // X % 0 -> undef.  No change.
         if (Op1LV.isConstant() && Op1LV.getConstant()->isZeroValue()) {
-          PassPrediction::PassPeeper(__FILE__, 1478); // if
+          PassPrediction::PassPeeper(1478); // if
           break;
         }
 
@@ -1762,22 +1762,22 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
         return true;
 
       case Instruction::AShr:
-        PassPrediction::PassPeeper(__FILE__, 1479); // case
+        PassPrediction::PassPeeper(1479); // case
 
         // X >>a undef -> undef.
         if (Op1LV.isUnknown()) {
-          PassPrediction::PassPeeper(__FILE__, 1480); // if
+          PassPrediction::PassPeeper(1480); // if
           break;
         }
 
         // Shifting by the bitwidth or more is undefined.
         if (Op1LV.isConstant()) {
-          PassPrediction::PassPeeper(__FILE__, 1481); // if
+          PassPrediction::PassPeeper(1481); // if
           if (auto *ShiftAmt = Op1LV.getConstantInt()) {
-            PassPrediction::PassPeeper(__FILE__, 1482); // if
+            PassPrediction::PassPeeper(1482); // if
             if (ShiftAmt->getLimitedValue() >=
                 ShiftAmt->getType()->getScalarSizeInBits()) {
-              PassPrediction::PassPeeper(__FILE__, 1483); // if
+              PassPrediction::PassPeeper(1483); // if
               break;
             }
           }
@@ -1787,26 +1787,26 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
         markForcedConstant(&I, Constant::getNullValue(ITy));
         return true;
       case Instruction::LShr:
-        PassPrediction::PassPeeper(__FILE__, 1484); // case
+        PassPrediction::PassPeeper(1484); // case
 
       case Instruction::Shl:
-        PassPrediction::PassPeeper(__FILE__, 1485); // case
+        PassPrediction::PassPeeper(1485); // case
 
         // X << undef -> undef.
         // X >> undef -> undef.
         if (Op1LV.isUnknown()) {
-          PassPrediction::PassPeeper(__FILE__, 1486); // if
+          PassPrediction::PassPeeper(1486); // if
           break;
         }
 
         // Shifting by the bitwidth or more is undefined.
         if (Op1LV.isConstant()) {
-          PassPrediction::PassPeeper(__FILE__, 1487); // if
+          PassPrediction::PassPeeper(1487); // if
           if (auto *ShiftAmt = Op1LV.getConstantInt()) {
-            PassPrediction::PassPeeper(__FILE__, 1488); // if
+            PassPrediction::PassPeeper(1488); // if
             if (ShiftAmt->getLimitedValue() >=
                 ShiftAmt->getType()->getScalarSizeInBits()) {
-              PassPrediction::PassPeeper(__FILE__, 1489); // if
+              PassPrediction::PassPeeper(1489); // if
               break;
             }
           }
@@ -1817,22 +1817,22 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
         markForcedConstant(&I, Constant::getNullValue(ITy));
         return true;
       case Instruction::Select:
-        PassPrediction::PassPeeper(__FILE__, 1490); // case
+        PassPrediction::PassPeeper(1490); // case
 
         Op1LV = getValueState(I.getOperand(1));
         // undef ? X : Y  -> X or Y.  There could be commonality between X/Y.
         if (Op0LV.isUnknown()) {
-          PassPrediction::PassPeeper(__FILE__, 1491); // if
+          PassPrediction::PassPeeper(1491); // if
           if (!Op1LV.isConstant()) { // Pick the constant one if there is any.
-            PassPrediction::PassPeeper(__FILE__, 1492); // if
+            PassPrediction::PassPeeper(1492); // if
             Op1LV = getValueState(I.getOperand(2));
           }
         } else if (Op1LV.isUnknown()) {
           // c ? undef : undef -> undef.  No change.
-          PassPrediction::PassPeeper(__FILE__, 1493); // if
+          PassPrediction::PassPeeper(1493); // if
           Op1LV = getValueState(I.getOperand(2));
           if (Op1LV.isUnknown()) {
-            PassPrediction::PassPeeper(__FILE__, 1494); // if
+            PassPrediction::PassPeeper(1494); // if
             break;
           }
           // Otherwise, c ? undef : x -> x.
@@ -1841,36 +1841,36 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
         }
 
         if (Op1LV.isConstant()) {
-          PassPrediction::PassPeeper(__FILE__, 1495); // if
+          PassPrediction::PassPeeper(1495); // if
           markForcedConstant(&I, Op1LV.getConstant());
         } else {
-          PassPrediction::PassPeeper(__FILE__, 1496); // else
+          PassPrediction::PassPeeper(1496); // else
           markOverdefined(&I);
         }
         return true;
       case Instruction::Load:
-        PassPrediction::PassPeeper(__FILE__, 1497); // case
+        PassPrediction::PassPeeper(1497); // case
 
         // A load here means one of two things: a load of undef from a global,
         // a load from an unknown pointer.  Either way, having it return undef
         // is okay.
-        PassPrediction::PassPeeper(__FILE__, 1498); // break
+        PassPrediction::PassPeeper(1498); // break
         break;
       case Instruction::ICmp:
-        PassPrediction::PassPeeper(__FILE__, 1499); // case
+        PassPrediction::PassPeeper(1499); // case
 
         // X == undef -> undef.  Other comparisons get more complicated.
         if (cast<ICmpInst>(&I)->isEquality()) {
-          PassPrediction::PassPeeper(__FILE__, 1500); // if
+          PassPrediction::PassPeeper(1500); // if
           break;
         }
         markOverdefined(&I);
         return true;
       case Instruction::Call:
-        PassPrediction::PassPeeper(__FILE__, 1501); // case
+        PassPrediction::PassPeeper(1501); // case
 
       case Instruction::Invoke:
-        PassPrediction::PassPeeper(__FILE__, 1502); // case
+        PassPrediction::PassPeeper(1502); // case
         {
           // There are two reasons a call can have an undef result
           // 1. It could be tracked.
@@ -1878,9 +1878,9 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
           // Because of the way we solve return values, tracked calls must
           // never be marked overdefined in ResolvedUndefsIn.
           if (Function *F = CallSite(&I).getCalledFunction()) {
-            PassPrediction::PassPeeper(__FILE__, 1503); // if
+            PassPrediction::PassPeeper(1503); // if
             if (TrackedRetVals.count(F)) {
-              PassPrediction::PassPeeper(__FILE__, 1504); // if
+              PassPrediction::PassPeeper(1504); // if
               break;
             }
           }
@@ -1903,19 +1903,19 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
     // values live.  It doesn't really matter which way we force it.
     TerminatorInst *TI = BB.getTerminator();
     if (auto *BI = dyn_cast<BranchInst>(TI)) {
-      PassPrediction::PassPeeper(__FILE__, 1505); // if
+      PassPrediction::PassPeeper(1505); // if
       if (!BI->isConditional()) {
         continue;
       }
       if (!getValueState(BI->getCondition()).isUnknown()) {
-        PassPrediction::PassPeeper(__FILE__, 1506); // if
+        PassPrediction::PassPeeper(1506); // if
         continue;
       }
 
       // If the input to SCCP is actually branch on undef, fix the undef to
       // false.
       if (isa<UndefValue>(BI->getCondition())) {
-        PassPrediction::PassPeeper(__FILE__, 1507); // if
+        PassPrediction::PassPeeper(1507); // if
         BI->setCondition(ConstantInt::getFalse(BI->getContext()));
         markEdgeExecutable(&BB, TI->getSuccessor(1));
         return true;
@@ -1932,21 +1932,21 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
     if (auto *IBR = dyn_cast<IndirectBrInst>(TI)) {
       // Indirect branch with no successor ?. Its ok to assume it branches
       // to no target.
-      PassPrediction::PassPeeper(__FILE__, 1508); // if
+      PassPrediction::PassPeeper(1508); // if
       if (IBR->getNumSuccessors() < 1) {
-        PassPrediction::PassPeeper(__FILE__, 1509); // if
+        PassPrediction::PassPeeper(1509); // if
         continue;
       }
 
       if (!getValueState(IBR->getAddress()).isUnknown()) {
-        PassPrediction::PassPeeper(__FILE__, 1510); // if
+        PassPrediction::PassPeeper(1510); // if
         continue;
       }
 
       // If the input to SCCP is actually branch on undef, fix the undef to
       // the first successor of the indirect branch.
       if (isa<UndefValue>(IBR->getAddress())) {
-        PassPrediction::PassPeeper(__FILE__, 1511); // if
+        PassPrediction::PassPeeper(1511); // if
         IBR->setAddress(BlockAddress::get(IBR->getSuccessor(0)));
         markEdgeExecutable(&BB, IBR->getSuccessor(0));
         return true;
@@ -1961,17 +1961,17 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
     }
 
     if (auto *SI = dyn_cast<SwitchInst>(TI)) {
-      PassPrediction::PassPeeper(__FILE__, 1512); // if
+      PassPrediction::PassPeeper(1512); // if
       if (!SI->getNumCases() ||
           !getValueState(SI->getCondition()).isUnknown()) {
-        PassPrediction::PassPeeper(__FILE__, 1513); // if
+        PassPrediction::PassPeeper(1513); // if
         continue;
       }
 
       // If the input to SCCP is actually switch on undef, fix the undef to
       // the first constant.
       if (isa<UndefValue>(SI->getCondition())) {
-        PassPrediction::PassPeeper(__FILE__, 1514); // if
+        PassPrediction::PassPeeper(1514); // if
         SI->setCondition(SI->case_begin()->getCaseValue());
         markEdgeExecutable(&BB, SI->case_begin()->getCaseSuccessor());
         return true;
@@ -1988,16 +1988,16 @@ bool SCCPSolver::ResolvedUndefsIn(Function &F) {
 static bool tryToReplaceWithConstant(SCCPSolver &Solver, Value *V) {
   Constant *Const = nullptr;
   if (V->getType()->isStructTy()) {
-    PassPrediction::PassPeeper(__FILE__, 1515); // if
+    PassPrediction::PassPeeper(1515); // if
     std::vector<LatticeVal> IVs = Solver.getStructLatticeValueFor(V);
     if (any_of(IVs, [](const LatticeVal &LV) { return LV.isOverdefined(); })) {
-      PassPrediction::PassPeeper(__FILE__, 1517); // if
+      PassPrediction::PassPeeper(1517); // if
       return false;
     }
     std::vector<Constant *> ConstVals;
     auto *ST = dyn_cast<StructType>(V->getType());
     for (unsigned i = 0, e = ST->getNumElements(); i != e; ++i) {
-      PassPrediction::PassPeeper(__FILE__, 1518); // for
+      PassPrediction::PassPeeper(1518); // for
       LatticeVal V = IVs[i];
       ConstVals.push_back(V.isConstant()
                               ? V.getConstant()
@@ -2005,10 +2005,10 @@ static bool tryToReplaceWithConstant(SCCPSolver &Solver, Value *V) {
     }
     Const = ConstantStruct::get(ST, ConstVals);
   } else {
-    PassPrediction::PassPeeper(__FILE__, 1516); // else
+    PassPrediction::PassPeeper(1516); // else
     LatticeVal IV = Solver.getLatticeValueFor(V);
     if (IV.isOverdefined()) {
-      PassPrediction::PassPeeper(__FILE__, 1519); // if
+      PassPrediction::PassPeeper(1519); // if
       return false;
     }
     Const = IV.isConstant() ? IV.getConstant() : UndefValue::get(V->getType());
@@ -2034,14 +2034,14 @@ static bool runSCCP(Function &F, const DataLayout &DL,
 
   // Mark all arguments to the function as being overdefined.
   for (Argument &AI : F.args()) {
-    PassPrediction::PassPeeper(__FILE__, 1520); // for-range
+    PassPrediction::PassPeeper(1520); // for-range
     Solver.markOverdefined(&AI);
   }
 
   // Solve for constants.
   bool ResolvedUndefs = true;
   while (ResolvedUndefs) {
-    PassPrediction::PassPeeper(__FILE__, 1521); // while
+    PassPrediction::PassPeeper(1521); // while
     Solver.Solve();
     DEBUG(dbgs() << "RESOLVING UNDEFs\n");
     ResolvedUndefs = Solver.ResolvedUndefsIn(F);
@@ -2054,7 +2054,7 @@ static bool runSCCP(Function &F, const DataLayout &DL,
   // as we cannot modify the CFG of the function.
 
   for (BasicBlock &BB : F) {
-    PassPrediction::PassPeeper(__FILE__, 1522); // for-range
+    PassPrediction::PassPeeper(1522); // for-range
     if (!Solver.isBlockExecutable(&BB)) {
       DEBUG(dbgs() << "  BasicBlock Dead:" << BB);
 
@@ -2069,17 +2069,17 @@ static bool runSCCP(Function &F, const DataLayout &DL,
     // constants if we have found them to be of constant values.
     //
     for (BasicBlock::iterator BI = BB.begin(), E = BB.end(); BI != E;) {
-      PassPrediction::PassPeeper(__FILE__, 1523); // for
+      PassPrediction::PassPeeper(1523); // for
       Instruction *Inst = &*BI++;
       if (Inst->getType()->isVoidTy() || isa<TerminatorInst>(Inst)) {
-        PassPrediction::PassPeeper(__FILE__, 1524); // if
+        PassPrediction::PassPeeper(1524); // if
         continue;
       }
 
       if (tryToReplaceWithConstant(Solver, Inst)) {
-        PassPrediction::PassPeeper(__FILE__, 1525); // if
+        PassPrediction::PassPeeper(1525); // if
         if (isInstructionTriviallyDead(Inst)) {
-          PassPrediction::PassPeeper(__FILE__, 1526); // if
+          PassPrediction::PassPeeper(1526); // if
           Inst->eraseFromParent();
         }
         // Hey, we just changed something!
@@ -2096,7 +2096,7 @@ PreservedAnalyses SCCPPass::run(Function &F, FunctionAnalysisManager &AM) {
   const DataLayout &DL = F.getParent()->getDataLayout();
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(F);
   if (!runSCCP(F, DL, &TLI)) {
-    PassPrediction::PassPeeper(__FILE__, 1527); // if
+    PassPrediction::PassPeeper(1527); // if
     return PreservedAnalyses::all();
   }
 
@@ -2127,7 +2127,7 @@ public:
   //
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 1528); // if
+      PassPrediction::PassPeeper(1528); // if
       return false;
     }
     const DataLayout &DL = F.getParent()->getDataLayout();
@@ -2153,33 +2153,33 @@ static bool AddressIsTaken(const GlobalValue *GV) {
   GV->removeDeadConstantUsers();
 
   for (const Use &U : GV->uses()) {
-    PassPrediction::PassPeeper(__FILE__, 1529); // for-range
+    PassPrediction::PassPeeper(1529); // for-range
     const User *UR = U.getUser();
     if (const auto *SI = dyn_cast<StoreInst>(UR)) {
-      PassPrediction::PassPeeper(__FILE__, 1530); // if
+      PassPrediction::PassPeeper(1530); // if
       if (SI->getOperand(0) == GV || SI->isVolatile()) {
-        PassPrediction::PassPeeper(__FILE__, 1531); // if
-        return true;                                // Storing addr of GV.
+        PassPrediction::PassPeeper(1531); // if
+        return true;                      // Storing addr of GV.
       }
     } else if (isa<InvokeInst>(UR) || isa<CallInst>(UR)) {
       // Make sure we are calling the function, not passing the address.
-      PassPrediction::PassPeeper(__FILE__, 1532); // if
+      PassPrediction::PassPeeper(1532); // if
       ImmutableCallSite CS(cast<Instruction>(UR));
       if (!CS.isCallee(&U)) {
-        PassPrediction::PassPeeper(__FILE__, 1533); // if
+        PassPrediction::PassPeeper(1533); // if
         return true;
       }
     } else if (const auto *LI = dyn_cast<LoadInst>(UR)) {
-      PassPrediction::PassPeeper(__FILE__, 1534); // if
+      PassPrediction::PassPeeper(1534); // if
       if (LI->isVolatile()) {
-        PassPrediction::PassPeeper(__FILE__, 1535); // if
+        PassPrediction::PassPeeper(1535); // if
         return true;
       }
     } else if (isa<BlockAddress>(UR)) {
       // blockaddress doesn't take the address of the function, it takes addr
       // of label.
     } else {
-      PassPrediction::PassPeeper(__FILE__, 1536); // else
+      PassPrediction::PassPeeper(1536); // else
       return true;
     }
   }
@@ -2191,16 +2191,16 @@ static void findReturnsToZap(Function &F,
                              SmallVector<ReturnInst *, 8> &ReturnsToZap) {
   // We can only do this if we know that nothing else can call the function.
   if (!F.hasLocalLinkage() || AddressTakenFunctions.count(&F)) {
-    PassPrediction::PassPeeper(__FILE__, 1537); // if
+    PassPrediction::PassPeeper(1537); // if
     return;
   }
 
   for (BasicBlock &BB : F) {
-    PassPrediction::PassPeeper(__FILE__, 1538); // for-range
+    PassPrediction::PassPeeper(1538); // for-range
     if (auto *RI = dyn_cast<ReturnInst>(BB.getTerminator())) {
-      PassPrediction::PassPeeper(__FILE__, 1539); // if
+      PassPrediction::PassPeeper(1539); // if
       if (!isa<UndefValue>(RI->getOperand(0))) {
-        PassPrediction::PassPeeper(__FILE__, 1540); // if
+        PassPrediction::PassPeeper(1540); // if
         ReturnsToZap.push_back(RI);
       }
     }
@@ -2222,9 +2222,9 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
   // taken or that are external as overdefined.
   //
   for (Function &F : M) {
-    PassPrediction::PassPeeper(__FILE__, 1541); // for-range
+    PassPrediction::PassPeeper(1541); // for-range
     if (F.isDeclaration()) {
-      PassPrediction::PassPeeper(__FILE__, 1542); // if
+      PassPrediction::PassPeeper(1542); // if
       continue;
     }
 
@@ -2234,7 +2234,7 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
     // value we don't see, so we may end up interprocedurally propagating
     // the return value incorrectly.
     if (F.hasExactDefinition() && !F.hasFnAttribute(Attribute::Naked)) {
-      PassPrediction::PassPeeper(__FILE__, 1543); // if
+      PassPrediction::PassPeeper(1543); // if
       Solver.AddTrackedFunction(&F);
     }
 
@@ -2242,12 +2242,12 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
     // arguments and return value aggressively, and can assume it is not called
     // unless we see evidence to the contrary.
     if (F.hasLocalLinkage()) {
-      PassPrediction::PassPeeper(__FILE__, 1544); // if
+      PassPrediction::PassPeeper(1544); // if
       if (F.hasAddressTaken()) {
-        PassPrediction::PassPeeper(__FILE__, 1545); // if
+        PassPrediction::PassPeeper(1545); // if
         AddressTakenFunctions.insert(&F);
       } else {
-        PassPrediction::PassPeeper(__FILE__, 1546); // else
+        PassPrediction::PassPeeper(1546); // else
         Solver.AddArgumentTrackedFunction(&F);
         continue;
       }
@@ -2258,7 +2258,7 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
 
     // Assume nothing about the incoming arguments.
     for (Argument &AI : F.args()) {
-      PassPrediction::PassPeeper(__FILE__, 1547); // for-range
+      PassPrediction::PassPeeper(1547); // for-range
       Solver.markOverdefined(&AI);
     }
   }
@@ -2267,10 +2267,10 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
   // variables that do not have their 'addresses taken'.  If they don't have
   // their addresses taken, we can propagate constants through them.
   for (GlobalVariable &G : M.globals()) {
-    PassPrediction::PassPeeper(__FILE__, 1548); // for-range
+    PassPrediction::PassPeeper(1548); // for-range
     if (!G.isConstant() && G.hasLocalLinkage() &&
         G.hasDefinitiveInitializer() && !AddressIsTaken(&G)) {
-      PassPrediction::PassPeeper(__FILE__, 1549); // if
+      PassPrediction::PassPeeper(1549); // if
       Solver.TrackValueOfGlobalVariable(&G);
     }
   }
@@ -2278,13 +2278,13 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
   // Solve for constants.
   bool ResolvedUndefs = true;
   while (ResolvedUndefs) {
-    PassPrediction::PassPeeper(__FILE__, 1550); // while
+    PassPrediction::PassPeeper(1550); // while
     Solver.Solve();
 
     DEBUG(dbgs() << "RESOLVING UNDEFS\n");
     ResolvedUndefs = false;
     for (Function &F : M) {
-      PassPrediction::PassPeeper(__FILE__, 1551); // for-range
+      PassPrediction::PassPeeper(1551); // for-range
       ResolvedUndefs |= Solver.ResolvedUndefsIn(F);
     }
   }
@@ -2297,26 +2297,26 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
   SmallVector<BasicBlock *, 512> BlocksToErase;
 
   for (Function &F : M) {
-    PassPrediction::PassPeeper(__FILE__, 1552); // for-range
+    PassPrediction::PassPeeper(1552); // for-range
     if (F.isDeclaration()) {
-      PassPrediction::PassPeeper(__FILE__, 1553); // if
+      PassPrediction::PassPeeper(1553); // if
       continue;
     }
 
     if (Solver.isBlockExecutable(&F.front())) {
-      PassPrediction::PassPeeper(__FILE__, 1554); // if
+      PassPrediction::PassPeeper(1554); // if
       for (Function::arg_iterator AI = F.arg_begin(), E = F.arg_end(); AI != E;
            ++AI) {
-        PassPrediction::PassPeeper(__FILE__, 1555); // for
+        PassPrediction::PassPeeper(1555); // for
         if (!AI->use_empty() && tryToReplaceWithConstant(Solver, &*AI)) {
-          PassPrediction::PassPeeper(__FILE__, 1556); // if
+          PassPrediction::PassPeeper(1556); // if
           ++IPNumArgsElimed;
         }
       }
     }
 
     for (Function::iterator BB = F.begin(), E = F.end(); BB != E; ++BB) {
-      PassPrediction::PassPeeper(__FILE__, 1557); // for
+      PassPrediction::PassPeeper(1557); // for
       if (!Solver.isBlockExecutable(&*BB)) {
         DEBUG(dbgs() << "  BasicBlock Dead:" << *BB);
 
@@ -2327,23 +2327,23 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
         MadeChanges = true;
 
         if (&*BB != &F.front()) {
-          PassPrediction::PassPeeper(__FILE__, 1558); // if
+          PassPrediction::PassPeeper(1558); // if
           BlocksToErase.push_back(&*BB);
         }
         continue;
       }
 
       for (BasicBlock::iterator BI = BB->begin(), E = BB->end(); BI != E;) {
-        PassPrediction::PassPeeper(__FILE__, 1559); // for
+        PassPrediction::PassPeeper(1559); // for
         Instruction *Inst = &*BI++;
         if (Inst->getType()->isVoidTy()) {
-          PassPrediction::PassPeeper(__FILE__, 1560); // if
+          PassPrediction::PassPeeper(1560); // if
           continue;
         }
         if (tryToReplaceWithConstant(Solver, Inst)) {
-          PassPrediction::PassPeeper(__FILE__, 1561); // if
+          PassPrediction::PassPeeper(1561); // if
           if (!isa<CallInst>(Inst) && !isa<TerminatorInst>(Inst)) {
-            PassPrediction::PassPeeper(__FILE__, 1562); // if
+            PassPrediction::PassPeeper(1562); // if
             Inst->eraseFromParent();
           }
           // Hey, we just changed something!
@@ -2358,23 +2358,23 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
     // in-edges.
     for (unsigned i = 0, e = BlocksToErase.size(); i != e; ++i) {
       // If there are any PHI nodes in this successor, drop entries for BB now.
-      PassPrediction::PassPeeper(__FILE__, 1563); // for
+      PassPrediction::PassPeeper(1563); // for
       BasicBlock *DeadBB = BlocksToErase[i];
       for (Value::user_iterator UI = DeadBB->user_begin(),
                                 UE = DeadBB->user_end();
            UI != UE;) {
         // Grab the user and then increment the iterator early, as the user
         // will be deleted. Step past all adjacent uses from the same user.
-        PassPrediction::PassPeeper(__FILE__, 1564); // for
+        PassPrediction::PassPeeper(1564); // for
         auto *I = dyn_cast<Instruction>(*UI);
         do {
-          PassPrediction::PassPeeper(__FILE__, 1565); // do-while
+          PassPrediction::PassPeeper(1565); // do-while
           ++UI;
         } while (UI != UE && *UI == I);
 
         // Ignore blockaddress users; BasicBlock's dtor will handle them.
         if (!I) {
-          PassPrediction::PassPeeper(__FILE__, 1566); // if
+          PassPrediction::PassPeeper(1566); // if
           continue;
         }
 
@@ -2404,10 +2404,10 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
 
   const DenseMap<Function *, LatticeVal> &RV = Solver.getTrackedRetVals();
   for (const auto &I : RV) {
-    PassPrediction::PassPeeper(__FILE__, 1567); // for-range
+    PassPrediction::PassPeeper(1567); // for-range
     Function *F = I.first;
     if (I.second.isOverdefined() || F->getReturnType()->isVoidTy()) {
-      PassPrediction::PassPeeper(__FILE__, 1568); // if
+      PassPrediction::PassPeeper(1568); // if
       continue;
     }
     findReturnsToZap(*F, AddressTakenFunctions, ReturnsToZap);
@@ -2418,14 +2418,14 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
            "The return type should be a struct");
     StructType *STy = cast<StructType>(F->getReturnType());
     if (Solver.isStructLatticeConstant(F, STy)) {
-      PassPrediction::PassPeeper(__FILE__, 1569); // if
+      PassPrediction::PassPeeper(1569); // if
       findReturnsToZap(*F, AddressTakenFunctions, ReturnsToZap);
     }
   }
 
   // Zap all returns which we've identified as zap to change.
   for (unsigned i = 0, e = ReturnsToZap.size(); i != e; ++i) {
-    PassPrediction::PassPeeper(__FILE__, 1570); // for
+    PassPrediction::PassPeeper(1570); // for
     Function *F = ReturnsToZap[i]->getParent()->getParent();
     ReturnsToZap[i]->setOperand(0, UndefValue::get(F->getReturnType()));
   }
@@ -2436,13 +2436,13 @@ static bool runIPSCCP(Module &M, const DataLayout &DL,
   for (DenseMap<GlobalVariable *, LatticeVal>::const_iterator I = TG.begin(),
                                                               E = TG.end();
        I != E; ++I) {
-    PassPrediction::PassPeeper(__FILE__, 1571); // for
+    PassPrediction::PassPeeper(1571); // for
     GlobalVariable *GV = I->first;
     assert(!I->second.isOverdefined() &&
            "Overdefined values should have been taken out of the map!");
     DEBUG(dbgs() << "Found that GV '" << GV->getName() << "' is constant!\n");
     while (!GV->use_empty()) {
-      PassPrediction::PassPeeper(__FILE__, 1572); // while
+      PassPrediction::PassPeeper(1572); // while
       StoreInst *SI = cast<StoreInst>(GV->user_back());
       SI->eraseFromParent();
     }
@@ -2457,7 +2457,7 @@ PreservedAnalyses IPSCCPPass::run(Module &M, ModuleAnalysisManager &AM) {
   const DataLayout &DL = M.getDataLayout();
   auto &TLI = AM.getResult<TargetLibraryAnalysis>(M);
   if (!runIPSCCP(M, DL, &TLI)) {
-    PassPrediction::PassPeeper(__FILE__, 1573); // if
+    PassPrediction::PassPeeper(1573); // if
     return PreservedAnalyses::all();
   }
   return PreservedAnalyses::none();
@@ -2479,7 +2479,7 @@ public:
 
   bool runOnModule(Module &M) override {
     if (skipModule(M)) {
-      PassPrediction::PassPeeper(__FILE__, 1574); // if
+      PassPrediction::PassPeeper(1574); // if
       return false;
     }
     const DataLayout &DL = M.getDataLayout();

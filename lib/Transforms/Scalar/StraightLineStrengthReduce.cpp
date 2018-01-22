@@ -240,7 +240,7 @@ static bool isGEPFoldable(GetElementPtrInst *GEP,
                           const TargetTransformInfo *TTI) {
   SmallVector<const Value *, 4> Indices;
   for (auto I = GEP->idx_begin(); I != GEP->idx_end(); ++I) {
-    PassPrediction::PassPeeper(__FILE__, 2516); // for
+    PassPrediction::PassPeeper(2516); // for
     Indices.push_back(*I);
   }
   return TTI->getGEPCost(GEP->getSourceElementType(), GEP->getPointerOperand(),
@@ -260,11 +260,11 @@ bool StraightLineStrengthReduce::isFoldable(const Candidate &C,
                                             TargetTransformInfo *TTI,
                                             const DataLayout *DL) {
   if (C.CandidateKind == Candidate::Add) {
-    PassPrediction::PassPeeper(__FILE__, 2517); // if
+    PassPrediction::PassPeeper(2517); // if
     return isAddFoldable(C.Base, C.Index, C.Stride, TTI);
   }
   if (C.CandidateKind == Candidate::GEP) {
-    PassPrediction::PassPeeper(__FILE__, 2518); // if
+    PassPrediction::PassPeeper(2518); // if
     return isGEPFoldable(cast<GetElementPtrInst>(C.Ins), TTI);
   }
   return false;
@@ -274,10 +274,10 @@ bool StraightLineStrengthReduce::isFoldable(const Candidate &C,
 static bool hasOnlyOneNonZeroIndex(GetElementPtrInst *GEP) {
   unsigned NumNonZeroIndices = 0;
   for (auto I = GEP->idx_begin(); I != GEP->idx_end(); ++I) {
-    PassPrediction::PassPeeper(__FILE__, 2519); // for
+    PassPrediction::PassPeeper(2519); // for
     ConstantInt *ConstIdx = dyn_cast<ConstantInt>(*I);
     if (ConstIdx == nullptr || !ConstIdx->isZero()) {
-      PassPrediction::PassPeeper(__FILE__, 2520); // if
+      PassPrediction::PassPeeper(2520); // if
       ++NumNonZeroIndices;
     }
   }
@@ -287,17 +287,17 @@ static bool hasOnlyOneNonZeroIndex(GetElementPtrInst *GEP) {
 bool StraightLineStrengthReduce::isSimplestForm(const Candidate &C) {
   if (C.CandidateKind == Candidate::Add) {
     // B + 1 * S or B + (-1) * S
-    PassPrediction::PassPeeper(__FILE__, 2521); // if
+    PassPrediction::PassPeeper(2521); // if
     return C.Index->isOne() || C.Index->isMinusOne();
   }
   if (C.CandidateKind == Candidate::Mul) {
     // (B + 0) * S
-    PassPrediction::PassPeeper(__FILE__, 2522); // if
+    PassPrediction::PassPeeper(2522); // if
     return C.Index->isZero();
   }
   if (C.CandidateKind == Candidate::GEP) {
     // (char*)B + S or (char*)B - S
-    PassPrediction::PassPeeper(__FILE__, 2523); // if
+    PassPrediction::PassPeeper(2523); // if
     return ((C.Index->isOne() || C.Index->isMinusOne()) &&
             hasOnlyOneNonZeroIndex(cast<GetElementPtrInst>(C.Ins)));
   }
@@ -330,18 +330,18 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasis(
   // won't be rewritten.
   if (!isFoldable(C, TTI, DL) && !isSimplestForm(C)) {
     // Try to compute the immediate basis of C.
-    PassPrediction::PassPeeper(__FILE__, 2524); // if
+    PassPrediction::PassPeeper(2524); // if
     unsigned NumIterations = 0;
     // Limit the scan radius to avoid running in quadratice time.
     static const unsigned MaxNumIterations = 50;
     for (auto Basis = Candidates.rbegin();
          Basis != Candidates.rend() && NumIterations < MaxNumIterations;
          ++Basis, ++NumIterations) {
-      PassPrediction::PassPeeper(__FILE__, 2525); // for
+      PassPrediction::PassPeeper(2525); // for
       if (isBasisFor(*Basis, C)) {
-        PassPrediction::PassPeeper(__FILE__, 2526); // if
+        PassPrediction::PassPeeper(2526); // if
         C.Basis = &(*Basis);
-        PassPrediction::PassPeeper(__FILE__, 2527); // break
+        PassPrediction::PassPeeper(2527); // break
         break;
       }
     }
@@ -355,22 +355,22 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasis(
     Instruction *I) {
   switch (I->getOpcode()) {
   case Instruction::Add:
-    PassPrediction::PassPeeper(__FILE__, 2528); // case
+    PassPrediction::PassPeeper(2528); // case
 
     allocateCandidatesAndFindBasisForAdd(I);
-    PassPrediction::PassPeeper(__FILE__, 2529); // break
+    PassPrediction::PassPeeper(2529); // break
     break;
   case Instruction::Mul:
-    PassPrediction::PassPeeper(__FILE__, 2530); // case
+    PassPrediction::PassPeeper(2530); // case
 
     allocateCandidatesAndFindBasisForMul(I);
-    PassPrediction::PassPeeper(__FILE__, 2531); // break
+    PassPrediction::PassPeeper(2531); // break
     break;
   case Instruction::GetElementPtr:
-    PassPrediction::PassPeeper(__FILE__, 2532); // case
+    PassPrediction::PassPeeper(2532); // case
 
     allocateCandidatesAndFindBasisForGEP(cast<GetElementPtrInst>(I));
-    PassPrediction::PassPeeper(__FILE__, 2533); // break
+    PassPrediction::PassPeeper(2533); // break
     break;
   }
 }
@@ -379,7 +379,7 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForAdd(
     Instruction *I) {
   // Try matching B + i * S.
   if (!isa<IntegerType>(I->getType())) {
-    PassPrediction::PassPeeper(__FILE__, 2534); // if
+    PassPrediction::PassPeeper(2534); // if
     return;
   }
 
@@ -387,7 +387,7 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForAdd(
   Value *LHS = I->getOperand(0), *RHS = I->getOperand(1);
   allocateCandidatesAndFindBasisForAdd(LHS, RHS, I);
   if (LHS != RHS) {
-    PassPrediction::PassPeeper(__FILE__, 2535); // if
+    PassPrediction::PassPeeper(2535); // if
     allocateCandidatesAndFindBasisForAdd(RHS, LHS, I);
   }
 }
@@ -398,17 +398,17 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForAdd(
   ConstantInt *Idx = nullptr;
   if (match(RHS, m_Mul(m_Value(S), m_ConstantInt(Idx)))) {
     // I = LHS + RHS = LHS + Idx * S
-    PassPrediction::PassPeeper(__FILE__, 2536); // if
+    PassPrediction::PassPeeper(2536); // if
     allocateCandidatesAndFindBasis(Candidate::Add, SE->getSCEV(LHS), Idx, S, I);
   } else if (match(RHS, m_Shl(m_Value(S), m_ConstantInt(Idx)))) {
     // I = LHS + RHS = LHS + (S << Idx) = LHS + S * (1 << Idx)
-    PassPrediction::PassPeeper(__FILE__, 2537); // if
+    PassPrediction::PassPeeper(2537); // if
     APInt One(Idx->getBitWidth(), 1);
     Idx = ConstantInt::get(Idx->getContext(), One << Idx->getValue());
     allocateCandidatesAndFindBasis(Candidate::Add, SE->getSCEV(LHS), Idx, S, I);
   } else {
     // At least, I = LHS + 1 * RHS
-    PassPrediction::PassPeeper(__FILE__, 2538); // else
+    PassPrediction::PassPeeper(2538); // else
     ConstantInt *One = ConstantInt::get(cast<IntegerType>(I->getType()), 1);
     allocateCandidatesAndFindBasis(Candidate::Add, SE->getSCEV(LHS), One, RHS,
                                    I);
@@ -434,18 +434,18 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForMul(
   if (matchesAdd(LHS, B, Idx)) {
     // If LHS is in the form of "Base + Index", then I is in the form of
     // "(Base + Index) * RHS".
-    PassPrediction::PassPeeper(__FILE__, 2539); // if
+    PassPrediction::PassPeeper(2539); // if
     allocateCandidatesAndFindBasis(Candidate::Mul, SE->getSCEV(B), Idx, RHS, I);
   } else if (matchesOr(LHS, B, Idx) && haveNoCommonBitsSet(B, Idx, *DL)) {
     // If LHS is in the form of "Base | Index" and Base and Index have no common
     // bits set, then
     //   Base | Index = Base + Index
     // and I is thus in the form of "(Base + Index) * RHS".
-    PassPrediction::PassPeeper(__FILE__, 2540); // if
+    PassPrediction::PassPeeper(2540); // if
     allocateCandidatesAndFindBasis(Candidate::Mul, SE->getSCEV(B), Idx, RHS, I);
   } else {
     // Otherwise, at least try the form (LHS + 0) * RHS.
-    PassPrediction::PassPeeper(__FILE__, 2541); // else
+    PassPrediction::PassPeeper(2541); // else
     ConstantInt *Zero = ConstantInt::get(cast<IntegerType>(I->getType()), 0);
     allocateCandidatesAndFindBasis(Candidate::Mul, SE->getSCEV(LHS), Zero, RHS,
                                    I);
@@ -457,7 +457,7 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForMul(
   // Try matching (B + i) * S.
   // TODO: we could extend SLSR to float and vector types.
   if (!isa<IntegerType>(I->getType())) {
-    PassPrediction::PassPeeper(__FILE__, 2542); // if
+    PassPrediction::PassPeeper(2542); // if
     return;
   }
 
@@ -466,7 +466,7 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForMul(
   allocateCandidatesAndFindBasisForMul(LHS, RHS, I);
   if (LHS != RHS) {
     // Symmetrically, try to split RHS to Base + Index.
-    PassPrediction::PassPeeper(__FILE__, 2543); // if
+    PassPrediction::PassPeeper(2543); // if
     allocateCandidatesAndFindBasisForMul(RHS, LHS, I);
   }
 }
@@ -508,12 +508,12 @@ void StraightLineStrengthReduce::factorArrayIndex(Value *ArrayIdx,
   if (match(ArrayIdx, m_NSWMul(m_Value(LHS), m_ConstantInt(RHS)))) {
     // SLSR is currently unsafe if i * S may overflow.
     // GEP = Base + sext(LHS *nsw RHS) * ElementSize
-    PassPrediction::PassPeeper(__FILE__, 2544); // if
+    PassPrediction::PassPeeper(2544); // if
     allocateCandidatesAndFindBasisForGEP(Base, RHS, LHS, ElementSize, GEP);
   } else if (match(ArrayIdx, m_NSWShl(m_Value(LHS), m_ConstantInt(RHS)))) {
     // GEP = Base + sext(LHS <<nsw RHS) * ElementSize
     //     = Base + sext(LHS *nsw (1 << RHS)) * ElementSize
-    PassPrediction::PassPeeper(__FILE__, 2545); // if
+    PassPrediction::PassPeeper(2545); // if
     APInt One(RHS->getBitWidth(), 1);
     ConstantInt *PowerOf2 =
         ConstantInt::get(RHS->getContext(), One << RHS->getValue());
@@ -525,21 +525,21 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForGEP(
     GetElementPtrInst *GEP) {
   // TODO: handle vector GEPs
   if (GEP->getType()->isVectorTy()) {
-    PassPrediction::PassPeeper(__FILE__, 2546); // if
+    PassPrediction::PassPeeper(2546); // if
     return;
   }
 
   SmallVector<const SCEV *, 4> IndexExprs;
   for (auto I = GEP->idx_begin(); I != GEP->idx_end(); ++I) {
-    PassPrediction::PassPeeper(__FILE__, 2547); // for
+    PassPrediction::PassPeeper(2547); // for
     IndexExprs.push_back(SE->getSCEV(*I));
   }
 
   gep_type_iterator GTI = gep_type_begin(GEP);
   for (unsigned I = 1, E = GEP->getNumOperands(); I != E; ++I, ++GTI) {
-    PassPrediction::PassPeeper(__FILE__, 2548); // for
+    PassPrediction::PassPeeper(2548); // for
     if (GTI.isStruct()) {
-      PassPrediction::PassPeeper(__FILE__, 2549); // if
+      PassPrediction::PassPeeper(2549); // if
       continue;
     }
 
@@ -555,7 +555,7 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForGEP(
         DL->getPointerSizeInBits(GEP->getAddressSpace())) {
       // Skip factoring if ArrayIdx is wider than the pointer size, because
       // ArrayIdx is implicitly truncated to the pointer size.
-      PassPrediction::PassPeeper(__FILE__, 2550); // if
+      PassPrediction::PassPeeper(2550); // if
       factorArrayIndex(ArrayIdx, BaseExpr, ElementSize, GEP);
     }
     // When ArrayIdx is the sext of a value, we try to factor that value as
@@ -567,7 +567,7 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForGEP(
             DL->getPointerSizeInBits(GEP->getAddressSpace())) {
       // Skip factoring if TruncatedArrayIdx is wider than the pointer size,
       // because TruncatedArrayIdx is implicitly truncated to the pointer size.
-      PassPrediction::PassPeeper(__FILE__, 2551); // if
+      PassPrediction::PassPeeper(2551); // if
       factorArrayIndex(TruncatedArrayIdx, BaseExpr, ElementSize, GEP);
     }
 
@@ -578,10 +578,10 @@ void StraightLineStrengthReduce::allocateCandidatesAndFindBasisForGEP(
 // A helper function that unifies the bitwidth of A and B.
 static void unifyBitWidth(APInt &A, APInt &B) {
   if (A.getBitWidth() < B.getBitWidth()) {
-    PassPrediction::PassPeeper(__FILE__, 2552); // if
+    PassPrediction::PassPeeper(2552); // if
     A = A.sext(B.getBitWidth());
   } else if (A.getBitWidth() > B.getBitWidth()) {
-    PassPrediction::PassPeeper(__FILE__, 2553); // if
+    PassPrediction::PassPeeper(2553); // if
     B = B.sext(A.getBitWidth());
   }
 }
@@ -597,7 +597,7 @@ Value *StraightLineStrengthReduce::emitBump(const Candidate &Basis,
 
   BumpWithUglyGEP = false;
   if (Basis.CandidateKind == Candidate::GEP) {
-    PassPrediction::PassPeeper(__FILE__, 2554); // if
+    PassPrediction::PassPeeper(2554); // if
     APInt ElementSize(
         IndexOffset.getBitWidth(),
         DL->getTypeAllocSize(
@@ -605,10 +605,10 @@ Value *StraightLineStrengthReduce::emitBump(const Candidate &Basis,
     APInt Q, R;
     APInt::sdivrem(IndexOffset, ElementSize, Q, R);
     if (R == 0) {
-      PassPrediction::PassPeeper(__FILE__, 2555); // if
+      PassPrediction::PassPeeper(2555); // if
       IndexOffset = Q;
     } else {
-      PassPrediction::PassPeeper(__FILE__, 2556); // else
+      PassPrediction::PassPeeper(2556); // else
       BumpWithUglyGEP = true;
     }
   }
@@ -616,12 +616,12 @@ Value *StraightLineStrengthReduce::emitBump(const Candidate &Basis,
   // Compute Bump = C - Basis = (i' - i) * S.
   // Common case 1: if (i' - i) is 1, Bump = S.
   if (IndexOffset == 1) {
-    PassPrediction::PassPeeper(__FILE__, 2557); // if
+    PassPrediction::PassPeeper(2557); // if
     return C.Stride;
   }
   // Common case 2: if (i' - i) is -1, Bump = -S.
   if (IndexOffset.isAllOnesValue()) {
-    PassPrediction::PassPeeper(__FILE__, 2558); // if
+    PassPrediction::PassPeeper(2558); // if
     return Builder.CreateNeg(C.Stride);
   }
 
@@ -632,13 +632,13 @@ Value *StraightLineStrengthReduce::emitBump(const Candidate &Basis,
   Value *ExtendedStride = Builder.CreateSExtOrTrunc(C.Stride, DeltaType);
   if (IndexOffset.isPowerOf2()) {
     // If (i' - i) is a power of 2, Bump = sext/trunc(S) << log(i' - i).
-    PassPrediction::PassPeeper(__FILE__, 2559); // if
+    PassPrediction::PassPeeper(2559); // if
     ConstantInt *Exponent = ConstantInt::get(DeltaType, IndexOffset.logBase2());
     return Builder.CreateShl(ExtendedStride, Exponent);
   }
   if ((-IndexOffset).isPowerOf2()) {
     // If (i - i') is a power of 2, Bump = -sext/trunc(S) << log(i' - i).
-    PassPrediction::PassPeeper(__FILE__, 2560); // if
+    PassPrediction::PassPeeper(2560); // if
     ConstantInt *Exponent =
         ConstantInt::get(DeltaType, (-IndexOffset).logBase2());
     return Builder.CreateNeg(Builder.CreateShl(ExtendedStride, Exponent));
@@ -660,7 +660,7 @@ void StraightLineStrengthReduce::rewriteCandidateWithBasis(
   // nullptr (i.e. unlink it) so that we can skip the candidates whose
   // instruction is already rewritten.
   if (!C.Ins->getParent()) {
-    PassPrediction::PassPeeper(__FILE__, 2561); // if
+    PassPrediction::PassPeeper(2561); // if
     return;
   }
 
@@ -670,15 +670,15 @@ void StraightLineStrengthReduce::rewriteCandidateWithBasis(
   Value *Reduced = nullptr; // equivalent to but weaker than C.Ins
   switch (C.CandidateKind) {
   case Candidate::Add:
-    PassPrediction::PassPeeper(__FILE__, 2562); // case
+    PassPrediction::PassPeeper(2562); // case
 
   case Candidate::Mul:
-    PassPrediction::PassPeeper(__FILE__, 2563); // case
+    PassPrediction::PassPeeper(2563); // case
 
     // C = Basis + Bump
     if (BinaryOperator::isNeg(Bump)) {
       // If Bump is a neg instruction, emit C = Basis - (-Bump).
-      PassPrediction::PassPeeper(__FILE__, 2564); // if
+      PassPrediction::PassPeeper(2564); // if
       Reduced =
           Builder.CreateSub(Basis.Ins, BinaryOperator::getNegArgument(Bump));
       // We only use the negative argument of Bump, and Bump itself may be
@@ -694,47 +694,47 @@ void StraightLineStrengthReduce::rewriteCandidateWithBasis(
       // Y = X + 2 * INT_MAX
       //
       // Neither + and * in the resultant expression are nsw.
-      PassPrediction::PassPeeper(__FILE__, 2565); // else
+      PassPrediction::PassPeeper(2565); // else
       Reduced = Builder.CreateAdd(Basis.Ins, Bump);
     }
-    PassPrediction::PassPeeper(__FILE__, 2566); // break
+    PassPrediction::PassPeeper(2566); // break
     break;
   case Candidate::GEP:
-    PassPrediction::PassPeeper(__FILE__, 2567); // case
+    PassPrediction::PassPeeper(2567); // case
 
     {
       Type *IntPtrTy = DL->getIntPtrType(C.Ins->getType());
       bool InBounds = cast<GetElementPtrInst>(C.Ins)->isInBounds();
       if (BumpWithUglyGEP) {
         // C = (char *)Basis + Bump
-        PassPrediction::PassPeeper(__FILE__, 2568); // if
+        PassPrediction::PassPeeper(2568); // if
         unsigned AS = Basis.Ins->getType()->getPointerAddressSpace();
         Type *CharTy = Type::getInt8PtrTy(Basis.Ins->getContext(), AS);
         Reduced = Builder.CreateBitCast(Basis.Ins, CharTy);
         if (InBounds) {
-          PassPrediction::PassPeeper(__FILE__, 2570); // if
+          PassPrediction::PassPeeper(2570); // if
           Reduced =
               Builder.CreateInBoundsGEP(Builder.getInt8Ty(), Reduced, Bump);
         } else {
-          PassPrediction::PassPeeper(__FILE__, 2571); // else
+          PassPrediction::PassPeeper(2571); // else
           Reduced = Builder.CreateGEP(Builder.getInt8Ty(), Reduced, Bump);
         }
         Reduced = Builder.CreateBitCast(Reduced, C.Ins->getType());
       } else {
         // C = gep Basis, Bump
         // Canonicalize bump to pointer size.
-        PassPrediction::PassPeeper(__FILE__, 2569); // else
+        PassPrediction::PassPeeper(2569); // else
         Bump = Builder.CreateSExtOrTrunc(Bump, IntPtrTy);
         if (InBounds) {
-          PassPrediction::PassPeeper(__FILE__, 2572); // if
+          PassPrediction::PassPeeper(2572); // if
           Reduced = Builder.CreateInBoundsGEP(nullptr, Basis.Ins, Bump);
         } else {
-          PassPrediction::PassPeeper(__FILE__, 2573); // else
+          PassPrediction::PassPeeper(2573); // else
           Reduced = Builder.CreateGEP(nullptr, Basis.Ins, Bump);
         }
       }
     }
-    PassPrediction::PassPeeper(__FILE__, 2574); // break
+    PassPrediction::PassPeeper(2574); // break
     break;
   default:
     llvm_unreachable("C.CandidateKind is invalid");
@@ -749,7 +749,7 @@ void StraightLineStrengthReduce::rewriteCandidateWithBasis(
 
 bool StraightLineStrengthReduce::runOnFunction(Function &F) {
   if (skipFunction(F)) {
-    PassPrediction::PassPeeper(__FILE__, 2575); // if
+    PassPrediction::PassPeeper(2575); // if
     return false;
   }
 
@@ -759,9 +759,9 @@ bool StraightLineStrengthReduce::runOnFunction(Function &F) {
   // Traverse the dominator tree in the depth-first order. This order makes sure
   // all bases of a candidate are in Candidates when we process it.
   for (const auto Node : depth_first(DT)) {
-    PassPrediction::PassPeeper(__FILE__, 2576); // for-range
+    PassPrediction::PassPeeper(2576); // for-range
     for (auto &I : *(Node->getBlock())) {
-      PassPrediction::PassPeeper(__FILE__, 2577); // for-range
+      PassPrediction::PassPeeper(2577); // for-range
       allocateCandidatesAndFindBasis(&I);
     }
   }
@@ -769,10 +769,10 @@ bool StraightLineStrengthReduce::runOnFunction(Function &F) {
   // Rewrite candidates in the reverse depth-first order. This order makes sure
   // a candidate being rewritten is not a basis for any other candidate.
   while (!Candidates.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 2578); // while
+    PassPrediction::PassPeeper(2578); // while
     const Candidate &C = Candidates.back();
     if (C.Basis != nullptr) {
-      PassPrediction::PassPeeper(__FILE__, 2579); // if
+      PassPrediction::PassPeeper(2579); // if
       rewriteCandidateWithBasis(C, *C.Basis);
     }
     Candidates.pop_back();
@@ -780,9 +780,9 @@ bool StraightLineStrengthReduce::runOnFunction(Function &F) {
 
   // Delete all unlink instructions.
   for (auto *UnlinkedInst : UnlinkedInstructions) {
-    PassPrediction::PassPeeper(__FILE__, 2580); // for-range
+    PassPrediction::PassPeeper(2580); // for-range
     for (unsigned I = 0, E = UnlinkedInst->getNumOperands(); I != E; ++I) {
-      PassPrediction::PassPeeper(__FILE__, 2581); // for
+      PassPrediction::PassPeeper(2581); // for
       Value *Op = UnlinkedInst->getOperand(I);
       UnlinkedInst->setOperand(I, nullptr);
       RecursivelyDeleteTriviallyDeadInstructions(Op);

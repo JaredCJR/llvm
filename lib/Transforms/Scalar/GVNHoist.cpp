@@ -101,11 +101,11 @@ public:
     const BasicBlock *BB = B->getParent();
     unsigned ADFS, BDFS;
     if (BA == BB) {
-      PassPrediction::PassPeeper(__FILE__, 3478); // if
+      PassPrediction::PassPeeper(3478); // if
       ADFS = DFSNumber.lookup(A);
       BDFS = DFSNumber.lookup(B);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3479); // else
+      PassPrediction::PassPeeper(3479); // else
       ADFS = DFSNumber.lookup(BA);
       BDFS = DFSNumber.lookup(BB);
     }
@@ -144,7 +144,7 @@ public:
   // Insert Load and the value number of its memory address in VNtoLoads.
   void insert(LoadInst *Load, GVN::ValueTable &VN) {
     if (Load->isSimple()) {
-      PassPrediction::PassPeeper(__FILE__, 3480); // if
+      PassPrediction::PassPeeper(3480); // if
       unsigned V = VN.lookupOrAdd(Load->getPointerOperand());
       VNtoLoads[{V, InvalidVN}].push_back(Load);
     }
@@ -162,7 +162,7 @@ public:
   // value in VNtoStores.
   void insert(StoreInst *Store, GVN::ValueTable &VN) {
     if (!Store->isSimple()) {
-      PassPrediction::PassPeeper(__FILE__, 3481); // if
+      PassPrediction::PassPeeper(3481); // if
       return;
     }
     // Hash the store address and the stored value.
@@ -190,13 +190,13 @@ public:
     auto Entry = std::make_pair(V, InvalidVN);
 
     if (Call->doesNotAccessMemory()) {
-      PassPrediction::PassPeeper(__FILE__, 3482); // if
+      PassPrediction::PassPeeper(3482); // if
       VNtoCallsScalars[Entry].push_back(Call);
     } else if (Call->onlyReadsMemory()) {
-      PassPrediction::PassPeeper(__FILE__, 3483); // if
+      PassPrediction::PassPeeper(3483); // if
       VNtoCallsLoads[Entry].push_back(Call);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3484); // else
+      PassPrediction::PassPeeper(3484); // else
       VNtoCallsStores[Entry].push_back(Call);
     }
   }
@@ -240,11 +240,11 @@ public:
     // Perform DFS Numbering of instructions.
     unsigned BBI = 0;
     for (const BasicBlock *BB : depth_first(&F.getEntryBlock())) {
-      PassPrediction::PassPeeper(__FILE__, 3485); // for-range
+      PassPrediction::PassPeeper(3485); // for-range
       DFSNumber[BB] = ++BBI;
       unsigned I = 0;
       for (auto &Inst : *BB) {
-        PassPrediction::PassPeeper(__FILE__, 3486); // for-range
+        PassPrediction::PassPeeper(3486); // for-range
         DFSNumber[&Inst] = ++I;
       }
     }
@@ -253,15 +253,15 @@ public:
 
     // FIXME: use lazy evaluation of VN to avoid the fix-point computation.
     while (1) {
-      PassPrediction::PassPeeper(__FILE__, 3487); // while
+      PassPrediction::PassPeeper(3487); // while
       if (MaxChainLength != -1 && ++ChainLength >= MaxChainLength) {
-        PassPrediction::PassPeeper(__FILE__, 3488); // if
+        PassPrediction::PassPeeper(3488); // if
         return Res;
       }
 
       auto HoistStat = hoistExpressions(F);
       if (HoistStat.first + HoistStat.second == 0) {
-        PassPrediction::PassPeeper(__FILE__, 3489); // if
+        PassPrediction::PassPeeper(3489); // if
         return Res;
       }
 
@@ -269,7 +269,7 @@ public:
         // To address a limitation of the current GVN, we need to rerun the
         // hoisting after we hoisted loads or stores in order to be able to
         // hoist all scalars dependent on the hoisted ld/st.
-        PassPrediction::PassPeeper(__FILE__, 3490); // if
+        PassPrediction::PassPeeper(3490); // if
         VN.clear();
       }
 
@@ -298,18 +298,18 @@ private:
   bool hasEH(const BasicBlock *BB) {
     auto It = BBSideEffects.find(BB);
     if (It != BBSideEffects.end()) {
-      PassPrediction::PassPeeper(__FILE__, 3491); // if
+      PassPrediction::PassPeeper(3491); // if
       return It->second;
     }
 
     if (BB->isEHPad() || BB->hasAddressTaken()) {
-      PassPrediction::PassPeeper(__FILE__, 3492); // if
+      PassPrediction::PassPeeper(3492); // if
       BBSideEffects[BB] = true;
       return true;
     }
 
     if (BB->getTerminator()->mayThrow()) {
-      PassPrediction::PassPeeper(__FILE__, 3493); // if
+      PassPrediction::PassPeeper(3493); // if
       BBSideEffects[BB] = true;
       return true;
     }
@@ -321,9 +321,9 @@ private:
   // Return true when a successor of BB dominates A.
   bool successorDominate(const BasicBlock *BB, const BasicBlock *A) {
     for (const BasicBlock *Succ : BB->getTerminator()->successors()) {
-      PassPrediction::PassPeeper(__FILE__, 3494); // for-range
+      PassPrediction::PassPeeper(3494); // for-range
       if (DT->dominates(Succ, A)) {
-        PassPrediction::PassPeeper(__FILE__, 3495); // if
+        PassPrediction::PassPeeper(3495); // if
         return true;
       }
     }
@@ -343,30 +343,30 @@ private:
       // There exists a path from HoistBB to the exit of the function if we are
       // still iterating in DF traversal and we removed all instructions from
       // the work list.
-      PassPrediction::PassPeeper(__FILE__, 3496); // for
+      PassPrediction::PassPeeper(3496); // for
       if (WorkList.empty()) {
-        PassPrediction::PassPeeper(__FILE__, 3497); // if
+        PassPrediction::PassPeeper(3497); // if
         return false;
       }
 
       const BasicBlock *BB = *It;
       if (WorkList.erase(BB)) {
         // Stop DFS traversal when BB is in the work list.
-        PassPrediction::PassPeeper(__FILE__, 3498); // if
+        PassPrediction::PassPeeper(3498); // if
         It.skipChildren();
         continue;
       }
 
       // We reached the leaf Basic Block => not all paths have this instruction.
       if (!BB->getTerminator()->getNumSuccessors()) {
-        PassPrediction::PassPeeper(__FILE__, 3499); // if
+        PassPrediction::PassPeeper(3499); // if
         return false;
       }
 
       // When reaching the back-edge of a loop, there may be a path through the
       // loop that does not pass through B or C before exiting the loop.
       if (successorDominate(BB, HoistBB)) {
-        PassPrediction::PassPeeper(__FILE__, 3500); // if
+        PassPrediction::PassPeeper(3500); // if
         return false;
       }
 
@@ -391,7 +391,7 @@ private:
                     const BasicBlock *BB) {
     const MemorySSA::AccessList *Acc = MSSA->getBlockAccesses(BB);
     if (!Acc) {
-      PassPrediction::PassPeeper(__FILE__, 3501); // if
+      PassPrediction::PassPeeper(3501); // if
       return false;
     }
 
@@ -401,31 +401,31 @@ private:
     bool ReachedNewPt = false;
 
     for (const MemoryAccess &MA : *Acc) {
-      PassPrediction::PassPeeper(__FILE__, 3502); // for-range
+      PassPrediction::PassPeeper(3502); // for-range
       if (const MemoryUse *MU = dyn_cast<MemoryUse>(&MA)) {
-        PassPrediction::PassPeeper(__FILE__, 3503); // if
+        PassPrediction::PassPeeper(3503); // if
         Instruction *Insn = MU->getMemoryInst();
 
         // Do not check whether MU aliases Def when MU occurs after OldPt.
         if (BB == OldBB && firstInBB(OldPt, Insn)) {
-          PassPrediction::PassPeeper(__FILE__, 3504); // if
+          PassPrediction::PassPeeper(3504); // if
           break;
         }
 
         // Do not check whether MU aliases Def when MU occurs before NewPt.
         if (BB == NewBB) {
-          PassPrediction::PassPeeper(__FILE__, 3505); // if
+          PassPrediction::PassPeeper(3505); // if
           if (!ReachedNewPt) {
-            PassPrediction::PassPeeper(__FILE__, 3506); // if
+            PassPrediction::PassPeeper(3506); // if
             if (firstInBB(Insn, NewPt)) {
-              PassPrediction::PassPeeper(__FILE__, 3507); // if
+              PassPrediction::PassPeeper(3507); // if
               continue;
             }
             ReachedNewPt = true;
           }
         }
         if (MemorySSAUtil::defClobbersUseOrDef(Def, MU, *AA)) {
-          PassPrediction::PassPeeper(__FILE__, 3508); // if
+          PassPrediction::PassPeeper(3508); // if
           return true;
         }
       }
@@ -454,24 +454,24 @@ private:
     // executed between the execution of NewBB and OldBB. Hoisting an expression
     // from OldBB into NewBB has to be safe on all execution paths.
     for (auto I = idf_begin(OldBB), E = idf_end(OldBB); I != E;) {
-      PassPrediction::PassPeeper(__FILE__, 3509); // for
+      PassPrediction::PassPeeper(3509); // for
       const BasicBlock *BB = *I;
       if (BB == NewBB) {
         // Stop traversal when reaching HoistPt.
-        PassPrediction::PassPeeper(__FILE__, 3510); // if
+        PassPrediction::PassPeeper(3510); // if
         I.skipChildren();
         continue;
       }
 
       // Stop walk once the limit is reached.
       if (NBBsOnAllPaths == 0) {
-        PassPrediction::PassPeeper(__FILE__, 3511); // if
+        PassPrediction::PassPeeper(3511); // if
         return true;
       }
 
       // Impossible to hoist with exceptions on the path.
       if (hasEH(BB)) {
-        PassPrediction::PassPeeper(__FILE__, 3512); // if
+        PassPrediction::PassPeeper(3512); // if
         return true;
       }
 
@@ -479,19 +479,19 @@ private:
       // selected for hoisting so instructions selected within basic block with
       // a hoist barrier can be hoisted.
       if ((BB != OldBB) && HoistBarrier.count(BB)) {
-        PassPrediction::PassPeeper(__FILE__, 3513); // if
+        PassPrediction::PassPeeper(3513); // if
         return true;
       }
 
       // Check that we do not move a store past loads.
       if (hasMemoryUse(NewPt, Def, BB)) {
-        PassPrediction::PassPeeper(__FILE__, 3514); // if
+        PassPrediction::PassPeeper(3514); // if
         return true;
       }
 
       // -1 is unlimited number of blocks on all paths.
       if (NBBsOnAllPaths != -1) {
-        PassPrediction::PassPeeper(__FILE__, 3515); // if
+        PassPrediction::PassPeeper(3515); // if
         --NBBsOnAllPaths;
       }
 
@@ -515,24 +515,24 @@ private:
     // BBInsn. Hoisting an expression from BBInsn into NewHoistPt has to be safe
     // on all execution paths.
     for (auto I = idf_begin(SrcBB), E = idf_end(SrcBB); I != E;) {
-      PassPrediction::PassPeeper(__FILE__, 3516); // for
+      PassPrediction::PassPeeper(3516); // for
       const BasicBlock *BB = *I;
       if (BB == HoistPt) {
         // Stop traversal when reaching NewHoistPt.
-        PassPrediction::PassPeeper(__FILE__, 3517); // if
+        PassPrediction::PassPeeper(3517); // if
         I.skipChildren();
         continue;
       }
 
       // Stop walk once the limit is reached.
       if (NBBsOnAllPaths == 0) {
-        PassPrediction::PassPeeper(__FILE__, 3518); // if
+        PassPrediction::PassPeeper(3518); // if
         return true;
       }
 
       // Impossible to hoist with exceptions on the path.
       if (hasEH(BB)) {
-        PassPrediction::PassPeeper(__FILE__, 3519); // if
+        PassPrediction::PassPeeper(3519); // if
         return true;
       }
 
@@ -540,13 +540,13 @@ private:
       // selected for hoisting so instructions selected within basic block with
       // a hoist barrier can be hoisted.
       if ((BB != SrcBB) && HoistBarrier.count(BB)) {
-        PassPrediction::PassPeeper(__FILE__, 3520); // if
+        PassPrediction::PassPeeper(3520); // if
         return true;
       }
 
       // -1 is unlimited number of blocks on all paths.
       if (NBBsOnAllPaths != -1) {
-        PassPrediction::PassPeeper(__FILE__, 3521); // if
+        PassPrediction::PassPeeper(3521); // if
         --NBBsOnAllPaths;
       }
 
@@ -563,7 +563,7 @@ private:
 
     // In place hoisting is safe.
     if (NewPt == OldPt) {
-      PassPrediction::PassPeeper(__FILE__, 3522); // if
+      PassPrediction::PassPeeper(3522); // if
       return true;
     }
 
@@ -576,17 +576,17 @@ private:
     BasicBlock *DBB = D->getBlock();
     if (DT->properlyDominates(NewBB, DBB)) {
       // Cannot move the load or store to NewBB above its definition in DBB.
-      PassPrediction::PassPeeper(__FILE__, 3523); // if
+      PassPrediction::PassPeeper(3523); // if
       return false;
     }
 
     if (NewBB == DBB && !MSSA->isLiveOnEntryDef(D)) {
-      PassPrediction::PassPeeper(__FILE__, 3524); // if
+      PassPrediction::PassPeeper(3524); // if
       if (auto *UD = dyn_cast<MemoryUseOrDef>(D)) {
-        PassPrediction::PassPeeper(__FILE__, 3525); // if
+        PassPrediction::PassPeeper(3525); // if
         if (firstInBB(NewPt, UD->getMemoryInst())) {
           // Cannot move the load or store to NewPt above its definition in D.
-          PassPrediction::PassPeeper(__FILE__, 3526); // if
+          PassPrediction::PassPeeper(3526); // if
           return false;
         }
       }
@@ -594,20 +594,20 @@ private:
 
     // Check for unsafe hoistings due to side effects.
     if (K == InsKind::Store) {
-      PassPrediction::PassPeeper(__FILE__, 3527); // if
+      PassPrediction::PassPeeper(3527); // if
       if (hasEHOrLoadsOnPath(NewPt, dyn_cast<MemoryDef>(U), NBBsOnAllPaths)) {
-        PassPrediction::PassPeeper(__FILE__, 3528); // if
+        PassPrediction::PassPeeper(3528); // if
         return false;
       }
     } else if (hasEHOnPath(NewBB, OldBB, NBBsOnAllPaths)) {
-      PassPrediction::PassPeeper(__FILE__, 3529); // if
+      PassPrediction::PassPeeper(3529); // if
       return false;
     }
 
     if (UBB == NewBB) {
-      PassPrediction::PassPeeper(__FILE__, 3530); // if
+      PassPrediction::PassPeeper(3530); // if
       if (DT->properlyDominates(DBB, NewBB)) {
-        PassPrediction::PassPeeper(__FILE__, 3531); // if
+        PassPrediction::PassPeeper(3531); // if
         return true;
       }
       assert(UBB == DBB);
@@ -625,14 +625,14 @@ private:
                          int &NBBsOnAllPaths) {
     // Check that the hoisted expression is needed on all paths.
     if (!hoistingFromAllPaths(HoistBB, WL)) {
-      PassPrediction::PassPeeper(__FILE__, 3532); // if
+      PassPrediction::PassPeeper(3532); // if
       return false;
     }
 
     for (const BasicBlock *BB : WL) {
-      PassPrediction::PassPeeper(__FILE__, 3533); // for-range
+      PassPrediction::PassPeeper(3533); // for-range
       if (hasEHOnPath(HoistBB, BB, NBBsOnAllPaths)) {
-        PassPrediction::PassPeeper(__FILE__, 3534); // if
+        PassPrediction::PassPeeper(3534); // if
         return false;
       }
     }
@@ -653,7 +653,7 @@ private:
                            HoistingPointList &HPL, InsKind K) {
     // No need to sort for two instructions.
     if (InstructionsToHoist.size() > 2) {
-      PassPrediction::PassPeeper(__FILE__, 3535); // if
+      PassPrediction::PassPeeper(3535); // if
       SortByDFSIn Pred(DFSNumber);
       std::sort(InstructionsToHoist.begin(), InstructionsToHoist.end(), Pred);
     }
@@ -666,34 +666,34 @@ private:
     BasicBlock *HoistBB = HoistPt->getParent();
     MemoryUseOrDef *UD;
     if (K != InsKind::Scalar) {
-      PassPrediction::PassPeeper(__FILE__, 3536); // if
+      PassPrediction::PassPeeper(3536); // if
       UD = MSSA->getMemoryAccess(HoistPt);
     }
 
     for (++II; II != InstructionsToHoist.end(); ++II) {
-      PassPrediction::PassPeeper(__FILE__, 3537); // for
+      PassPrediction::PassPeeper(3537); // for
       Instruction *Insn = *II;
       BasicBlock *BB = Insn->getParent();
       BasicBlock *NewHoistBB;
       Instruction *NewHoistPt;
 
-      if (BB == HoistBB) { // Both are in the same Basic Block.
-        PassPrediction::PassPeeper(__FILE__, 3538); // if
+      if (BB == HoistBB) {                // Both are in the same Basic Block.
+        PassPrediction::PassPeeper(3538); // if
         NewHoistBB = HoistBB;
         NewHoistPt = firstInBB(Insn, HoistPt) ? Insn : HoistPt;
       } else {
         // If the hoisting point contains one of the instructions,
         // then hoist there, otherwise hoist before the terminator.
-        PassPrediction::PassPeeper(__FILE__, 3539); // else
+        PassPrediction::PassPeeper(3539); // else
         NewHoistBB = DT->findNearestCommonDominator(HoistBB, BB);
         if (NewHoistBB == BB) {
-          PassPrediction::PassPeeper(__FILE__, 3540); // if
+          PassPrediction::PassPeeper(3540); // if
           NewHoistPt = Insn;
         } else if (NewHoistBB == HoistBB) {
-          PassPrediction::PassPeeper(__FILE__, 3541); // if
+          PassPrediction::PassPeeper(3541); // if
           NewHoistPt = HoistPt;
         } else {
-          PassPrediction::PassPeeper(__FILE__, 3542); // else
+          PassPrediction::PassPeeper(3542); // else
           NewHoistPt = NewHoistBB->getTerminator();
         }
       }
@@ -703,10 +703,10 @@ private:
       WL.insert(BB);
 
       if (K == InsKind::Scalar) {
-        PassPrediction::PassPeeper(__FILE__, 3543); // if
+        PassPrediction::PassPeeper(3543); // if
         if (safeToHoistScalar(NewHoistBB, WL, NumBBsOnAllPaths)) {
           // Extend HoistPt to NewHoistPt.
-          PassPrediction::PassPeeper(__FILE__, 3545); // if
+          PassPrediction::PassPeeper(3545); // if
           HoistPt = NewHoistPt;
           HoistBB = NewHoistBB;
           continue;
@@ -718,7 +718,7 @@ private:
         // unsafe to hoist loads to a place where there may be a path not
         // loading from the same address: for instance there may be a branch on
         // which the address of the load may not be initialized.
-        PassPrediction::PassPeeper(__FILE__, 3544); // else
+        PassPrediction::PassPeeper(3544); // else
         if ((HoistBB == NewHoistBB || BB == NewHoistBB ||
              hoistingFromAllPaths(NewHoistBB, WL)) &&
             // Also check that it is safe to move the load or store from HoistPt
@@ -727,7 +727,7 @@ private:
             safeToHoistLdSt(NewHoistPt, Insn, MSSA->getMemoryAccess(Insn), K,
                             NumBBsOnAllPaths)) {
           // Extend HoistPt to NewHoistPt.
-          PassPrediction::PassPeeper(__FILE__, 3546); // if
+          PassPrediction::PassPeeper(3546); // if
           HoistPt = NewHoistPt;
           HoistBB = NewHoistBB;
           continue;
@@ -737,14 +737,14 @@ private:
       // At this point it is not safe to extend the current hoisting to
       // NewHoistPt: save the hoisting list so far.
       if (std::distance(Start, II) > 1) {
-        PassPrediction::PassPeeper(__FILE__, 3547); // if
+        PassPrediction::PassPeeper(3547); // if
         HPL.push_back({HoistBB, SmallVecInsn(Start, II)});
       }
 
       // Start over from BB.
       Start = II;
       if (K != InsKind::Scalar) {
-        PassPrediction::PassPeeper(__FILE__, 3548); // if
+        PassPrediction::PassPeeper(3548); // if
         UD = MSSA->getMemoryAccess(*Start);
       }
       HoistPt = Insn;
@@ -754,7 +754,7 @@ private:
 
     // Save the last partition.
     if (std::distance(Start, II) > 1) {
-      PassPrediction::PassPeeper(__FILE__, 3549); // if
+      PassPrediction::PassPeeper(3549); // if
       HPL.push_back({HoistBB, SmallVecInsn(Start, II)});
     }
   }
@@ -763,15 +763,15 @@ private:
   void computeInsertionPoints(const VNtoInsns &Map, HoistingPointList &HPL,
                               InsKind K) {
     for (const auto &Entry : Map) {
-      PassPrediction::PassPeeper(__FILE__, 3550); // for-range
+      PassPrediction::PassPeeper(3550); // for-range
       if (MaxHoistedThreshold != -1 && ++HoistedCtr > MaxHoistedThreshold) {
-        PassPrediction::PassPeeper(__FILE__, 3551); // if
+        PassPrediction::PassPeeper(3551); // if
         return;
       }
 
       const SmallVecInsn &V = Entry.second;
       if (V.size() < 2) {
-        PassPrediction::PassPeeper(__FILE__, 3552); // if
+        PassPrediction::PassPeeper(3552); // if
         continue;
       }
 
@@ -780,15 +780,15 @@ private:
       for (auto I : V) {
         // We don't need to check for hoist-barriers here because if
         // I->getParent() is a barrier then I precedes the barrier.
-        PassPrediction::PassPeeper(__FILE__, 3553); // for-range
+        PassPrediction::PassPeeper(3553); // for-range
         if (!hasEH(I->getParent())) {
-          PassPrediction::PassPeeper(__FILE__, 3554); // if
+          PassPrediction::PassPeeper(3554); // if
           InstructionsToHoist.push_back(I);
         }
       }
 
       if (!InstructionsToHoist.empty()) {
-        PassPrediction::PassPeeper(__FILE__, 3555); // if
+        PassPrediction::PassPeeper(3555); // if
         partitionCandidates(InstructionsToHoist, HPL, K);
       }
     }
@@ -801,11 +801,11 @@ private:
   bool allOperandsAvailable(const Instruction *I,
                             const BasicBlock *HoistPt) const {
     for (const Use &Op : I->operands()) {
-      PassPrediction::PassPeeper(__FILE__, 3556); // for-range
+      PassPrediction::PassPeeper(3556); // for-range
       if (const auto *Inst = dyn_cast<Instruction>(&Op)) {
-        PassPrediction::PassPeeper(__FILE__, 3557); // if
+        PassPrediction::PassPeeper(3557); // if
         if (!DT->dominates(Inst->getParent(), HoistPt)) {
-          PassPrediction::PassPeeper(__FILE__, 3558); // if
+          PassPrediction::PassPeeper(3558); // if
           return false;
         }
       }
@@ -818,23 +818,23 @@ private:
   bool allGepOperandsAvailable(const Instruction *I,
                                const BasicBlock *HoistPt) const {
     for (const Use &Op : I->operands()) {
-      PassPrediction::PassPeeper(__FILE__, 3559); // for-range
+      PassPrediction::PassPeeper(3559); // for-range
       if (const auto *Inst = dyn_cast<Instruction>(&Op)) {
-        PassPrediction::PassPeeper(__FILE__, 3560); // if
+        PassPrediction::PassPeeper(3560); // if
         if (!DT->dominates(Inst->getParent(), HoistPt)) {
-          PassPrediction::PassPeeper(__FILE__, 3561); // if
+          PassPrediction::PassPeeper(3561); // if
           if (const GetElementPtrInst *GepOp =
                   dyn_cast<GetElementPtrInst>(Inst)) {
-            PassPrediction::PassPeeper(__FILE__, 3562); // if
+            PassPrediction::PassPeeper(3562); // if
             if (!allGepOperandsAvailable(GepOp, HoistPt)) {
-              PassPrediction::PassPeeper(__FILE__, 3564); // if
+              PassPrediction::PassPeeper(3564); // if
               return false;
             }
             // Gep is available if all operands of GepOp are available.
           } else {
             // Gep is not available if it has operands other than GEPs that are
             // defined in blocks not dominating HoistPt.
-            PassPrediction::PassPeeper(__FILE__, 3563); // else
+            PassPrediction::PassPeeper(3563); // else
             return false;
           }
         }
@@ -852,20 +852,20 @@ private:
 
     Instruction *ClonedGep = Gep->clone();
     for (unsigned i = 0, e = Gep->getNumOperands(); i != e; ++i) {
-      PassPrediction::PassPeeper(__FILE__, 3565); // for
+      PassPrediction::PassPeeper(3565); // for
       if (Instruction *Op = dyn_cast<Instruction>(Gep->getOperand(i))) {
 
         // Check whether the operand is already available.
-        PassPrediction::PassPeeper(__FILE__, 3566); // if
+        PassPrediction::PassPeeper(3566); // if
         if (DT->dominates(Op->getParent(), HoistPt)) {
-          PassPrediction::PassPeeper(__FILE__, 3567); // if
+          PassPrediction::PassPeeper(3567); // if
           continue;
         }
 
         // As a GEP can refer to other GEPs, recursively make all the operands
         // of this GEP available at HoistPt.
         if (GetElementPtrInst *GepOp = dyn_cast<GetElementPtrInst>(Op)) {
-          PassPrediction::PassPeeper(__FILE__, 3568); // if
+          PassPrediction::PassPeeper(3568); // if
           makeGepsAvailable(ClonedGep, HoistPt, InstructionsToHoist, GepOp);
         }
       }
@@ -881,13 +881,13 @@ private:
     // If we have optimization hints which agree with each other along different
     // paths, preserve them.
     for (const Instruction *OtherInst : InstructionsToHoist) {
-      PassPrediction::PassPeeper(__FILE__, 3569); // for-range
+      PassPrediction::PassPeeper(3569); // for-range
       const GetElementPtrInst *OtherGep;
       if (auto *OtherLd = dyn_cast<LoadInst>(OtherInst)) {
-        PassPrediction::PassPeeper(__FILE__, 3570); // if
+        PassPrediction::PassPeeper(3570); // if
         OtherGep = cast<GetElementPtrInst>(OtherLd->getPointerOperand());
       } else {
-        PassPrediction::PassPeeper(__FILE__, 3571); // else
+        PassPrediction::PassPeeper(3571); // else
         OtherGep = cast<GetElementPtrInst>(
             cast<StoreInst>(OtherInst)->getPointerOperand());
       }
@@ -907,24 +907,24 @@ private:
     GetElementPtrInst *Gep = nullptr;
     Instruction *Val = nullptr;
     if (auto *Ld = dyn_cast<LoadInst>(Repl)) {
-      PassPrediction::PassPeeper(__FILE__, 3572); // if
+      PassPrediction::PassPeeper(3572); // if
       Gep = dyn_cast<GetElementPtrInst>(Ld->getPointerOperand());
     } else if (auto *St = dyn_cast<StoreInst>(Repl)) {
-      PassPrediction::PassPeeper(__FILE__, 3573); // if
+      PassPrediction::PassPeeper(3573); // if
       Gep = dyn_cast<GetElementPtrInst>(St->getPointerOperand());
       Val = dyn_cast<Instruction>(St->getValueOperand());
       // Check that the stored value is available.
       if (Val) {
-        PassPrediction::PassPeeper(__FILE__, 3574); // if
+        PassPrediction::PassPeeper(3574); // if
         if (isa<GetElementPtrInst>(Val)) {
           // Check whether we can compute the GEP at HoistPt.
-          PassPrediction::PassPeeper(__FILE__, 3575); // if
+          PassPrediction::PassPeeper(3575); // if
           if (!allGepOperandsAvailable(Val, HoistPt)) {
-            PassPrediction::PassPeeper(__FILE__, 3576); // if
+            PassPrediction::PassPeeper(3576); // if
             return false;
           }
         } else if (!DT->dominates(Val->getParent(), HoistPt)) {
-          PassPrediction::PassPeeper(__FILE__, 3577); // if
+          PassPrediction::PassPeeper(3577); // if
           return false;
         }
       }
@@ -932,14 +932,14 @@ private:
 
     // Check whether we can compute the Gep at HoistPt.
     if (!Gep || !allGepOperandsAvailable(Gep, HoistPt)) {
-      PassPrediction::PassPeeper(__FILE__, 3578); // if
+      PassPrediction::PassPeeper(3578); // if
       return false;
     }
 
     makeGepsAvailable(Repl, HoistPt, InstructionsToHoist, Gep);
 
     if (Val && isa<GetElementPtrInst>(Val)) {
-      PassPrediction::PassPeeper(__FILE__, 3579); // if
+      PassPrediction::PassPeeper(3579); // if
       makeGepsAvailable(Repl, HoistPt, InstructionsToHoist, Val);
     }
 
@@ -951,19 +951,19 @@ private:
     for (const HoistingPointInfo &HP : HPL) {
       // Find out whether we already have one of the instructions in HoistPt,
       // in which case we do not have to move it.
-      PassPrediction::PassPeeper(__FILE__, 3580); // for-range
+      PassPrediction::PassPeeper(3580); // for-range
       BasicBlock *HoistPt = HP.first;
       const SmallVecInsn &InstructionsToHoist = HP.second;
       Instruction *Repl = nullptr;
       for (Instruction *I : InstructionsToHoist) {
-        PassPrediction::PassPeeper(__FILE__, 3581); // for-range
+        PassPrediction::PassPeeper(3581); // for-range
         if (I->getParent() == HoistPt) {
           // If there are two instructions in HoistPt to be hoisted in place:
           // update Repl to be the first one, such that we can rename the uses
           // of the second based on the first.
-          PassPrediction::PassPeeper(__FILE__, 3582); // if
+          PassPrediction::PassPeeper(3582); // if
           if (!Repl || firstInBB(I, Repl)) {
-            PassPrediction::PassPeeper(__FILE__, 3583); // if
+            PassPrediction::PassPeeper(3583); // if
             Repl = I;
           }
         }
@@ -980,7 +980,7 @@ private:
       } else {
         // When we do not find Repl in HoistPt, select the first in the list
         // and move it to HoistPt.
-        PassPrediction::PassPeeper(__FILE__, 3584); // else
+        PassPrediction::PassPeeper(3584); // else
         Repl = InstructionsToHoist.front();
 
         // We can move Repl in HoistPt only when all operands are available.
@@ -990,15 +990,15 @@ private:
 
           // When HoistingGeps there is nothing more we can do to make the
           // operands available: just continue.
-          PassPrediction::PassPeeper(__FILE__, 3585); // if
+          PassPrediction::PassPeeper(3585); // if
           if (HoistingGeps) {
-            PassPrediction::PassPeeper(__FILE__, 3586); // if
+            PassPrediction::PassPeeper(3586); // if
             continue;
           }
 
           // When not HoistingGeps we need to copy the GEPs.
           if (!makeGepOperandsAvailable(Repl, HoistPt, InstructionsToHoist)) {
-            PassPrediction::PassPeeper(__FILE__, 3587); // if
+            PassPrediction::PassPeeper(3587); // if
             continue;
           }
         }
@@ -1014,12 +1014,12 @@ private:
       MemoryAccess *NewMemAcc = MSSA->getMemoryAccess(Repl);
 
       if (MoveAccess) {
-        PassPrediction::PassPeeper(__FILE__, 3588); // if
+        PassPrediction::PassPeeper(3588); // if
         if (MemoryUseOrDef *OldMemAcc =
                 dyn_cast_or_null<MemoryUseOrDef>(NewMemAcc)) {
           // The definition of this ld/st will not change: ld/st hoisting is
           // legal when the ld/st is not moved past its current definition.
-          PassPrediction::PassPeeper(__FILE__, 3589); // if
+          PassPrediction::PassPeeper(3589); // if
           MemoryAccess *Def = OldMemAcc->getDefiningAccess();
           NewMemAcc = MSSAUpdater->createMemoryAccessInBB(Repl, Def, HoistPt,
                                                           MemorySSA::End);
@@ -1029,50 +1029,50 @@ private:
       }
 
       if (isa<LoadInst>(Repl)) {
-        PassPrediction::PassPeeper(__FILE__, 3590); // if
+        PassPrediction::PassPeeper(3590); // if
         ++NL;
       } else if (isa<StoreInst>(Repl)) {
-        PassPrediction::PassPeeper(__FILE__, 3591); // if
+        PassPrediction::PassPeeper(3591); // if
         ++NS;
       } else if (isa<CallInst>(Repl)) {
-        PassPrediction::PassPeeper(__FILE__, 3592); // if
+        PassPrediction::PassPeeper(3592); // if
         ++NC;
-      } else {                                      // Scalar
-        PassPrediction::PassPeeper(__FILE__, 3593); // else
+      } else {                            // Scalar
+        PassPrediction::PassPeeper(3593); // else
         ++NI;
       }
 
       // Remove and rename all other instructions.
       for (Instruction *I : InstructionsToHoist) {
-        PassPrediction::PassPeeper(__FILE__, 3594); // for-range
+        PassPrediction::PassPeeper(3594); // for-range
         if (I != Repl) {
-          PassPrediction::PassPeeper(__FILE__, 3595); // if
+          PassPrediction::PassPeeper(3595); // if
           ++NR;
           if (auto *ReplacementLoad = dyn_cast<LoadInst>(Repl)) {
-            PassPrediction::PassPeeper(__FILE__, 3596); // if
+            PassPrediction::PassPeeper(3596); // if
             ReplacementLoad->setAlignment(
                 std::min(ReplacementLoad->getAlignment(),
                          cast<LoadInst>(I)->getAlignment()));
             ++NumLoadsRemoved;
           } else if (auto *ReplacementStore = dyn_cast<StoreInst>(Repl)) {
-            PassPrediction::PassPeeper(__FILE__, 3597); // if
+            PassPrediction::PassPeeper(3597); // if
             ReplacementStore->setAlignment(
                 std::min(ReplacementStore->getAlignment(),
                          cast<StoreInst>(I)->getAlignment()));
             ++NumStoresRemoved;
           } else if (auto *ReplacementAlloca = dyn_cast<AllocaInst>(Repl)) {
-            PassPrediction::PassPeeper(__FILE__, 3598); // if
+            PassPrediction::PassPeeper(3598); // if
             ReplacementAlloca->setAlignment(
                 std::max(ReplacementAlloca->getAlignment(),
                          cast<AllocaInst>(I)->getAlignment()));
           } else if (isa<CallInst>(Repl)) {
-            PassPrediction::PassPeeper(__FILE__, 3599); // if
+            PassPrediction::PassPeeper(3599); // if
             ++NumCallsRemoved;
           }
 
           if (NewMemAcc) {
             // Update the uses of the old MSSA access with NewMemAcc.
-            PassPrediction::PassPeeper(__FILE__, 3600); // if
+            PassPrediction::PassPeeper(3600); // if
             MemoryAccess *OldMA = MSSA->getMemoryAccess(I);
             OldMA->replaceAllUsesWith(NewMemAcc);
             MSSAUpdater->removeMemoryAccess(OldMA);
@@ -1089,21 +1089,21 @@ private:
 
       // Remove MemorySSA phi nodes with the same arguments.
       if (NewMemAcc) {
-        PassPrediction::PassPeeper(__FILE__, 3601); // if
+        PassPrediction::PassPeeper(3601); // if
         SmallPtrSet<MemoryPhi *, 4> UsePhis;
         for (User *U : NewMemAcc->users()) {
-          PassPrediction::PassPeeper(__FILE__, 3602); // for-range
+          PassPrediction::PassPeeper(3602); // for-range
           if (MemoryPhi *Phi = dyn_cast<MemoryPhi>(U)) {
-            PassPrediction::PassPeeper(__FILE__, 3603); // if
+            PassPrediction::PassPeeper(3603); // if
             UsePhis.insert(Phi);
           }
         }
 
         for (auto *Phi : UsePhis) {
-          PassPrediction::PassPeeper(__FILE__, 3604); // for-range
+          PassPrediction::PassPeeper(3604); // for-range
           auto In = Phi->incoming_values();
           if (all_of(In, [&](Use &U) { return U == NewMemAcc; })) {
-            PassPrediction::PassPeeper(__FILE__, 3605); // if
+            PassPrediction::PassPeeper(3605); // if
             Phi->replaceAllUsesWith(NewMemAcc);
             MSSAUpdater->removeMemoryAccess(Phi);
           }
@@ -1127,54 +1127,54 @@ private:
     StoreInfo SI;
     CallInfo CI;
     for (BasicBlock *BB : depth_first(&F.getEntryBlock())) {
-      PassPrediction::PassPeeper(__FILE__, 3606); // for-range
+      PassPrediction::PassPeeper(3606); // for-range
       int InstructionNb = 0;
       for (Instruction &I1 : *BB) {
         // If I1 cannot guarantee progress, subsequent instructions
         // in BB cannot be hoisted anyways.
-        PassPrediction::PassPeeper(__FILE__, 3607); // for-range
+        PassPrediction::PassPeeper(3607); // for-range
         if (!isGuaranteedToTransferExecutionToSuccessor(&I1)) {
-          PassPrediction::PassPeeper(__FILE__, 3608); // if
+          PassPrediction::PassPeeper(3608); // if
           HoistBarrier.insert(BB);
-          PassPrediction::PassPeeper(__FILE__, 3609); // break
+          PassPrediction::PassPeeper(3609); // break
           break;
         }
         // Only hoist the first instructions in BB up to MaxDepthInBB. Hoisting
         // deeper may increase the register pressure and compilation time.
         if (MaxDepthInBB != -1 && InstructionNb++ >= MaxDepthInBB) {
-          PassPrediction::PassPeeper(__FILE__, 3610); // if
+          PassPrediction::PassPeeper(3610); // if
           break;
         }
 
         // Do not value number terminator instructions.
         if (isa<TerminatorInst>(&I1)) {
-          PassPrediction::PassPeeper(__FILE__, 3611); // if
+          PassPrediction::PassPeeper(3611); // if
           break;
         }
 
         if (auto *Load = dyn_cast<LoadInst>(&I1)) {
-          PassPrediction::PassPeeper(__FILE__, 3612); // if
+          PassPrediction::PassPeeper(3612); // if
           LI.insert(Load, VN);
         } else if (auto *Store = dyn_cast<StoreInst>(&I1)) {
-          PassPrediction::PassPeeper(__FILE__, 3613); // if
+          PassPrediction::PassPeeper(3613); // if
           SI.insert(Store, VN);
         } else if (auto *Call = dyn_cast<CallInst>(&I1)) {
-          PassPrediction::PassPeeper(__FILE__, 3614); // if
+          PassPrediction::PassPeeper(3614); // if
           if (auto *Intr = dyn_cast<IntrinsicInst>(Call)) {
-            PassPrediction::PassPeeper(__FILE__, 3615); // if
+            PassPrediction::PassPeeper(3615); // if
             if (isa<DbgInfoIntrinsic>(Intr) ||
                 Intr->getIntrinsicID() == Intrinsic::assume) {
-              PassPrediction::PassPeeper(__FILE__, 3616); // if
+              PassPrediction::PassPeeper(3616); // if
               continue;
             }
           }
           if (Call->mayHaveSideEffects()) {
-            PassPrediction::PassPeeper(__FILE__, 3617); // if
+            PassPrediction::PassPeeper(3617); // if
             break;
           }
 
           if (Call->isConvergent()) {
-            PassPrediction::PassPeeper(__FILE__, 3618); // if
+            PassPrediction::PassPeeper(3618); // if
             break;
           }
 
@@ -1184,7 +1184,7 @@ private:
           // that could result in spills later. geps are handled separately.
           // TODO: We can relax this for targets like AArch64 as they have more
           // registers than X86.
-          PassPrediction::PassPeeper(__FILE__, 3619); // if
+          PassPrediction::PassPeeper(3619); // if
           II.insert(&I1, VN);
         }
       }
@@ -1211,7 +1211,7 @@ public:
 
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 3620); // if
+      PassPrediction::PassPeeper(3620); // if
       return false;
     }
     auto &DT = getAnalysis<DominatorTreeWrapperPass>().getDomTree();
@@ -1242,7 +1242,7 @@ PreservedAnalyses GVNHoistPass::run(Function &F, FunctionAnalysisManager &AM) {
   MemorySSA &MSSA = AM.getResult<MemorySSAAnalysis>(F).getMSSA();
   GVNHoist G(&DT, &AA, &MD, &MSSA);
   if (!G.run(F)) {
-    PassPrediction::PassPeeper(__FILE__, 3621); // if
+    PassPrediction::PassPeeper(3621); // if
     return PreservedAnalyses::all();
   }
 

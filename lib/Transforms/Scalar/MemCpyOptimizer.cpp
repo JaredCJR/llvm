@@ -71,27 +71,27 @@ static int64_t GetOffsetFromIndex(const GEPOperator *GEP, unsigned Idx,
   // Skip over the first indices.
   gep_type_iterator GTI = gep_type_begin(GEP);
   for (unsigned i = 1; i != Idx; ++i, ++GTI) {
-    /*skip along*/ PassPrediction::PassPeeper(__FILE__, 3926); // for
+    /*skip along*/ PassPrediction::PassPeeper(3926); // for
     ;
   }
 
   // Compute the offset implied by the rest of the indices.
   int64_t Offset = 0;
   for (unsigned i = Idx, e = GEP->getNumOperands(); i != e; ++i, ++GTI) {
-    PassPrediction::PassPeeper(__FILE__, 3927); // for
+    PassPrediction::PassPeeper(3927); // for
     ConstantInt *OpC = dyn_cast<ConstantInt>(GEP->getOperand(i));
     if (!OpC) {
-      PassPrediction::PassPeeper(__FILE__, 3928); // if
+      PassPrediction::PassPeeper(3928); // if
       return VariableIdxFound = true;
     }
     if (OpC->isZero()) {
-      PassPrediction::PassPeeper(__FILE__, 3929); // if
-      continue;                                   // No offset.
+      PassPrediction::PassPeeper(3929); // if
+      continue;                         // No offset.
     }
 
     // Handle struct indices, which add their field offset to the pointer.
     if (StructType *STy = GTI.getStructTypeOrNull()) {
-      PassPrediction::PassPeeper(__FILE__, 3930); // if
+      PassPrediction::PassPeeper(3930); // if
       Offset += DL.getStructLayout(STy)->getElementOffset(OpC->getZExtValue());
       continue;
     }
@@ -115,7 +115,7 @@ static bool IsPointerOffset(Value *Ptr1, Value *Ptr2, int64_t &Offset,
 
   // Handle the trivial case first.
   if (Ptr1 == Ptr2) {
-    PassPrediction::PassPeeper(__FILE__, 3931); // if
+    PassPrediction::PassPeeper(3931); // if
     Offset = 0;
     return true;
   }
@@ -128,13 +128,13 @@ static bool IsPointerOffset(Value *Ptr1, Value *Ptr2, int64_t &Offset,
   // If one pointer is a GEP and the other isn't, then see if the GEP is a
   // constant offset from the base, as in "P" and "gep P, 1".
   if (GEP1 && !GEP2 && GEP1->getOperand(0)->stripPointerCasts() == Ptr2) {
-    PassPrediction::PassPeeper(__FILE__, 3932); // if
+    PassPrediction::PassPeeper(3932); // if
     Offset = -GetOffsetFromIndex(GEP1, 1, VariableIdxFound, DL);
     return !VariableIdxFound;
   }
 
   if (GEP2 && !GEP1 && GEP2->getOperand(0)->stripPointerCasts() == Ptr1) {
-    PassPrediction::PassPeeper(__FILE__, 3933); // if
+    PassPrediction::PassPeeper(3933); // if
     Offset = GetOffsetFromIndex(GEP2, 1, VariableIdxFound, DL);
     return !VariableIdxFound;
   }
@@ -145,7 +145,7 @@ static bool IsPointerOffset(Value *Ptr1, Value *Ptr2, int64_t &Offset,
   // offset, which determines their offset from each other.  At this point, we
   // handle no other case.
   if (!GEP1 || !GEP2 || GEP1->getOperand(0) != GEP2->getOperand(0)) {
-    PassPrediction::PassPeeper(__FILE__, 3934); // if
+    PassPrediction::PassPeeper(3934); // if
     return false;
   }
 
@@ -153,9 +153,9 @@ static bool IsPointerOffset(Value *Ptr1, Value *Ptr2, int64_t &Offset,
   unsigned Idx = 1;
   for (; Idx != GEP1->getNumOperands() && Idx != GEP2->getNumOperands();
        ++Idx) {
-    PassPrediction::PassPeeper(__FILE__, 3935); // for
+    PassPrediction::PassPeeper(3935); // for
     if (GEP1->getOperand(Idx) != GEP2->getOperand(Idx)) {
-      PassPrediction::PassPeeper(__FILE__, 3936); // if
+      PassPrediction::PassPeeper(3936); // if
       break;
     }
   }
@@ -163,7 +163,7 @@ static bool IsPointerOffset(Value *Ptr1, Value *Ptr2, int64_t &Offset,
   int64_t Offset1 = GetOffsetFromIndex(GEP1, Idx, VariableIdxFound, DL);
   int64_t Offset2 = GetOffsetFromIndex(GEP2, Idx, VariableIdxFound, DL);
   if (VariableIdxFound) {
-    PassPrediction::PassPeeper(__FILE__, 3937); // if
+    PassPrediction::PassPeeper(3937); // if
     return false;
   }
 
@@ -206,22 +206,22 @@ struct MemsetRange {
 bool MemsetRange::isProfitableToUseMemset(const DataLayout &DL) const {
   // If we found more than 4 stores to merge or 16 bytes, use memset.
   if (TheStores.size() >= 4 || End - Start >= 16) {
-    PassPrediction::PassPeeper(__FILE__, 3938); // if
+    PassPrediction::PassPeeper(3938); // if
     return true;
   }
 
   // If there is nothing to merge, don't do anything.
   if (TheStores.size() < 2) {
-    PassPrediction::PassPeeper(__FILE__, 3939); // if
+    PassPrediction::PassPeeper(3939); // if
     return false;
   }
 
   // If any of the stores are a memset, then it is always good to extend the
   // memset.
   for (Instruction *SI : TheStores) {
-    PassPrediction::PassPeeper(__FILE__, 3940); // for-range
+    PassPrediction::PassPeeper(3940); // for-range
     if (!isa<StoreInst>(SI)) {
-      PassPrediction::PassPeeper(__FILE__, 3941); // if
+      PassPrediction::PassPeeper(3941); // if
       return true;
     }
   }
@@ -229,7 +229,7 @@ bool MemsetRange::isProfitableToUseMemset(const DataLayout &DL) const {
   // Assume that the code generator is capable of merging pairs of stores
   // together if it wants to.
   if (TheStores.size() == 2) {
-    PassPrediction::PassPeeper(__FILE__, 3942); // if
+    PassPrediction::PassPeeper(3942); // if
     return false;
   }
 
@@ -246,7 +246,7 @@ bool MemsetRange::isProfitableToUseMemset(const DataLayout &DL) const {
   unsigned Bytes = unsigned(End - Start);
   unsigned MaxIntSize = DL.getLargestLegalIntTypeSizeInBits() / 8;
   if (MaxIntSize == 0) {
-    PassPrediction::PassPeeper(__FILE__, 3943); // if
+    PassPrediction::PassPeeper(3943); // if
     MaxIntSize = 1;
   }
   unsigned NumPointerStores = Bytes / MaxIntSize;
@@ -278,10 +278,10 @@ public:
 
   void addInst(int64_t OffsetFromFirst, Instruction *Inst) {
     if (StoreInst *SI = dyn_cast<StoreInst>(Inst)) {
-      PassPrediction::PassPeeper(__FILE__, 3944); // if
+      PassPrediction::PassPeeper(3944); // if
       addStore(OffsetFromFirst, SI);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3945); // else
+      PassPrediction::PassPeeper(3945); // else
       addMemSet(OffsetFromFirst, cast<MemSetInst>(Inst));
     }
   }
@@ -319,7 +319,7 @@ void MemsetRanges::addRange(int64_t Start, int64_t Size, Value *Ptr,
   // with, or that Start <= I->End.  If End < I->Start or I == E, then we need
   // to insert a new range.  Handle this now.
   if (I == Ranges.end() || End < I->Start) {
-    PassPrediction::PassPeeper(__FILE__, 3946); // if
+    PassPrediction::PassPeeper(3946); // if
     MemsetRange &R = *Ranges.insert(I, MemsetRange());
     R.Start = Start;
     R.End = End;
@@ -335,7 +335,7 @@ void MemsetRanges::addRange(int64_t Start, int64_t Size, Value *Ptr,
   // At this point, we may have an interval that completely contains our store.
   // If so, just add it to the interval and return.
   if (I->Start <= Start && I->End >= End) {
-    PassPrediction::PassPeeper(__FILE__, 3947); // if
+    PassPrediction::PassPeeper(3947); // if
     return;
   }
 
@@ -346,7 +346,7 @@ void MemsetRanges::addRange(int64_t Start, int64_t Size, Value *Ptr,
   // possibly cause it to join the prior range, because otherwise we would have
   // stopped on *it*.
   if (Start < I->Start) {
-    PassPrediction::PassPeeper(__FILE__, 3948); // if
+    PassPrediction::PassPeeper(3948); // if
     I->Start = Start;
     I->StartPtr = Ptr;
     I->Alignment = Alignment;
@@ -356,15 +356,15 @@ void MemsetRanges::addRange(int64_t Start, int64_t Size, Value *Ptr,
   // is in or right at the end of I), and that End >= I->Start.  Extend I out to
   // End.
   if (End > I->End) {
-    PassPrediction::PassPeeper(__FILE__, 3949); // if
+    PassPrediction::PassPeeper(3949); // if
     I->End = End;
     range_iterator NextI = I;
     while (++NextI != Ranges.end() && End >= NextI->Start) {
       // Merge the range in.
-      PassPrediction::PassPeeper(__FILE__, 3950); // while
+      PassPrediction::PassPeeper(3950); // while
       I->TheStores.append(NextI->TheStores.begin(), NextI->TheStores.end());
       if (NextI->End > I->End) {
-        PassPrediction::PassPeeper(__FILE__, 3951); // if
+        PassPrediction::PassPeeper(3951); // if
         I->End = NextI->End;
       }
       Ranges.erase(NextI);
@@ -440,14 +440,14 @@ Instruction *MemCpyOptPass::tryMergingIntoMemset(Instruction *StartInst,
 
   BasicBlock::iterator BI(StartInst);
   for (++BI; !isa<TerminatorInst>(BI); ++BI) {
-    PassPrediction::PassPeeper(__FILE__, 3952); // for
+    PassPrediction::PassPeeper(3952); // for
     if (!isa<StoreInst>(BI) && !isa<MemSetInst>(BI)) {
       // If the instruction is readnone, ignore it, otherwise bail out.  We
       // don't even allow readonly here because we don't want something like:
       // A[1] = 2; strlen(A); A[2] = 2; -> memcpy(A, ...); strlen(A).
-      PassPrediction::PassPeeper(__FILE__, 3953); // if
+      PassPrediction::PassPeeper(3953); // if
       if (BI->mayWriteToMemory() || BI->mayReadFromMemory()) {
-        PassPrediction::PassPeeper(__FILE__, 3954); // if
+        PassPrediction::PassPeeper(3954); // if
         break;
       }
       continue;
@@ -455,14 +455,14 @@ Instruction *MemCpyOptPass::tryMergingIntoMemset(Instruction *StartInst,
 
     if (StoreInst *NextStore = dyn_cast<StoreInst>(BI)) {
       // If this is a store, see if we can merge it in.
-      PassPrediction::PassPeeper(__FILE__, 3955); // if
+      PassPrediction::PassPeeper(3955); // if
       if (!NextStore->isSimple()) {
         break;
       }
 
       // Check to see if this stored value is of the same byte-splattable value.
       if (ByteVal != isBytewiseValue(NextStore->getOperand(0))) {
-        PassPrediction::PassPeeper(__FILE__, 3957); // if
+        PassPrediction::PassPeeper(3957); // if
         break;
       }
 
@@ -470,25 +470,25 @@ Instruction *MemCpyOptPass::tryMergingIntoMemset(Instruction *StartInst,
       int64_t Offset;
       if (!IsPointerOffset(StartPtr, NextStore->getPointerOperand(), Offset,
                            DL)) {
-        PassPrediction::PassPeeper(__FILE__, 3958); // if
+        PassPrediction::PassPeeper(3958); // if
         break;
       }
 
       Ranges.addStore(Offset, NextStore);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3956); // else
+      PassPrediction::PassPeeper(3956); // else
       MemSetInst *MSI = cast<MemSetInst>(BI);
 
       if (MSI->isVolatile() || ByteVal != MSI->getValue() ||
           !isa<ConstantInt>(MSI->getLength())) {
-        PassPrediction::PassPeeper(__FILE__, 3959); // if
+        PassPrediction::PassPeeper(3959); // if
         break;
       }
 
       // Check to see if this store is to a constant offset from the start ptr.
       int64_t Offset;
       if (!IsPointerOffset(StartPtr, MSI->getDest(), Offset, DL)) {
-        PassPrediction::PassPeeper(__FILE__, 3960); // if
+        PassPrediction::PassPeeper(3960); // if
         break;
       }
 
@@ -499,7 +499,7 @@ Instruction *MemCpyOptPass::tryMergingIntoMemset(Instruction *StartInst,
   // If we have no ranges, then we just had a single store with nothing that
   // could be merged in.  This is a very common case of course.
   if (Ranges.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 3961); // if
+    PassPrediction::PassPeeper(3961); // if
     return nullptr;
   }
 
@@ -518,14 +518,14 @@ Instruction *MemCpyOptPass::tryMergingIntoMemset(Instruction *StartInst,
   Instruction *AMemSet = nullptr;
   for (const MemsetRange &Range : Ranges) {
 
-    PassPrediction::PassPeeper(__FILE__, 3962); // for-range
+    PassPrediction::PassPeeper(3962); // for-range
     if (Range.TheStores.size() == 1) {
       continue;
     }
 
     // If it is profitable to lower this range to memset, do so now.
     if (!Range.isProfitableToUseMemset(DL)) {
-      PassPrediction::PassPeeper(__FILE__, 3963); // if
+      PassPrediction::PassPeeper(3963); // if
       continue;
     }
 
@@ -536,7 +536,7 @@ Instruction *MemCpyOptPass::tryMergingIntoMemset(Instruction *StartInst,
     // Determine alignment
     unsigned Alignment = Range.Alignment;
     if (Alignment == 0) {
-      PassPrediction::PassPeeper(__FILE__, 3964); // if
+      PassPrediction::PassPeeper(3964); // if
       Type *EltType = cast<PointerType>(StartPtr->getType())->getElementType();
       Alignment = DL.getABITypeAlignment(EltType);
     }
@@ -551,13 +551,13 @@ Instruction *MemCpyOptPass::tryMergingIntoMemset(Instruction *StartInst,
              << *AMemSet << '\n');
 
     if (!Range.TheStores.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 3965); // if
+      PassPrediction::PassPeeper(3965); // if
       AMemSet->setDebugLoc(Range.TheStores[0]->getDebugLoc());
     }
 
     // Zap all the stores.
     for (Instruction *SI : Range.TheStores) {
-      PassPrediction::PassPeeper(__FILE__, 3966); // for-range
+      PassPrediction::PassPeeper(3966); // for-range
       MD->removeInstruction(SI);
       SI->eraseFromParent();
     }
@@ -571,12 +571,12 @@ static unsigned findCommonAlignment(const DataLayout &DL, const StoreInst *SI,
                                     const LoadInst *LI) {
   unsigned StoreAlign = SI->getAlignment();
   if (!StoreAlign) {
-    PassPrediction::PassPeeper(__FILE__, 3967); // if
+    PassPrediction::PassPeeper(3967); // if
     StoreAlign = DL.getABITypeAlignment(SI->getOperand(0)->getType());
   }
   unsigned LoadAlign = LI->getAlignment();
   if (!LoadAlign) {
-    PassPrediction::PassPeeper(__FILE__, 3968); // if
+    PassPrediction::PassPeeper(3968); // if
     LoadAlign = DL.getABITypeAlignment(LI->getType());
   }
 
@@ -592,7 +592,7 @@ static bool moveUp(AliasAnalysis &AA, StoreInst *SI, Instruction *P,
   // If the store alias this position, early bail out.
   MemoryLocation StoreLoc = MemoryLocation::get(SI);
   if (AA.getModRefInfo(P, StoreLoc) != MRI_NoModRef) {
-    PassPrediction::PassPeeper(__FILE__, 3969); // if
+    PassPrediction::PassPeeper(3969); // if
     return false;
   }
 
@@ -600,9 +600,9 @@ static bool moveUp(AliasAnalysis &AA, StoreInst *SI, Instruction *P,
   // so we can make sure to lift them as well if apropriate.
   DenseSet<Instruction *> Args;
   if (auto *Ptr = dyn_cast<Instruction>(SI->getPointerOperand())) {
-    PassPrediction::PassPeeper(__FILE__, 3970); // if
+    PassPrediction::PassPeeper(3970); // if
     if (Ptr->getParent() == SI->getParent()) {
-      PassPrediction::PassPeeper(__FILE__, 3971); // if
+      PassPrediction::PassPeeper(3971); // if
       Args.insert(Ptr);
     }
   }
@@ -619,23 +619,23 @@ static bool moveUp(AliasAnalysis &AA, StoreInst *SI, Instruction *P,
   const MemoryLocation LoadLoc = MemoryLocation::get(LI);
 
   for (auto I = --SI->getIterator(), E = P->getIterator(); I != E; --I) {
-    PassPrediction::PassPeeper(__FILE__, 3972); // for
+    PassPrediction::PassPeeper(3972); // for
     auto *C = &*I;
 
     bool MayAlias = AA.getModRefInfo(C) != MRI_NoModRef;
 
     bool NeedLift = false;
     if (Args.erase(C)) {
-      PassPrediction::PassPeeper(__FILE__, 3973); // if
+      PassPrediction::PassPeeper(3973); // if
       NeedLift = true;
     } else if (MayAlias) {
-      PassPrediction::PassPeeper(__FILE__, 3974); // if
+      PassPrediction::PassPeeper(3974); // if
       NeedLift = llvm::any_of(MemLocs, [C, &AA](const MemoryLocation &ML) {
         return AA.getModRefInfo(C, ML);
       });
 
       if (!NeedLift) {
-        PassPrediction::PassPeeper(__FILE__, 3975); // if
+        PassPrediction::PassPeeper(3975); // if
         NeedLift =
             llvm::any_of(CallSites, [C, &AA](const ImmutableCallSite &CS) {
               return AA.getModRefInfo(C, CS);
@@ -644,50 +644,50 @@ static bool moveUp(AliasAnalysis &AA, StoreInst *SI, Instruction *P,
     }
 
     if (!NeedLift) {
-      PassPrediction::PassPeeper(__FILE__, 3976); // if
+      PassPrediction::PassPeeper(3976); // if
       continue;
     }
 
     if (MayAlias) {
       // Since LI is implicitly moved downwards past the lifted instructions,
       // none of them may modify its source.
-      PassPrediction::PassPeeper(__FILE__, 3977); // if
+      PassPrediction::PassPeeper(3977); // if
       if (AA.getModRefInfo(C, LoadLoc) & MRI_Mod) {
-        PassPrediction::PassPeeper(__FILE__, 3978); // if
+        PassPrediction::PassPeeper(3978); // if
         return false;
       } else if (auto CS = ImmutableCallSite(C)) {
         // If we can't lift this before P, it's game over.
-        PassPrediction::PassPeeper(__FILE__, 3979); // if
+        PassPrediction::PassPeeper(3979); // if
         if (AA.getModRefInfo(P, CS) != MRI_NoModRef) {
-          PassPrediction::PassPeeper(__FILE__, 3980); // if
+          PassPrediction::PassPeeper(3980); // if
           return false;
         }
 
         CallSites.push_back(CS);
       } else if (isa<LoadInst>(C) || isa<StoreInst>(C) || isa<VAArgInst>(C)) {
         // If we can't lift this before P, it's game over.
-        PassPrediction::PassPeeper(__FILE__, 3981); // if
+        PassPrediction::PassPeeper(3981); // if
         auto ML = MemoryLocation::get(C);
         if (AA.getModRefInfo(P, ML) != MRI_NoModRef) {
-          PassPrediction::PassPeeper(__FILE__, 3983); // if
+          PassPrediction::PassPeeper(3983); // if
           return false;
         }
 
         MemLocs.push_back(ML);
       } else {
         // We don't know how to lift this instruction.
-        PassPrediction::PassPeeper(__FILE__, 3982); // else
+        PassPrediction::PassPeeper(3982); // else
         return false;
       }
     }
 
     ToLift.push_back(C);
     for (unsigned k = 0, e = C->getNumOperands(); k != e; ++k) {
-      PassPrediction::PassPeeper(__FILE__, 3984); // for
+      PassPrediction::PassPeeper(3984); // for
       if (auto *A = dyn_cast<Instruction>(C->getOperand(k))) {
-        PassPrediction::PassPeeper(__FILE__, 3985); // if
+        PassPrediction::PassPeeper(3985); // if
         if (A->getParent() == SI->getParent()) {
-          PassPrediction::PassPeeper(__FILE__, 3986); // if
+          PassPrediction::PassPeeper(3986); // if
           Args.insert(A);
         }
       }
@@ -705,7 +705,7 @@ static bool moveUp(AliasAnalysis &AA, StoreInst *SI, Instruction *P,
 
 bool MemCpyOptPass::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
   if (!SI->isSimple()) {
-    PassPrediction::PassPeeper(__FILE__, 3987); // if
+    PassPrediction::PassPeeper(3987); // if
     return false;
   }
 
@@ -716,7 +716,7 @@ bool MemCpyOptPass::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
   // conservatively expand !nontemporal memset calls back to sequences of
   // store instructions (effectively undoing the merging).
   if (SI->getMetadata(LLVMContext::MD_nontemporal)) {
-    PassPrediction::PassPeeper(__FILE__, 3988); // if
+    PassPrediction::PassPeeper(3988); // if
     return false;
   }
 
@@ -724,14 +724,14 @@ bool MemCpyOptPass::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
 
   // Load to store forwarding can be interpreted as memcpy.
   if (LoadInst *LI = dyn_cast<LoadInst>(SI->getOperand(0))) {
-    PassPrediction::PassPeeper(__FILE__, 3989); // if
+    PassPrediction::PassPeeper(3989); // if
     if (LI->isSimple() && LI->hasOneUse() &&
         LI->getParent() == SI->getParent()) {
 
-      PassPrediction::PassPeeper(__FILE__, 3990); // if
+      PassPrediction::PassPeeper(3990); // if
       auto *T = LI->getType();
       if (T->isAggregateType()) {
-        PassPrediction::PassPeeper(__FILE__, 3991); // if
+        PassPrediction::PassPeeper(3991); // if
         AliasAnalysis &AA = LookupAliasAnalysis();
         MemoryLocation LoadLoc = MemoryLocation::get(LI);
 
@@ -741,11 +741,11 @@ bool MemCpyOptPass::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
         // of at the store position.
         Instruction *P = SI;
         for (auto &I : make_range(++LI->getIterator(), SI->getIterator())) {
-          PassPrediction::PassPeeper(__FILE__, 3992); // for-range
+          PassPrediction::PassPeeper(3992); // for-range
           if (AA.getModRefInfo(&I, LoadLoc) & MRI_Mod) {
-            PassPrediction::PassPeeper(__FILE__, 3993); // if
+            PassPrediction::PassPeeper(3993); // if
             P = &I;
-            PassPrediction::PassPeeper(__FILE__, 3994); // break
+            PassPrediction::PassPeeper(3994); // break
             break;
           }
         }
@@ -755,9 +755,9 @@ bool MemCpyOptPass::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
         // position if nothing alias the store memory after this and the store
         // destination is not in the range.
         if (P && P != SI) {
-          PassPrediction::PassPeeper(__FILE__, 3995); // if
+          PassPrediction::PassPeeper(3995); // if
           if (!moveUp(AA, SI, P, LI)) {
-            PassPrediction::PassPeeper(__FILE__, 3996); // if
+            PassPrediction::PassPeeper(3996); // if
             P = nullptr;
           }
         }
@@ -768,10 +768,10 @@ bool MemCpyOptPass::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
           // If we load from memory that may alias the memory we store to,
           // memmove must be used to preserve semantic. If not, memcpy can
           // be used.
-          PassPrediction::PassPeeper(__FILE__, 3997); // if
+          PassPrediction::PassPeeper(3997); // if
           bool UseMemMove = false;
           if (!AA.isNoAlias(MemoryLocation::get(SI), LoadLoc)) {
-            PassPrediction::PassPeeper(__FILE__, 3998); // if
+            PassPrediction::PassPeeper(3998); // if
             UseMemMove = true;
           }
 
@@ -781,12 +781,12 @@ bool MemCpyOptPass::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
           IRBuilder<> Builder(P);
           Instruction *M;
           if (UseMemMove) {
-            PassPrediction::PassPeeper(__FILE__, 3999); // if
+            PassPrediction::PassPeeper(3999); // if
             M = Builder.CreateMemMove(SI->getPointerOperand(),
                                       LI->getPointerOperand(), Size, Align,
                                       SI->isVolatile());
           } else {
-            PassPrediction::PassPeeper(__FILE__, 4000); // else
+            PassPrediction::PassPeeper(4000); // else
             M = Builder.CreateMemCpy(SI->getPointerOperand(),
                                      LI->getPointerOperand(), Size, Align,
                                      SI->isVolatile());
@@ -813,47 +813,47 @@ bool MemCpyOptPass::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
       MemDepResult ldep = MD->getDependency(LI);
       CallInst *C = nullptr;
       if (ldep.isClobber() && !isa<MemCpyInst>(ldep.getInst())) {
-        PassPrediction::PassPeeper(__FILE__, 4001); // if
+        PassPrediction::PassPeeper(4001); // if
         C = dyn_cast<CallInst>(ldep.getInst());
       }
 
       if (C) {
         // Check that nothing touches the dest of the "copy" between
         // the call and the store.
-        PassPrediction::PassPeeper(__FILE__, 4002); // if
+        PassPrediction::PassPeeper(4002); // if
         Value *CpyDest = SI->getPointerOperand()->stripPointerCasts();
         bool CpyDestIsLocal = isa<AllocaInst>(CpyDest);
         AliasAnalysis &AA = LookupAliasAnalysis();
         MemoryLocation StoreLoc = MemoryLocation::get(SI);
         for (BasicBlock::iterator I = --SI->getIterator(), E = C->getIterator();
              I != E; --I) {
-          PassPrediction::PassPeeper(__FILE__, 4003); // for
+          PassPrediction::PassPeeper(4003); // for
           if (AA.getModRefInfo(&*I, StoreLoc) != MRI_NoModRef) {
-            PassPrediction::PassPeeper(__FILE__, 4004); // if
+            PassPrediction::PassPeeper(4004); // if
             C = nullptr;
-            PassPrediction::PassPeeper(__FILE__, 4005); // break
+            PassPrediction::PassPeeper(4005); // break
             break;
           }
           // The store to dest may never happen if an exception can be thrown
           // between the load and the store.
           if (I->mayThrow() && !CpyDestIsLocal) {
-            PassPrediction::PassPeeper(__FILE__, 4006); // if
+            PassPrediction::PassPeeper(4006); // if
             C = nullptr;
-            PassPrediction::PassPeeper(__FILE__, 4007); // break
+            PassPrediction::PassPeeper(4007); // break
             break;
           }
         }
       }
 
       if (C) {
-        PassPrediction::PassPeeper(__FILE__, 4008); // if
+        PassPrediction::PassPeeper(4008); // if
         bool changed = performCallSlotOptzn(
             LI, SI->getPointerOperand()->stripPointerCasts(),
             LI->getPointerOperand()->stripPointerCasts(),
             DL.getTypeStoreSize(SI->getOperand(0)->getType()),
             findCommonAlignment(DL, SI, LI), C);
         if (changed) {
-          PassPrediction::PassPeeper(__FILE__, 4009); // if
+          PassPrediction::PassPeeper(4009); // if
           MD->removeInstruction(SI);
           SI->eraseFromParent();
           MD->removeInstruction(LI);
@@ -873,11 +873,11 @@ bool MemCpyOptPass::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
   // 0xA0A0A0A0 and 0.0.
   auto *V = SI->getOperand(0);
   if (Value *ByteVal = isBytewiseValue(V)) {
-    PassPrediction::PassPeeper(__FILE__, 4010); // if
+    PassPrediction::PassPeeper(4010); // if
     if (Instruction *I =
             tryMergingIntoMemset(SI, SI->getPointerOperand(), ByteVal)) {
-      PassPrediction::PassPeeper(__FILE__, 4011); // if
-      BBI = I->getIterator();                     // Don't invalidate iterator.
+      PassPrediction::PassPeeper(4011); // if
+      BBI = I->getIterator();           // Don't invalidate iterator.
       return true;
     }
 
@@ -886,11 +886,11 @@ bool MemCpyOptPass::processStore(StoreInst *SI, BasicBlock::iterator &BBI) {
     // in subsequent passes.
     auto *T = V->getType();
     if (T->isAggregateType()) {
-      PassPrediction::PassPeeper(__FILE__, 4012); // if
+      PassPrediction::PassPeeper(4012); // if
       uint64_t Size = DL.getTypeStoreSize(T);
       unsigned Align = SI->getAlignment();
       if (!Align) {
-        PassPrediction::PassPeeper(__FILE__, 4013); // if
+        PassPrediction::PassPeeper(4013); // if
         Align = DL.getABITypeAlignment(T);
       }
       IRBuilder<> Builder(SI);
@@ -916,11 +916,11 @@ bool MemCpyOptPass::processMemSet(MemSetInst *MSI, BasicBlock::iterator &BBI) {
   // See if there is another memset or store neighboring this memset which
   // allows us to widen out the memset to do a single larger store.
   if (isa<ConstantInt>(MSI->getLength()) && !MSI->isVolatile()) {
-    PassPrediction::PassPeeper(__FILE__, 4014); // if
+    PassPrediction::PassPeeper(4014); // if
     if (Instruction *I =
             tryMergingIntoMemset(MSI, MSI->getDest(), MSI->getValue())) {
-      PassPrediction::PassPeeper(__FILE__, 4015); // if
-      BBI = I->getIterator();                     // Don't invalidate iterator.
+      PassPrediction::PassPeeper(4015); // if
+      BBI = I->getIterator();           // Don't invalidate iterator.
       return true;
     }
   }
@@ -949,9 +949,9 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
 
   // Lifetime marks shouldn't be operated on.
   if (Function *F = C->getCalledFunction()) {
-    PassPrediction::PassPeeper(__FILE__, 4016); // if
+    PassPrediction::PassPeeper(4016); // if
     if (F->isIntrinsic() && F->getIntrinsicID() == Intrinsic::lifetime_start) {
-      PassPrediction::PassPeeper(__FILE__, 4017); // if
+      PassPrediction::PassPeeper(4017); // if
       return false;
     }
   }
@@ -963,13 +963,13 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
   // Require that src be an alloca.  This simplifies the reasoning considerably.
   AllocaInst *srcAlloca = dyn_cast<AllocaInst>(cpySrc);
   if (!srcAlloca) {
-    PassPrediction::PassPeeper(__FILE__, 4018); // if
+    PassPrediction::PassPeeper(4018); // if
     return false;
   }
 
   ConstantInt *srcArraySize = dyn_cast<ConstantInt>(srcAlloca->getArraySize());
   if (!srcArraySize) {
-    PassPrediction::PassPeeper(__FILE__, 4019); // if
+    PassPrediction::PassPeeper(4019); // if
     return false;
   }
 
@@ -978,7 +978,7 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
                      srcArraySize->getZExtValue();
 
   if (cpyLen < srcSize) {
-    PassPrediction::PassPeeper(__FILE__, 4020); // if
+    PassPrediction::PassPeeper(4020); // if
     return false;
   }
 
@@ -987,10 +987,10 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
   // to occur earlier than it otherwise would.
   if (AllocaInst *A = dyn_cast<AllocaInst>(cpyDest)) {
     // The destination is an alloca.  Check it is larger than srcSize.
-    PassPrediction::PassPeeper(__FILE__, 4021); // if
+    PassPrediction::PassPeeper(4021); // if
     ConstantInt *destArraySize = dyn_cast<ConstantInt>(A->getArraySize());
     if (!destArraySize) {
-      PassPrediction::PassPeeper(__FILE__, 4022); // if
+      PassPrediction::PassPeeper(4022); // if
       return false;
     }
 
@@ -998,23 +998,23 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
                         destArraySize->getZExtValue();
 
     if (destSize < srcSize) {
-      PassPrediction::PassPeeper(__FILE__, 4023); // if
+      PassPrediction::PassPeeper(4023); // if
       return false;
     }
   } else if (Argument *A = dyn_cast<Argument>(cpyDest)) {
     // The store to dest may never happen if the call can throw.
-    PassPrediction::PassPeeper(__FILE__, 4024); // if
+    PassPrediction::PassPeeper(4024); // if
     if (C->mayThrow()) {
-      PassPrediction::PassPeeper(__FILE__, 4026); // if
+      PassPrediction::PassPeeper(4026); // if
       return false;
     }
 
     if (A->getDereferenceableBytes() < srcSize) {
       // If the destination is an sret parameter then only accesses that are
       // outside of the returned struct type can trap.
-      PassPrediction::PassPeeper(__FILE__, 4027); // if
+      PassPrediction::PassPeeper(4027); // if
       if (!A->hasStructRetAttr()) {
-        PassPrediction::PassPeeper(__FILE__, 4028); // if
+        PassPrediction::PassPeeper(4028); // if
         return false;
       }
 
@@ -1023,32 +1023,32 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
         // The call may never return and hence the copy-instruction may never
         // be executed, and therefore it's not safe to say "the destination
         // has at least <cpyLen> bytes, as implied by the copy-instruction",
-        PassPrediction::PassPeeper(__FILE__, 4029); // if
+        PassPrediction::PassPeeper(4029); // if
         return false;
       }
 
       uint64_t destSize = DL.getTypeAllocSize(StructTy);
       if (destSize < srcSize) {
-        PassPrediction::PassPeeper(__FILE__, 4030); // if
+        PassPrediction::PassPeeper(4030); // if
         return false;
       }
     }
   } else {
-    PassPrediction::PassPeeper(__FILE__, 4025); // else
+    PassPrediction::PassPeeper(4025); // else
     return false;
   }
 
   // Check that dest points to memory that is at least as aligned as src.
   unsigned srcAlign = srcAlloca->getAlignment();
   if (!srcAlign) {
-    PassPrediction::PassPeeper(__FILE__, 4031); // if
+    PassPrediction::PassPeeper(4031); // if
     srcAlign = DL.getABITypeAlignment(srcAlloca->getAllocatedType());
   }
   bool isDestSufficientlyAligned = srcAlign <= cpyAlign;
   // If dest is not aligned enough and we can't increase its alignment then
   // bail out.
   if (!isDestSufficientlyAligned && !isa<AllocaInst>(cpyDest)) {
-    PassPrediction::PassPeeper(__FILE__, 4032); // if
+    PassPrediction::PassPeeper(4032); // if
     return false;
   }
 
@@ -1059,41 +1059,41 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
   SmallVector<User *, 8> srcUseList(srcAlloca->user_begin(),
                                     srcAlloca->user_end());
   while (!srcUseList.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 4033); // while
+    PassPrediction::PassPeeper(4033); // while
     User *U = srcUseList.pop_back_val();
 
     if (isa<BitCastInst>(U) || isa<AddrSpaceCastInst>(U)) {
-      PassPrediction::PassPeeper(__FILE__, 4034); // if
+      PassPrediction::PassPeeper(4034); // if
       for (User *UU : U->users()) {
-        PassPrediction::PassPeeper(__FILE__, 4035); // for-range
+        PassPrediction::PassPeeper(4035); // for-range
         srcUseList.push_back(UU);
       }
       continue;
     }
     if (GetElementPtrInst *G = dyn_cast<GetElementPtrInst>(U)) {
-      PassPrediction::PassPeeper(__FILE__, 4036); // if
+      PassPrediction::PassPeeper(4036); // if
       if (!G->hasAllZeroIndices()) {
-        PassPrediction::PassPeeper(__FILE__, 4037); // if
+        PassPrediction::PassPeeper(4037); // if
         return false;
       }
 
       for (User *UU : U->users()) {
-        PassPrediction::PassPeeper(__FILE__, 4038); // for-range
+        PassPrediction::PassPeeper(4038); // for-range
         srcUseList.push_back(UU);
       }
       continue;
     }
     if (const IntrinsicInst *IT = dyn_cast<IntrinsicInst>(U)) {
-      PassPrediction::PassPeeper(__FILE__, 4039); // if
+      PassPrediction::PassPeeper(4039); // if
       if (IT->getIntrinsicID() == Intrinsic::lifetime_start ||
           IT->getIntrinsicID() == Intrinsic::lifetime_end) {
-        PassPrediction::PassPeeper(__FILE__, 4040); // if
+        PassPrediction::PassPeeper(4040); // if
         continue;
       }
     }
 
     if (U != C && U != cpy) {
-      PassPrediction::PassPeeper(__FILE__, 4041); // if
+      PassPrediction::PassPeeper(4041); // if
       return false;
     }
   }
@@ -1101,9 +1101,9 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
   // Check that src isn't captured by the called function since the
   // transformation can cause aliasing issues in that case.
   for (unsigned i = 0, e = CS.arg_size(); i != e; ++i) {
-    PassPrediction::PassPeeper(__FILE__, 4042); // for
+    PassPrediction::PassPeeper(4042); // for
     if (CS.getArgument(i) == cpySrc && !CS.doesNotCapture(i)) {
-      PassPrediction::PassPeeper(__FILE__, 4043); // if
+      PassPrediction::PassPeeper(4043); // if
       return false;
     }
   }
@@ -1112,9 +1112,9 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
   // that what would be the new parameter dominates the callsite.
   DominatorTree &DT = LookupDomTree();
   if (Instruction *cpyDestInst = dyn_cast<Instruction>(cpyDest)) {
-    PassPrediction::PassPeeper(__FILE__, 4044); // if
+    PassPrediction::PassPeeper(4044); // if
     if (!DT.dominates(cpyDestInst, C)) {
-      PassPrediction::PassPeeper(__FILE__, 4045); // if
+      PassPrediction::PassPeeper(4045); // if
       return false;
     }
   }
@@ -1127,11 +1127,11 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
   ModRefInfo MR = AA.getModRefInfo(C, cpyDest, srcSize);
   // If necessary, perform additional analysis.
   if (MR != MRI_NoModRef) {
-    PassPrediction::PassPeeper(__FILE__, 4046); // if
+    PassPrediction::PassPeeper(4046); // if
     MR = AA.callCapturesBefore(C, cpyDest, srcSize, &DT);
   }
   if (MR != MRI_NoModRef) {
-    PassPrediction::PassPeeper(__FILE__, 4047); // if
+    PassPrediction::PassPeeper(4047); // if
     return false;
   }
 
@@ -1139,15 +1139,15 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
   // safe for the target.
   if (cpySrc->getType()->getPointerAddressSpace() !=
       cpyDest->getType()->getPointerAddressSpace()) {
-    PassPrediction::PassPeeper(__FILE__, 4048); // if
+    PassPrediction::PassPeeper(4048); // if
     return false;
   }
   for (unsigned i = 0; i < CS.arg_size(); ++i) {
-    PassPrediction::PassPeeper(__FILE__, 4049); // for
+    PassPrediction::PassPeeper(4049); // for
     if (CS.getArgument(i)->stripPointerCasts() == cpySrc &&
         cpySrc->getType()->getPointerAddressSpace() !=
             CS.getArgument(i)->getType()->getPointerAddressSpace()) {
-      PassPrediction::PassPeeper(__FILE__, 4050); // if
+      PassPrediction::PassPeeper(4050); // if
       return false;
     }
   }
@@ -1155,9 +1155,9 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
   // All the checks have passed, so do the transformation.
   bool changedArgument = false;
   for (unsigned i = 0; i < CS.arg_size(); ++i) {
-    PassPrediction::PassPeeper(__FILE__, 4051); // for
+    PassPrediction::PassPeeper(4051); // for
     if (CS.getArgument(i)->stripPointerCasts() == cpySrc) {
-      PassPrediction::PassPeeper(__FILE__, 4052); // if
+      PassPrediction::PassPeeper(4052); // if
       Value *Dest =
           cpySrc->getType() == cpyDest->getType()
               ? cpyDest
@@ -1165,10 +1165,10 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
                                             cpyDest->getName(), C);
       changedArgument = true;
       if (CS.getArgument(i)->getType() == Dest->getType()) {
-        PassPrediction::PassPeeper(__FILE__, 4053); // if
+        PassPrediction::PassPeeper(4053); // if
         CS.setArgument(i, Dest);
       } else {
-        PassPrediction::PassPeeper(__FILE__, 4054); // else
+        PassPrediction::PassPeeper(4054); // else
         CS.setArgument(
             i, CastInst::CreatePointerCast(Dest, CS.getArgument(i)->getType(),
                                            Dest->getName(), C));
@@ -1177,7 +1177,7 @@ bool MemCpyOptPass::performCallSlotOptzn(Instruction *cpy, Value *cpyDest,
   }
 
   if (!changedArgument) {
-    PassPrediction::PassPeeper(__FILE__, 4055); // if
+    PassPrediction::PassPeeper(4055); // if
     return false;
   }
 
@@ -1213,7 +1213,7 @@ bool MemCpyOptPass::processMemCpyMemCpyDependence(MemCpyInst *M,
   // We can only transforms memcpy's where the dest of one is the source of the
   // other.
   if (M->getSource() != MDep->getDest() || MDep->isVolatile()) {
-    PassPrediction::PassPeeper(__FILE__, 4056); // if
+    PassPrediction::PassPeeper(4056); // if
     return false;
   }
 
@@ -1223,7 +1223,7 @@ bool MemCpyOptPass::processMemCpyMemCpyDependence(MemCpyInst *M,
   //    memcpy(a <- a)
   //    memcpy(b <- a)
   if (M->getSource() == MDep->getSource()) {
-    PassPrediction::PassPeeper(__FILE__, 4057); // if
+    PassPrediction::PassPeeper(4057); // if
     return false;
   }
 
@@ -1232,7 +1232,7 @@ bool MemCpyOptPass::processMemCpyMemCpyDependence(MemCpyInst *M,
   ConstantInt *MDepLen = dyn_cast<ConstantInt>(MDep->getLength());
   ConstantInt *MLen = dyn_cast<ConstantInt>(M->getLength());
   if (!MDepLen || !MLen || MDepLen->getZExtValue() < MLen->getZExtValue()) {
-    PassPrediction::PassPeeper(__FILE__, 4058); // if
+    PassPrediction::PassPeeper(4058); // if
     return false;
   }
 
@@ -1254,7 +1254,7 @@ bool MemCpyOptPass::processMemCpyMemCpyDependence(MemCpyInst *M,
       MD->getPointerDependencyFrom(MemoryLocation::getForSource(MDep), false,
                                    M->getIterator(), M->getParent());
   if (!SourceDep.isClobber() || SourceDep.getInst() != MDep) {
-    PassPrediction::PassPeeper(__FILE__, 4059); // if
+    PassPrediction::PassPeeper(4059); // if
     return false;
   }
 
@@ -1264,7 +1264,7 @@ bool MemCpyOptPass::processMemCpyMemCpyDependence(MemCpyInst *M,
   bool UseMemMove = false;
   if (!AA.isNoAlias(MemoryLocation::getForDest(M),
                     MemoryLocation::getForSource(MDep))) {
-    PassPrediction::PassPeeper(__FILE__, 4060); // if
+    PassPrediction::PassPeeper(4060); // if
     UseMemMove = true;
   }
 
@@ -1279,11 +1279,11 @@ bool MemCpyOptPass::processMemCpyMemCpyDependence(MemCpyInst *M,
 
   IRBuilder<> Builder(M);
   if (UseMemMove) {
-    PassPrediction::PassPeeper(__FILE__, 4061); // if
+    PassPrediction::PassPeeper(4061); // if
     Builder.CreateMemMove(M->getRawDest(), MDep->getRawSource(), M->getLength(),
                           Align, M->isVolatile());
   } else {
-    PassPrediction::PassPeeper(__FILE__, 4062); // else
+    PassPrediction::PassPeeper(4062); // else
     Builder.CreateMemCpy(M->getRawDest(), MDep->getRawSource(), M->getLength(),
                          Align, M->isVolatile());
   }
@@ -1313,7 +1313,7 @@ bool MemCpyOptPass::processMemSetMemCpyDependence(MemCpyInst *MemCpy,
                                                   MemSetInst *MemSet) {
   // We can only transform memset/memcpy with the same destination.
   if (MemSet->getDest() != MemCpy->getDest()) {
-    PassPrediction::PassPeeper(__FILE__, 4063); // if
+    PassPrediction::PassPeeper(4063); // if
     return false;
   }
 
@@ -1322,7 +1322,7 @@ bool MemCpyOptPass::processMemSetMemCpyDependence(MemCpyInst *MemCpy,
       MD->getPointerDependencyFrom(MemoryLocation::getForDest(MemSet), false,
                                    MemCpy->getIterator(), MemCpy->getParent());
   if (DstDepInfo.getInst() != MemSet) {
-    PassPrediction::PassPeeper(__FILE__, 4064); // if
+    PassPrediction::PassPeeper(4064); // if
     return false;
   }
 
@@ -1338,9 +1338,9 @@ bool MemCpyOptPass::processMemSetMemCpyDependence(MemCpyInst *MemCpy,
   const unsigned DestAlign =
       std::max(MemSet->getAlignment(), MemCpy->getAlignment());
   if (DestAlign > 1) {
-    PassPrediction::PassPeeper(__FILE__, 4065); // if
+    PassPrediction::PassPeeper(4065); // if
     if (ConstantInt *SrcSizeC = dyn_cast<ConstantInt>(SrcSize)) {
-      PassPrediction::PassPeeper(__FILE__, 4066); // if
+      PassPrediction::PassPeeper(4066); // if
       Align = MinAlign(SrcSizeC->getZExtValue(), DestAlign);
     }
   }
@@ -1349,13 +1349,13 @@ bool MemCpyOptPass::processMemSetMemCpyDependence(MemCpyInst *MemCpy,
 
   // If the sizes have different types, zext the smaller one.
   if (DestSize->getType() != SrcSize->getType()) {
-    PassPrediction::PassPeeper(__FILE__, 4067); // if
+    PassPrediction::PassPeeper(4067); // if
     if (DestSize->getType()->getIntegerBitWidth() >
         SrcSize->getType()->getIntegerBitWidth()) {
-      PassPrediction::PassPeeper(__FILE__, 4068); // if
+      PassPrediction::PassPeeper(4068); // if
       SrcSize = Builder.CreateZExt(SrcSize, DestSize->getType());
     } else {
-      PassPrediction::PassPeeper(__FILE__, 4069); // else
+      PassPrediction::PassPeeper(4069); // else
       DestSize = Builder.CreateZExt(DestSize, SrcSize->getType());
     }
   }
@@ -1393,7 +1393,7 @@ bool MemCpyOptPass::performMemCpyToMemSetOptzn(MemCpyInst *MemCpy,
   // Make sure that memcpy(..., memset(...), ...), that is we are memsetting and
   // memcpying from the same address. Otherwise it is hard to reason about.
   if (!AA.isMustAlias(MemSet->getRawDest(), MemCpy->getRawSource())) {
-    PassPrediction::PassPeeper(__FILE__, 4070); // if
+    PassPrediction::PassPeeper(4070); // if
     return false;
   }
 
@@ -1402,7 +1402,7 @@ bool MemCpyOptPass::performMemCpyToMemSetOptzn(MemCpyInst *MemCpy,
   // Make sure the memcpy doesn't read any more than what the memset wrote.
   // Don't worry about sizes larger than i64.
   if (!MemSetSize || CopySize->getZExtValue() > MemSetSize->getZExtValue()) {
-    PassPrediction::PassPeeper(__FILE__, 4071); // if
+    PassPrediction::PassPeeper(4071); // if
     return false;
   }
 
@@ -1420,13 +1420,13 @@ bool MemCpyOptPass::performMemCpyToMemSetOptzn(MemCpyInst *MemCpy,
 bool MemCpyOptPass::processMemCpy(MemCpyInst *M) {
   // We can only optimize non-volatile memcpy's.
   if (M->isVolatile()) {
-    PassPrediction::PassPeeper(__FILE__, 4072); // if
+    PassPrediction::PassPeeper(4072); // if
     return false;
   }
 
   // If the source and destination of the memcpy are the same, then zap it.
   if (M->getSource() == M->getDest()) {
-    PassPrediction::PassPeeper(__FILE__, 4073); // if
+    PassPrediction::PassPeeper(4073); // if
     MD->removeInstruction(M);
     M->eraseFromParent();
     return false;
@@ -1434,11 +1434,11 @@ bool MemCpyOptPass::processMemCpy(MemCpyInst *M) {
 
   // If copying from a constant, try to turn the memcpy into a memset.
   if (GlobalVariable *GV = dyn_cast<GlobalVariable>(M->getSource())) {
-    PassPrediction::PassPeeper(__FILE__, 4074); // if
+    PassPrediction::PassPeeper(4074); // if
     if (GV->isConstant() && GV->hasDefinitiveInitializer()) {
-      PassPrediction::PassPeeper(__FILE__, 4075); // if
+      PassPrediction::PassPeeper(4075); // if
       if (Value *ByteVal = isBytewiseValue(GV->getInitializer())) {
-        PassPrediction::PassPeeper(__FILE__, 4076); // if
+        PassPrediction::PassPeeper(4076); // if
         IRBuilder<> Builder(M);
         Builder.CreateMemSet(M->getRawDest(), ByteVal, M->getLength(),
                              M->getAlignment(), false);
@@ -1455,11 +1455,11 @@ bool MemCpyOptPass::processMemCpy(MemCpyInst *M) {
   // Try to turn a partially redundant memset + memcpy into
   // memcpy + smaller memset.  We don't need the memcpy size for this.
   if (DepInfo.isClobber()) {
-    PassPrediction::PassPeeper(__FILE__, 4077); // if
+    PassPrediction::PassPeeper(4077); // if
     if (MemSetInst *MDep = dyn_cast<MemSetInst>(DepInfo.getInst())) {
-      PassPrediction::PassPeeper(__FILE__, 4078); // if
+      PassPrediction::PassPeeper(4078); // if
       if (processMemSetMemCpyDependence(M, MDep)) {
-        PassPrediction::PassPeeper(__FILE__, 4079); // if
+        PassPrediction::PassPeeper(4079); // if
         return true;
       }
     }
@@ -1468,7 +1468,7 @@ bool MemCpyOptPass::processMemCpy(MemCpyInst *M) {
   // The optimizations after this point require the memcpy size.
   ConstantInt *CopySize = dyn_cast<ConstantInt>(M->getLength());
   if (!CopySize) {
-    PassPrediction::PassPeeper(__FILE__, 4080); // if
+    PassPrediction::PassPeeper(4080); // if
     return false;
   }
 
@@ -1480,13 +1480,13 @@ bool MemCpyOptPass::processMemCpy(MemCpyInst *M) {
   //      memcpy in favor of the data that was already at the destination.
   //   d) memcpy from a just-memset'd source can be turned into memset.
   if (DepInfo.isClobber()) {
-    PassPrediction::PassPeeper(__FILE__, 4081); // if
+    PassPrediction::PassPeeper(4081); // if
     if (CallInst *C = dyn_cast<CallInst>(DepInfo.getInst())) {
-      PassPrediction::PassPeeper(__FILE__, 4082); // if
+      PassPrediction::PassPeeper(4082); // if
       if (performCallSlotOptzn(M, M->getDest(), M->getSource(),
                                CopySize->getZExtValue(), M->getAlignment(),
                                C)) {
-        PassPrediction::PassPeeper(__FILE__, 4083); // if
+        PassPrediction::PassPeeper(4083); // if
         MD->removeInstruction(M);
         M->eraseFromParent();
         return true;
@@ -1499,27 +1499,27 @@ bool MemCpyOptPass::processMemCpy(MemCpyInst *M) {
       SrcLoc, true, M->getIterator(), M->getParent());
 
   if (SrcDepInfo.isClobber()) {
-    PassPrediction::PassPeeper(__FILE__, 4084); // if
+    PassPrediction::PassPeeper(4084); // if
     if (MemCpyInst *MDep = dyn_cast<MemCpyInst>(SrcDepInfo.getInst())) {
-      PassPrediction::PassPeeper(__FILE__, 4085); // if
+      PassPrediction::PassPeeper(4085); // if
       return processMemCpyMemCpyDependence(M, MDep);
     }
   } else if (SrcDepInfo.isDef()) {
-    PassPrediction::PassPeeper(__FILE__, 4086); // if
+    PassPrediction::PassPeeper(4086); // if
     Instruction *I = SrcDepInfo.getInst();
     bool hasUndefContents = false;
 
     if (isa<AllocaInst>(I)) {
-      PassPrediction::PassPeeper(__FILE__, 4087); // if
+      PassPrediction::PassPeeper(4087); // if
       hasUndefContents = true;
     } else if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(I)) {
-      PassPrediction::PassPeeper(__FILE__, 4088); // if
+      PassPrediction::PassPeeper(4088); // if
       if (II->getIntrinsicID() == Intrinsic::lifetime_start) {
-        PassPrediction::PassPeeper(__FILE__, 4089); // if
+        PassPrediction::PassPeeper(4089); // if
         if (ConstantInt *LTSize = dyn_cast<ConstantInt>(II->getArgOperand(0))) {
-          PassPrediction::PassPeeper(__FILE__, 4090); // if
+          PassPrediction::PassPeeper(4090); // if
           if (LTSize->getZExtValue() >= CopySize->getZExtValue()) {
-            PassPrediction::PassPeeper(__FILE__, 4091); // if
+            PassPrediction::PassPeeper(4091); // if
             hasUndefContents = true;
           }
         }
@@ -1527,7 +1527,7 @@ bool MemCpyOptPass::processMemCpy(MemCpyInst *M) {
     }
 
     if (hasUndefContents) {
-      PassPrediction::PassPeeper(__FILE__, 4092); // if
+      PassPrediction::PassPeeper(4092); // if
       MD->removeInstruction(M);
       M->eraseFromParent();
       ++NumMemCpyInstr;
@@ -1536,11 +1536,11 @@ bool MemCpyOptPass::processMemCpy(MemCpyInst *M) {
   }
 
   if (SrcDepInfo.isClobber()) {
-    PassPrediction::PassPeeper(__FILE__, 4093); // if
+    PassPrediction::PassPeeper(4093); // if
     if (MemSetInst *MDep = dyn_cast<MemSetInst>(SrcDepInfo.getInst())) {
-      PassPrediction::PassPeeper(__FILE__, 4094); // if
+      PassPrediction::PassPeeper(4094); // if
       if (performMemCpyToMemSetOptzn(M, MDep)) {
-        PassPrediction::PassPeeper(__FILE__, 4095); // if
+        PassPrediction::PassPeeper(4095); // if
         MD->removeInstruction(M);
         M->eraseFromParent();
         ++NumCpyToSet;
@@ -1558,14 +1558,14 @@ bool MemCpyOptPass::processMemMove(MemMoveInst *M) {
   AliasAnalysis &AA = LookupAliasAnalysis();
 
   if (!TLI->has(LibFunc_memmove)) {
-    PassPrediction::PassPeeper(__FILE__, 4096); // if
+    PassPrediction::PassPeeper(4096); // if
     return false;
   }
 
   // See if the pointers alias.
   if (!AA.isNoAlias(MemoryLocation::getForDest(M),
                     MemoryLocation::getForSource(M))) {
-    PassPrediction::PassPeeper(__FILE__, 4097); // if
+    PassPrediction::PassPeeper(4097); // if
     return false;
   }
 
@@ -1597,7 +1597,7 @@ bool MemCpyOptPass::processByValArgument(CallSite CS, unsigned ArgNo) {
       MemoryLocation(ByValArg, ByValSize), true,
       CS.getInstruction()->getIterator(), CS.getInstruction()->getParent());
   if (!DepInfo.isClobber()) {
-    PassPrediction::PassPeeper(__FILE__, 4098); // if
+    PassPrediction::PassPeeper(4098); // if
     return false;
   }
 
@@ -1607,14 +1607,14 @@ bool MemCpyOptPass::processByValArgument(CallSite CS, unsigned ArgNo) {
   MemCpyInst *MDep = dyn_cast<MemCpyInst>(DepInfo.getInst());
   if (!MDep || MDep->isVolatile() ||
       ByValArg->stripPointerCasts() != MDep->getDest()) {
-    PassPrediction::PassPeeper(__FILE__, 4099); // if
+    PassPrediction::PassPeeper(4099); // if
     return false;
   }
 
   // The length of the memcpy must be larger or equal to the size of the byval.
   ConstantInt *C1 = dyn_cast<ConstantInt>(MDep->getLength());
   if (!C1 || C1->getValue().getZExtValue() < ByValSize) {
-    PassPrediction::PassPeeper(__FILE__, 4100); // if
+    PassPrediction::PassPeeper(4100); // if
     return false;
   }
 
@@ -1622,7 +1622,7 @@ bool MemCpyOptPass::processByValArgument(CallSite CS, unsigned ArgNo) {
   // then it is some target specific value that we can't know.
   unsigned ByValAlign = CS.getParamAlignment(ArgNo);
   if (ByValAlign == 0) {
-    PassPrediction::PassPeeper(__FILE__, 4101); // if
+    PassPrediction::PassPeeper(4101); // if
     return false;
   }
 
@@ -1633,14 +1633,14 @@ bool MemCpyOptPass::processByValArgument(CallSite CS, unsigned ArgNo) {
   if (MDep->getAlignment() < ByValAlign &&
       getOrEnforceKnownAlignment(MDep->getSource(), ByValAlign, DL,
                                  CS.getInstruction(), &AC, &DT) < ByValAlign) {
-    PassPrediction::PassPeeper(__FILE__, 4102); // if
+    PassPrediction::PassPeeper(4102); // if
     return false;
   }
 
   // The address space of the memcpy source must match the byval argument
   if (MDep->getSource()->getType()->getPointerAddressSpace() !=
       ByValArg->getType()->getPointerAddressSpace()) {
-    PassPrediction::PassPeeper(__FILE__, 4103); // if
+    PassPrediction::PassPeeper(4103); // if
     return false;
   }
 
@@ -1657,13 +1657,13 @@ bool MemCpyOptPass::processByValArgument(CallSite CS, unsigned ArgNo) {
       MemoryLocation::getForSource(MDep), false,
       CS.getInstruction()->getIterator(), MDep->getParent());
   if (!SourceDep.isClobber() || SourceDep.getInst() != MDep) {
-    PassPrediction::PassPeeper(__FILE__, 4104); // if
+    PassPrediction::PassPeeper(4104); // if
     return false;
   }
 
   Value *TmpCast = MDep->getSource();
   if (MDep->getSource()->getType() != ByValArg->getType()) {
-    PassPrediction::PassPeeper(__FILE__, 4105); // if
+    PassPrediction::PassPeeper(4105); // if
     TmpCast = new BitCastInst(MDep->getSource(), ByValArg->getType(), "tmpcast",
                               CS.getInstruction());
   }
@@ -1684,32 +1684,32 @@ bool MemCpyOptPass::iterateOnFunction(Function &F) {
 
   // Walk all instruction in the function.
   for (BasicBlock &BB : F) {
-    PassPrediction::PassPeeper(__FILE__, 4106); // for-range
+    PassPrediction::PassPeeper(4106); // for-range
     for (BasicBlock::iterator BI = BB.begin(), BE = BB.end(); BI != BE;) {
       // Avoid invalidating the iterator.
-      PassPrediction::PassPeeper(__FILE__, 4107); // for
+      PassPrediction::PassPeeper(4107); // for
       Instruction *I = &*BI++;
 
       bool RepeatInstruction = false;
 
       if (StoreInst *SI = dyn_cast<StoreInst>(I)) {
-        PassPrediction::PassPeeper(__FILE__, 4108); // if
+        PassPrediction::PassPeeper(4108); // if
         MadeChange |= processStore(SI, BI);
       } else if (MemSetInst *M = dyn_cast<MemSetInst>(I)) {
-        PassPrediction::PassPeeper(__FILE__, 4109); // if
+        PassPrediction::PassPeeper(4109); // if
         RepeatInstruction = processMemSet(M, BI);
       } else if (MemCpyInst *M = dyn_cast<MemCpyInst>(I)) {
-        PassPrediction::PassPeeper(__FILE__, 4110); // if
+        PassPrediction::PassPeeper(4110); // if
         RepeatInstruction = processMemCpy(M);
       } else if (MemMoveInst *M = dyn_cast<MemMoveInst>(I)) {
-        PassPrediction::PassPeeper(__FILE__, 4111); // if
+        PassPrediction::PassPeeper(4111); // if
         RepeatInstruction = processMemMove(M);
       } else if (auto CS = CallSite(I)) {
-        PassPrediction::PassPeeper(__FILE__, 4112); // if
+        PassPrediction::PassPeeper(4112); // if
         for (unsigned i = 0, e = CS.arg_size(); i != e; ++i) {
-          PassPrediction::PassPeeper(__FILE__, 4113); // for
+          PassPrediction::PassPeeper(4113); // for
           if (CS.isByValArgument(i)) {
-            PassPrediction::PassPeeper(__FILE__, 4114); // if
+            PassPrediction::PassPeeper(4114); // if
             MadeChange |= processByValArgument(CS, i);
           }
         }
@@ -1717,9 +1717,9 @@ bool MemCpyOptPass::iterateOnFunction(Function &F) {
 
       // Reprocess the instruction if desired.
       if (RepeatInstruction) {
-        PassPrediction::PassPeeper(__FILE__, 4115); // if
+        PassPrediction::PassPeeper(4115); // if
         if (BI != BB.begin()) {
-          PassPrediction::PassPeeper(__FILE__, 4116); // if
+          PassPrediction::PassPeeper(4116); // if
           --BI;
         }
         MadeChange = true;
@@ -1747,7 +1747,7 @@ PreservedAnalyses MemCpyOptPass::run(Function &F, FunctionAnalysisManager &AM) {
   bool MadeChange = runImpl(F, &MD, &TLI, LookupAliasAnalysis,
                             LookupAssumptionCache, LookupDomTree);
   if (!MadeChange) {
-    PassPrediction::PassPeeper(__FILE__, 4117); // if
+    PassPrediction::PassPeeper(4117); // if
     return PreservedAnalyses::all();
   }
 
@@ -1774,14 +1774,14 @@ bool MemCpyOptPass::runImpl(
   // anything here.  These are required by a freestanding implementation, so if
   // even they are disabled, there is no point in trying hard.
   if (!TLI->has(LibFunc_memset) || !TLI->has(LibFunc_memcpy)) {
-    PassPrediction::PassPeeper(__FILE__, 4118); // if
+    PassPrediction::PassPeeper(4118); // if
     return false;
   }
 
   while (true) {
-    PassPrediction::PassPeeper(__FILE__, 4119); // while
+    PassPrediction::PassPeeper(4119); // while
     if (!iterateOnFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 4120); // if
+      PassPrediction::PassPeeper(4120); // if
       break;
     }
     MadeChange = true;
@@ -1794,7 +1794,7 @@ bool MemCpyOptPass::runImpl(
 /// This is the main transformation entry point for a function.
 bool MemCpyOptLegacyPass::runOnFunction(Function &F) {
   if (skipFunction(F)) {
-    PassPrediction::PassPeeper(__FILE__, 4121); // if
+    PassPrediction::PassPeeper(4121); // if
     return false;
   }
 

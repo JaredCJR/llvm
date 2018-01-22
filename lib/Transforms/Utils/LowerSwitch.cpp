@@ -112,26 +112,26 @@ bool LowerSwitch::runOnFunction(Function &F) {
   SmallPtrSet<BasicBlock *, 8> DeleteList;
 
   for (Function::iterator I = F.begin(), E = F.end(); I != E;) {
-    PassPrediction::PassPeeper(__FILE__, 532); // for
+    PassPrediction::PassPeeper(532); // for
     BasicBlock *Cur =
         &*I++; // Advance over block so we don't traverse new blocks
 
     // If the block is a dead Default block that will be deleted later, don't
     // waste time processing it.
     if (DeleteList.count(Cur)) {
-      PassPrediction::PassPeeper(__FILE__, 533); // if
+      PassPrediction::PassPeeper(533); // if
       continue;
     }
 
     if (SwitchInst *SI = dyn_cast<SwitchInst>(Cur->getTerminator())) {
-      PassPrediction::PassPeeper(__FILE__, 534); // if
+      PassPrediction::PassPeeper(534); // if
       Changed = true;
       processSwitchInst(SI, DeleteList);
     }
   }
 
   for (BasicBlock *BB : DeleteList) {
-    PassPrediction::PassPeeper(__FILE__, 535); // for-range
+    PassPrediction::PassPeeper(535); // for-range
     DeleteDeadBlock(BB);
   }
 
@@ -147,10 +147,10 @@ static raw_ostream &operator<<(raw_ostream &O,
 
   for (LowerSwitch::CaseVector::const_iterator B = C.begin(), E = C.end();
        B != E;) {
-    PassPrediction::PassPeeper(__FILE__, 536); // for
+    PassPrediction::PassPeeper(536); // for
     O << *B->Low << " -" << *B->High;
     if (++B != E) {
-      PassPrediction::PassPeeper(__FILE__, 537); // if
+      PassPrediction::PassPeeper(537); // if
       O << ", ";
     }
   }
@@ -173,18 +173,18 @@ static void fixPhis(BasicBlock *SuccBB, BasicBlock *OrigBB, BasicBlock *NewBB,
   for (BasicBlock::iterator I = SuccBB->begin(),
                             IE = SuccBB->getFirstNonPHI()->getIterator();
        I != IE; ++I) {
-    PassPrediction::PassPeeper(__FILE__, 538); // for
+    PassPrediction::PassPeeper(538); // for
     PHINode *PN = cast<PHINode>(I);
 
     // Only update the first occurrence.
     unsigned Idx = 0, E = PN->getNumIncomingValues();
     unsigned LocalNumMergedCases = NumMergedCases;
     for (; Idx != E; ++Idx) {
-      PassPrediction::PassPeeper(__FILE__, 539); // for
+      PassPrediction::PassPeeper(539); // for
       if (PN->getIncomingBlock(Idx) == OrigBB) {
-        PassPrediction::PassPeeper(__FILE__, 540); // if
+        PassPrediction::PassPeeper(540); // if
         PN->setIncomingBlock(Idx, NewBB);
-        PassPrediction::PassPeeper(__FILE__, 541); // break
+        PassPrediction::PassPeeper(541); // break
         break;
       }
     }
@@ -193,9 +193,9 @@ static void fixPhis(BasicBlock *SuccBB, BasicBlock *OrigBB, BasicBlock *NewBB,
     // number of incoming values equal to the number of branches to SuccBB.
     SmallVector<unsigned, 8> Indices;
     for (++Idx; LocalNumMergedCases > 0 && Idx < E; ++Idx) {
-      PassPrediction::PassPeeper(__FILE__, 542); // for
+      PassPrediction::PassPeeper(542); // for
       if (PN->getIncomingBlock(Idx) == OrigBB) {
-        PassPrediction::PassPeeper(__FILE__, 543); // if
+        PassPrediction::PassPeeper(543); // if
         Indices.push_back(Idx);
         LocalNumMergedCases--;
       }
@@ -203,7 +203,7 @@ static void fixPhis(BasicBlock *SuccBB, BasicBlock *OrigBB, BasicBlock *NewBB,
     // Remove incoming values in the reverse order to prevent invalidating
     // *successive* index.
     for (unsigned III : reverse(Indices)) {
-      PassPrediction::PassPeeper(__FILE__, 544); // for-range
+      PassPrediction::PassPeeper(544); // for-range
       PN->removeIncomingValue(III);
     }
   }
@@ -227,12 +227,12 @@ LowerSwitch::switchConvert(CaseItr Begin, CaseItr End, ConstantInt *LowerBound,
     // already checked Upper and Lower bounds. If it is then we can avoid
     // emitting the code that checks if the value actually falls in the range
     // because the bounds already tell us so.
-    PassPrediction::PassPeeper(__FILE__, 545); // if
+    PassPrediction::PassPeeper(545); // if
     if (Begin->Low == LowerBound && Begin->High == UpperBound) {
-      PassPrediction::PassPeeper(__FILE__, 546); // if
+      PassPrediction::PassPeeper(546); // if
       unsigned NumMergedCases = 0;
       if (LowerBound && UpperBound) {
-        PassPrediction::PassPeeper(__FILE__, 547); // if
+        PassPrediction::PassPeeper(547); // if
         NumMergedCases =
             UpperBound->getSExtValue() - LowerBound->getSExtValue();
       }
@@ -265,12 +265,12 @@ LowerSwitch::switchConvert(CaseItr Begin, CaseItr End, ConstantInt *LowerBound,
 
   if (!UnreachableRanges.empty()) {
     // Check if the gap between LHS's highest and NewLowerBound is unreachable.
-    PassPrediction::PassPeeper(__FILE__, 548); // if
+    PassPrediction::PassPeeper(548); // if
     int64_t GapLow = LHS.back().High->getSExtValue() + 1;
     int64_t GapHigh = NewLowerBound->getSExtValue() - 1;
     IntRange Gap = {GapLow, GapHigh};
     if (GapHigh >= GapLow && IsInRanges(Gap, UnreachableRanges)) {
-      PassPrediction::PassPeeper(__FILE__, 549); // if
+      PassPrediction::PassPeeper(549); // if
       NewUpperBound = LHS.back().High;
     }
   }
@@ -320,25 +320,25 @@ BasicBlock *LowerSwitch::newLeafBlock(CaseRange &Leaf, Value *Val,
   ICmpInst *Comp = nullptr;
   if (Leaf.Low == Leaf.High) {
     // Make the seteq instruction...
-    PassPrediction::PassPeeper(__FILE__, 550); // if
+    PassPrediction::PassPeeper(550); // if
     Comp =
         new ICmpInst(*NewLeaf, ICmpInst::ICMP_EQ, Val, Leaf.Low, "SwitchLeaf");
   } else {
     // Make range comparison
-    PassPrediction::PassPeeper(__FILE__, 551); // else
+    PassPrediction::PassPeeper(551); // else
     if (Leaf.Low->isMinValue(true /*isSigned*/)) {
       // Val >= Min && Val <= Hi --> Val <= Hi
-      PassPrediction::PassPeeper(__FILE__, 552); // if
+      PassPrediction::PassPeeper(552); // if
       Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_SLE, Val, Leaf.High,
                           "SwitchLeaf");
     } else if (Leaf.Low->isZero()) {
       // Val >= 0 && Val <= Hi --> Val <=u Hi
-      PassPrediction::PassPeeper(__FILE__, 553); // if
+      PassPrediction::PassPeeper(553); // if
       Comp = new ICmpInst(*NewLeaf, ICmpInst::ICMP_ULE, Val, Leaf.High,
                           "SwitchLeaf");
     } else {
       // Emit V-Lo <=u Hi-Lo
-      PassPrediction::PassPeeper(__FILE__, 554); // else
+      PassPrediction::PassPeeper(554); // else
       Constant *NegLo = ConstantExpr::getNeg(Leaf.Low);
       Instruction *Add = BinaryOperator::CreateAdd(
           Val, NegLo, Val->getName() + ".off", NewLeaf);
@@ -355,12 +355,12 @@ BasicBlock *LowerSwitch::newLeafBlock(CaseRange &Leaf, Value *Val,
   // If there were any PHI nodes in this successor, rewrite one entry
   // from OrigBlock to come from NewLeaf.
   for (BasicBlock::iterator I = Succ->begin(); isa<PHINode>(I); ++I) {
-    PassPrediction::PassPeeper(__FILE__, 555); // for
+    PassPrediction::PassPeeper(555); // for
     PHINode *PN = cast<PHINode>(I);
     // Remove all but one incoming entries from the cluster
     uint64_t Range = Leaf.High->getSExtValue() - Leaf.Low->getSExtValue();
     for (uint64_t j = 0; j < Range; ++j) {
-      PassPrediction::PassPeeper(__FILE__, 556); // for
+      PassPrediction::PassPeeper(556); // for
       PN->removeIncomingValue(OrigBlock);
     }
 
@@ -378,7 +378,7 @@ unsigned LowerSwitch::Clusterify(CaseVector &Cases, SwitchInst *SI) {
 
   // Start with "simple" cases
   for (auto Case : SI->cases()) {
-    PassPrediction::PassPeeper(__FILE__, 557); // for-range
+    PassPrediction::PassPeeper(557); // for-range
     Cases.push_back(CaseRange(Case.getCaseValue(), Case.getCaseValue(),
                               Case.getCaseSuccessor()));
   }
@@ -387,10 +387,10 @@ unsigned LowerSwitch::Clusterify(CaseVector &Cases, SwitchInst *SI) {
 
   // Merge case into clusters
   if (Cases.size() >= 2) {
-    PassPrediction::PassPeeper(__FILE__, 558); // if
+    PassPrediction::PassPeeper(558); // if
     CaseItr I = Cases.begin();
     for (CaseItr J = std::next(I), E = Cases.end(); J != E; ++J) {
-      PassPrediction::PassPeeper(__FILE__, 559); // for
+      PassPrediction::PassPeeper(559); // for
       int64_t nextValue = J->Low->getSExtValue();
       int64_t currentValue = I->High->getSExtValue();
       BasicBlock *nextBB = J->BB;
@@ -400,11 +400,11 @@ unsigned LowerSwitch::Clusterify(CaseVector &Cases, SwitchInst *SI) {
       // into a single case.
       assert(nextValue > currentValue && "Cases should be strictly ascending");
       if ((nextValue == currentValue + 1) && (currentBB == nextBB)) {
-        PassPrediction::PassPeeper(__FILE__, 560); // if
+        PassPrediction::PassPeeper(560); // if
         I->High = J->High;
         // FIXME: Combine branch weights.
       } else if (++I != J) {
-        PassPrediction::PassPeeper(__FILE__, 561); // if
+        PassPrediction::PassPeeper(561); // if
         *I = *J;
       }
     }
@@ -412,10 +412,10 @@ unsigned LowerSwitch::Clusterify(CaseVector &Cases, SwitchInst *SI) {
   }
 
   for (CaseItr I = Cases.begin(), E = Cases.end(); I != E; ++I, ++numCmps) {
-    PassPrediction::PassPeeper(__FILE__, 562); // for
+    PassPrediction::PassPeeper(562); // for
     if (I->Low != I->High) {
       // A range counts double, since it requires two compares.
-      PassPrediction::PassPeeper(__FILE__, 563); // if
+      PassPrediction::PassPeeper(563); // if
       ++numCmps;
     }
   }
@@ -437,14 +437,14 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
   // would leave them behind with missing predecessors.
   if ((CurBlock != &F->getEntryBlock() && pred_empty(CurBlock)) ||
       CurBlock->getSinglePredecessor() == CurBlock) {
-    PassPrediction::PassPeeper(__FILE__, 564); // if
+    PassPrediction::PassPeeper(564); // if
     DeleteList.insert(CurBlock);
     return;
   }
 
   // If there is only the default destination, just branch.
   if (!SI->getNumCases()) {
-    PassPrediction::PassPeeper(__FILE__, 565); // if
+    PassPrediction::PassPeeper(565); // if
     BranchInst::Create(Default, CurBlock);
     SI->eraseFromParent();
     return;
@@ -477,14 +477,14 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
     IntRange R = {INT64_MIN, INT64_MAX};
     UnreachableRanges.push_back(R);
     for (const auto &I : Cases) {
-      PassPrediction::PassPeeper(__FILE__, 566); // for-range
+      PassPrediction::PassPeeper(566); // for-range
       int64_t Low = I.Low->getSExtValue();
       int64_t High = I.High->getSExtValue();
 
       IntRange &LastRange = UnreachableRanges.back();
       if (LastRange.Low == Low) {
         // There is nothing left of the previous range.
-        PassPrediction::PassPeeper(__FILE__, 567); // if
+        PassPrediction::PassPeeper(567); // if
         UnreachableRanges.pop_back();
       } else {
         // Terminate the previous range.
@@ -492,7 +492,7 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
         LastRange.High = Low - 1;
       }
       if (High != INT64_MAX) {
-        PassPrediction::PassPeeper(__FILE__, 568); // if
+        PassPrediction::PassPeeper(568); // if
         IntRange R = {High + 1, INT64_MAX};
         UnreachableRanges.push_back(R);
       }
@@ -501,7 +501,7 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
       int64_t N = High - Low + 1;
       unsigned &Pop = Popularity[I.BB];
       if ((Pop += N) > MaxPop) {
-        PassPrediction::PassPeeper(__FILE__, 569); // if
+        PassPrediction::PassPeeper(569); // if
         MaxPop = Pop;
         PopSucc = I.BB;
       }
@@ -529,7 +529,7 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
 
     // If there are no cases left, just branch.
     if (Cases.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 570); // if
+      PassPrediction::PassPeeper(570); // if
       BranchInst::Create(Default, CurBlock);
       SI->eraseFromParent();
       return;
@@ -545,7 +545,7 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
   // If there is an entry in any PHI nodes for the default edge, make sure
   // to update them as well.
   for (BasicBlock::iterator I = Default->begin(); isa<PHINode>(I); ++I) {
-    PassPrediction::PassPeeper(__FILE__, 571); // for
+    PassPrediction::PassPeeper(571); // for
     PHINode *PN = cast<PHINode>(I);
     int BlockIdx = PN->getBasicBlockIndex(OrigBlock);
     assert(BlockIdx != -1 && "Switch didn't go to this successor??");
@@ -565,7 +565,7 @@ void LowerSwitch::processSwitchInst(SwitchInst *SI,
 
   // If the Default block has no more predecessors just add it to DeleteList.
   if (pred_begin(OldDefault) == pred_end(OldDefault)) {
-    PassPrediction::PassPeeper(__FILE__, 572); // if
+    PassPrediction::PassPeeper(572); // if
     DeleteList.insert(OldDefault);
   }
 }

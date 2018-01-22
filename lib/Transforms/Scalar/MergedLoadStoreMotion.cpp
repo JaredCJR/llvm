@@ -136,14 +136,14 @@ private:
 void MergedLoadStoreMotion::removeInstruction(Instruction *Inst) {
   // Notify the memory dependence analysis.
   if (MD) {
-    PassPrediction::PassPeeper(__FILE__, 2018); // if
+    PassPrediction::PassPeeper(2018); // if
     MD->removeInstruction(Inst);
     if (auto *LI = dyn_cast<LoadInst>(Inst)) {
-      PassPrediction::PassPeeper(__FILE__, 2019); // if
+      PassPrediction::PassPeeper(2019); // if
       MD->invalidateCachedPointerInfo(LI->getPointerOperand());
     }
     if (Inst->getType()->isPtrOrPtrVectorTy()) {
-      PassPrediction::PassPeeper(__FILE__, 2020); // if
+      PassPrediction::PassPeeper(2020); // if
       MD->invalidateCachedPointerInfo(Inst);
     }
   }
@@ -163,12 +163,12 @@ BasicBlock *MergedLoadStoreMotion::getDiamondTail(BasicBlock *BB) {
 ///
 bool MergedLoadStoreMotion::isDiamondHead(BasicBlock *BB) {
   if (!BB) {
-    PassPrediction::PassPeeper(__FILE__, 2021); // if
+    PassPrediction::PassPeeper(2021); // if
     return false;
   }
   auto *BI = dyn_cast<BranchInst>(BB->getTerminator());
   if (!BI || !BI->isConditional()) {
-    PassPrediction::PassPeeper(__FILE__, 2022); // if
+    PassPrediction::PassPeeper(2022); // if
     return false;
   }
 
@@ -176,11 +176,11 @@ bool MergedLoadStoreMotion::isDiamondHead(BasicBlock *BB) {
   BasicBlock *Succ1 = BI->getSuccessor(1);
 
   if (!Succ0->getSinglePredecessor()) {
-    PassPrediction::PassPeeper(__FILE__, 2023); // if
+    PassPrediction::PassPeeper(2023); // if
     return false;
   }
   if (!Succ1->getSinglePredecessor()) {
-    PassPrediction::PassPeeper(__FILE__, 2024); // if
+    PassPrediction::PassPeeper(2024); // if
     return false;
   }
 
@@ -188,7 +188,7 @@ bool MergedLoadStoreMotion::isDiamondHead(BasicBlock *BB) {
   BasicBlock *Succ1Succ = Succ1->getSingleSuccessor();
   // Ignore triangles.
   if (!Succ0Succ || !Succ1Succ || Succ0Succ != Succ1Succ) {
-    PassPrediction::PassPeeper(__FILE__, 2025); // if
+    PassPrediction::PassPeeper(2025); // if
     return false;
   }
   return true;
@@ -207,9 +207,9 @@ bool MergedLoadStoreMotion::isStoreSinkBarrierInRange(const Instruction &Start,
                                                       MemoryLocation Loc) {
   for (const Instruction &Inst :
        make_range(Start.getIterator(), End.getIterator())) {
-    PassPrediction::PassPeeper(__FILE__, 2026); // for-range
+    PassPrediction::PassPeeper(2026); // for-range
     if (Inst.mayThrow()) {
-      PassPrediction::PassPeeper(__FILE__, 2027); // if
+      PassPrediction::PassPeeper(2027); // if
       return true;
     }
   }
@@ -226,10 +226,10 @@ StoreInst *MergedLoadStoreMotion::canSinkFromBlock(BasicBlock *BB1,
   DEBUG(dbgs() << "can Sink? : "; Store0->dump(); dbgs() << "\n");
   BasicBlock *BB0 = Store0->getParent();
   for (Instruction &Inst : reverse(*BB1)) {
-    PassPrediction::PassPeeper(__FILE__, 2028); // for-range
+    PassPrediction::PassPeeper(2028); // for-range
     auto *Store1 = dyn_cast<StoreInst>(&Inst);
     if (!Store1) {
-      PassPrediction::PassPeeper(__FILE__, 2029); // if
+      PassPrediction::PassPeeper(2029); // if
       continue;
     }
 
@@ -238,7 +238,7 @@ StoreInst *MergedLoadStoreMotion::canSinkFromBlock(BasicBlock *BB1,
     if (AA->isMustAlias(Loc0, Loc1) && Store0->isSameOperationAs(Store1) &&
         !isStoreSinkBarrierInRange(*Store1->getNextNode(), BB1->back(), Loc1) &&
         !isStoreSinkBarrierInRange(*Store0->getNextNode(), BB0->back(), Loc0)) {
-      PassPrediction::PassPeeper(__FILE__, 2030); // if
+      PassPrediction::PassPeeper(2030); // if
       return Store1;
     }
   }
@@ -254,7 +254,7 @@ PHINode *MergedLoadStoreMotion::getPHIOperand(BasicBlock *BB, StoreInst *S0,
   Value *Opd1 = S0->getValueOperand();
   Value *Opd2 = S1->getValueOperand();
   if (Opd1 == Opd2) {
-    PassPrediction::PassPeeper(__FILE__, 2031); // if
+    PassPrediction::PassPeeper(2031); // if
     return nullptr;
   }
 
@@ -263,7 +263,7 @@ PHINode *MergedLoadStoreMotion::getPHIOperand(BasicBlock *BB, StoreInst *S0,
   NewPN->addIncoming(Opd1, S0->getParent());
   NewPN->addIncoming(Opd2, S1->getParent());
   if (MD && NewPN->getType()->isPtrOrPtrVectorTy()) {
-    PassPrediction::PassPeeper(__FILE__, 2032); // if
+    PassPrediction::PassPeeper(2032); // if
     MD->invalidateCachedPointerInfo(NewPN);
   }
   return NewPN;
@@ -302,7 +302,7 @@ bool MergedLoadStoreMotion::sinkStore(BasicBlock *BB, StoreInst *S0,
 
     // New PHI operand? Use it.
     if (PHINode *NewPN = getPHIOperand(BB, S0, S1)) {
-      PassPrediction::PassPeeper(__FILE__, 2033); // if
+      PassPrediction::PassPeeper(2033); // if
       SNew->setOperand(0, NewPN);
     }
     removeInstruction(S0);
@@ -335,12 +335,12 @@ bool MergedLoadStoreMotion::mergeStores(BasicBlock *T) {
   ++PI;
   // tail block  of a diamond/hammock?
   if (Pred0 == Pred1) {
-    PassPrediction::PassPeeper(__FILE__, 2034); // if
-    return false;                               // No.
+    PassPrediction::PassPeeper(2034); // if
+    return false;                     // No.
   }
   if (PI != E) {
-    PassPrediction::PassPeeper(__FILE__, 2035); // if
-    return false;                               // No. More than 2 predecessors.
+    PassPrediction::PassPeeper(2035); // if
+    return false;                     // No. More than 2 predecessors.
   }
 
   // #Instructions in Succ1 for Compile Time Control
@@ -350,24 +350,24 @@ bool MergedLoadStoreMotion::mergeStores(BasicBlock *T) {
   for (BasicBlock::reverse_iterator RBI = Pred0->rbegin(), RBE = Pred0->rend();
        RBI != RBE;) {
 
-    PassPrediction::PassPeeper(__FILE__, 2036); // for
+    PassPrediction::PassPeeper(2036); // for
     Instruction *I = &*RBI;
     ++RBI;
 
     // Don't sink non-simple (atomic, volatile) stores.
     auto *S0 = dyn_cast<StoreInst>(I);
     if (!S0 || !S0->isSimple()) {
-      PassPrediction::PassPeeper(__FILE__, 2037); // if
+      PassPrediction::PassPeeper(2037); // if
       continue;
     }
 
     ++NStores;
     if (NStores * Size1 >= MagicCompileTimeControl) {
-      PassPrediction::PassPeeper(__FILE__, 2038); // if
+      PassPrediction::PassPeeper(2038); // if
       break;
     }
     if (StoreInst *S1 = canSinkFromBlock(Pred1, S0)) {
-      PassPrediction::PassPeeper(__FILE__, 2039); // if
+      PassPrediction::PassPeeper(2039); // if
       bool Res = sinkStore(T, S0, S1);
       MergedStores |= Res;
       // Don't attempt to sink below stores that had to stick around
@@ -375,7 +375,7 @@ bool MergedLoadStoreMotion::mergeStores(BasicBlock *T) {
       // instruction search again from the beginning since the iterator
       // is likely stale at this point.
       if (!Res) {
-        PassPrediction::PassPeeper(__FILE__, 2040); // if
+        PassPrediction::PassPeeper(2040); // if
         break;
       }
       RBI = Pred0->rbegin();
@@ -397,13 +397,13 @@ bool MergedLoadStoreMotion::run(Function &F, MemoryDependenceResults *MD,
   // Merge unconditional branches, allowing PRE to catch more
   // optimization opportunities.
   for (Function::iterator FI = F.begin(), FE = F.end(); FI != FE;) {
-    PassPrediction::PassPeeper(__FILE__, 2041); // for
+    PassPrediction::PassPeeper(2041); // for
     BasicBlock *BB = &*FI++;
 
     // Hoist equivalent loads and sink stores
     // outside diamonds when possible
     if (isDiamondHead(BB)) {
-      PassPrediction::PassPeeper(__FILE__, 2042); // if
+      PassPrediction::PassPeeper(2042); // if
       Changed |= mergeStores(getDiamondTail(BB));
     }
   }
@@ -424,7 +424,7 @@ public:
   ///
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 2043); // if
+      PassPrediction::PassPeeper(2043); // if
       return false;
     }
     MergedLoadStoreMotion Impl;
@@ -465,7 +465,7 @@ PreservedAnalyses MergedLoadStoreMotionPass::run(Function &F,
   auto *MD = AM.getCachedResult<MemoryDependenceAnalysis>(F);
   auto &AA = AM.getResult<AAManager>(F);
   if (!Impl.run(F, MD, AA)) {
-    PassPrediction::PassPeeper(__FILE__, 2044); // if
+    PassPrediction::PassPeeper(2044); // if
     return PreservedAnalyses::all();
   }
 

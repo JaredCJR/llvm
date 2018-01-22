@@ -187,7 +187,7 @@ void AggressiveDeadCodeElimination::initialize() {
   // Iterate over blocks and initialize BlockInfoVec entries, count
   // instructions to size the InstInfo hash table.
   for (auto &BB : F) {
-    PassPrediction::PassPeeper(__FILE__, 2445); // for-range
+    PassPrediction::PassPeeper(2445); // for-range
     NumInsts += BB.size();
     auto &Info = BlockInfo[&BB];
     Info.BB = &BB;
@@ -198,9 +198,9 @@ void AggressiveDeadCodeElimination::initialize() {
   // Initialize instruction map and set pointers to block info.
   InstInfo.reserve(NumInsts);
   for (auto &BBInfo : BlockInfo) {
-    PassPrediction::PassPeeper(__FILE__, 2446); // for-range
+    PassPrediction::PassPeeper(2446); // for-range
     for (Instruction &I : *BBInfo.second.BB) {
-      PassPrediction::PassPeeper(__FILE__, 2447); // for-range
+      PassPrediction::PassPeeper(2447); // for-range
       InstInfo[&I].Block = &BBInfo.second;
     }
   }
@@ -208,21 +208,21 @@ void AggressiveDeadCodeElimination::initialize() {
   // Since BlockInfoVec holds pointers into InstInfo and vice-versa, we may not
   // add any more elements to either after this point.
   for (auto &BBInfo : BlockInfo) {
-    PassPrediction::PassPeeper(__FILE__, 2448); // for-range
+    PassPrediction::PassPeeper(2448); // for-range
     BBInfo.second.TerminatorLiveInfo = &InstInfo[BBInfo.second.Terminator];
   }
 
   // Collect the set of "root" instructions that are known live.
   for (Instruction &I : instructions(F)) {
-    PassPrediction::PassPeeper(__FILE__, 2449); // for-range
+    PassPrediction::PassPeeper(2449); // for-range
     if (isAlwaysLive(I)) {
-      PassPrediction::PassPeeper(__FILE__, 2450); // if
+      PassPrediction::PassPeeper(2450); // if
       markLive(&I);
     }
   }
 
   if (!RemoveControlFlowFlag) {
-    PassPrediction::PassPeeper(__FILE__, 2451); // if
+    PassPrediction::PassPeeper(2451); // if
     return;
   }
 
@@ -231,7 +231,7 @@ void AggressiveDeadCodeElimination::initialize() {
     // to recording which nodes have been visited we also record whether
     // a node is currently on the "stack" of active ancestors of the current
     // node.
-    PassPrediction::PassPeeper(__FILE__, 2452); // if
+    PassPrediction::PassPeeper(2452); // if
     typedef DenseMap<BasicBlock *, bool> StatusMap;
     class DFState : public StatusMap {
     public:
@@ -255,20 +255,20 @@ void AggressiveDeadCodeElimination::initialize() {
     // treat all edges to a block already seen as loop back edges
     // and mark the branch live it if there is a back edge.
     for (auto *BB : depth_first_ext(&F.getEntryBlock(), State)) {
-      PassPrediction::PassPeeper(__FILE__, 2453); // for-range
+      PassPrediction::PassPeeper(2453); // for-range
       TerminatorInst *Term = BB->getTerminator();
       if (isLive(Term)) {
-        PassPrediction::PassPeeper(__FILE__, 2454); // if
+        PassPrediction::PassPeeper(2454); // if
         continue;
       }
 
       for (auto *Succ : successors(BB)) {
-        PassPrediction::PassPeeper(__FILE__, 2455); // for-range
+        PassPrediction::PassPeeper(2455); // for-range
         if (State.onStack(Succ)) {
           // back edge....
-          PassPrediction::PassPeeper(__FILE__, 2456); // if
+          PassPrediction::PassPeeper(2456); // if
           markLive(Term);
-          PassPrediction::PassPeeper(__FILE__, 2457); // break
+          PassPrediction::PassPeeper(2457); // break
           break;
         }
       }
@@ -279,10 +279,10 @@ void AggressiveDeadCodeElimination::initialize() {
   // return of the function or a successor for which this is true.
   // This protects IDFCalculator which cannot handle such blocks.
   for (auto &BBInfoPair : BlockInfo) {
-    PassPrediction::PassPeeper(__FILE__, 2458); // for-range
+    PassPrediction::PassPeeper(2458); // for-range
     auto &BBInfo = BBInfoPair.second;
     if (BBInfo.terminatorIsLive()) {
-      PassPrediction::PassPeeper(__FILE__, 2459); // if
+      PassPrediction::PassPeeper(2459); // if
       continue;
     }
     auto *BB = BBInfo.BB;
@@ -293,12 +293,12 @@ void AggressiveDeadCodeElimination::initialize() {
       continue;
     }
     for (auto *Succ : successors(BB)) {
-      PassPrediction::PassPeeper(__FILE__, 2460); // for-range
+      PassPrediction::PassPeeper(2460); // for-range
       if (!PDT.getNode(Succ)) {
         DEBUG(dbgs() << "Successor not post-dominated by return: "
                      << BB->getName() << '\n';);
         markLive(BBInfo.Terminator);
-        PassPrediction::PassPeeper(__FILE__, 2461); // break
+        PassPrediction::PassPeeper(2461); // break
         break;
       }
     }
@@ -309,15 +309,15 @@ void AggressiveDeadCodeElimination::initialize() {
   auto &EntryInfo = BlockInfo[BB];
   EntryInfo.Live = true;
   if (EntryInfo.UnconditionalBranch) {
-    PassPrediction::PassPeeper(__FILE__, 2462); // if
+    PassPrediction::PassPeeper(2462); // if
     markLive(EntryInfo.Terminator);
   }
 
   // Build initial collection of blocks with dead terminators
   for (auto &BBInfo : BlockInfo) {
-    PassPrediction::PassPeeper(__FILE__, 2463); // for-range
+    PassPrediction::PassPeeper(2463); // for-range
     if (!BBInfo.second.terminatorIsLive()) {
-      PassPrediction::PassPeeper(__FILE__, 2464); // if
+      PassPrediction::PassPeeper(2464); // if
       BlocksWithDeadTerminators.insert(BBInfo.second.BB);
     }
   }
@@ -328,19 +328,19 @@ bool AggressiveDeadCodeElimination::isAlwaysLive(Instruction &I) {
   if (I.isEHPad() || I.mayHaveSideEffects()) {
     // Skip any value profile instrumentation calls if they are
     // instrumenting constants.
-    PassPrediction::PassPeeper(__FILE__, 2465); // if
+    PassPrediction::PassPeeper(2465); // if
     if (isInstrumentsConstant(I)) {
-      PassPrediction::PassPeeper(__FILE__, 2466); // if
+      PassPrediction::PassPeeper(2466); // if
       return false;
     }
     return true;
   }
   if (!isa<TerminatorInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2467); // if
+    PassPrediction::PassPeeper(2467); // if
     return false;
   }
   if (RemoveControlFlowFlag && (isa<BranchInst>(I) || isa<SwitchInst>(I))) {
-    PassPrediction::PassPeeper(__FILE__, 2468); // if
+    PassPrediction::PassPeeper(2468); // if
     return false;
   }
   return true;
@@ -351,13 +351,13 @@ bool AggressiveDeadCodeElimination::isAlwaysLive(Instruction &I) {
 bool AggressiveDeadCodeElimination::isInstrumentsConstant(Instruction &I) {
   // TODO -- move this test into llvm::isInstructionTriviallyDead
   if (CallInst *CI = dyn_cast<CallInst>(&I)) {
-    PassPrediction::PassPeeper(__FILE__, 2469); // if
+    PassPrediction::PassPeeper(2469); // if
     if (Function *Callee = CI->getCalledFunction()) {
-      PassPrediction::PassPeeper(__FILE__, 2470); // if
+      PassPrediction::PassPeeper(2470); // if
       if (Callee->getName().equals(getInstrProfValueProfFuncName())) {
-        PassPrediction::PassPeeper(__FILE__, 2471); // if
+        PassPrediction::PassPeeper(2471); // if
         if (isa<Constant>(CI->getArgOperand(0))) {
-          PassPrediction::PassPeeper(__FILE__, 2472); // if
+          PassPrediction::PassPeeper(2472); // if
           return true;
         }
       }
@@ -372,22 +372,22 @@ void AggressiveDeadCodeElimination::markLiveInstructions() {
   do {
     // Worklist holds newly discovered live instructions
     // where we need to mark the inputs as live.
-    PassPrediction::PassPeeper(__FILE__, 2473); // do-while
+    PassPrediction::PassPeeper(2473); // do-while
     while (!Worklist.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 2474); // while
+      PassPrediction::PassPeeper(2474); // while
       Instruction *LiveInst = Worklist.pop_back_val();
       DEBUG(dbgs() << "work live: "; LiveInst->dump(););
 
       for (Use &OI : LiveInst->operands()) {
-        PassPrediction::PassPeeper(__FILE__, 2475); // for-range
+        PassPrediction::PassPeeper(2475); // for-range
         if (Instruction *Inst = dyn_cast<Instruction>(OI)) {
-          PassPrediction::PassPeeper(__FILE__, 2476); // if
+          PassPrediction::PassPeeper(2476); // if
           markLive(Inst);
         }
       }
 
       if (auto *PN = dyn_cast<PHINode>(LiveInst)) {
-        PassPrediction::PassPeeper(__FILE__, 2477); // if
+        PassPrediction::PassPeeper(2477); // if
         markPhiLive(PN);
       }
     }
@@ -403,7 +403,7 @@ void AggressiveDeadCodeElimination::markLive(Instruction *I) {
 
   auto &Info = InstInfo[I];
   if (Info.Live) {
-    PassPrediction::PassPeeper(__FILE__, 2478); // if
+    PassPrediction::PassPeeper(2478); // if
     return;
   }
 
@@ -413,21 +413,21 @@ void AggressiveDeadCodeElimination::markLive(Instruction *I) {
 
   // Collect the live debug info scopes attached to this instruction.
   if (const DILocation *DL = I->getDebugLoc()) {
-    PassPrediction::PassPeeper(__FILE__, 2479); // if
+    PassPrediction::PassPeeper(2479); // if
     collectLiveScopes(*DL);
   }
 
   // Mark the containing block live
   auto &BBInfo = *Info.Block;
   if (BBInfo.Terminator == I) {
-    PassPrediction::PassPeeper(__FILE__, 2480); // if
+    PassPrediction::PassPeeper(2480); // if
     BlocksWithDeadTerminators.erase(BBInfo.BB);
     // For live terminators, mark destination blocks
     // live to preserve this control flow edges.
     if (!BBInfo.UnconditionalBranch) {
-      PassPrediction::PassPeeper(__FILE__, 2481); // if
+      PassPrediction::PassPeeper(2481); // if
       for (auto *BB : successors(I->getParent())) {
-        PassPrediction::PassPeeper(__FILE__, 2482); // for-range
+        PassPrediction::PassPeeper(2482); // for-range
         markLive(BB);
       }
     }
@@ -437,13 +437,13 @@ void AggressiveDeadCodeElimination::markLive(Instruction *I) {
 
 void AggressiveDeadCodeElimination::markLive(BlockInfoType &BBInfo) {
   if (BBInfo.Live) {
-    PassPrediction::PassPeeper(__FILE__, 2483); // if
+    PassPrediction::PassPeeper(2483); // if
     return;
   }
   DEBUG(dbgs() << "mark block live: " << BBInfo.BB->getName() << '\n');
   BBInfo.Live = true;
   if (!BBInfo.CFLive) {
-    PassPrediction::PassPeeper(__FILE__, 2484); // if
+    PassPrediction::PassPeeper(2484); // if
     BBInfo.CFLive = true;
     NewLiveBlocks.insert(BBInfo.BB);
   }
@@ -451,19 +451,19 @@ void AggressiveDeadCodeElimination::markLive(BlockInfoType &BBInfo) {
   // Mark unconditional branches at the end of live
   // blocks as live since there is no work to do for them later
   if (BBInfo.UnconditionalBranch) {
-    PassPrediction::PassPeeper(__FILE__, 2485); // if
+    PassPrediction::PassPeeper(2485); // if
     markLive(BBInfo.Terminator);
   }
 }
 
 void AggressiveDeadCodeElimination::collectLiveScopes(const DILocalScope &LS) {
   if (!AliveScopes.insert(&LS).second) {
-    PassPrediction::PassPeeper(__FILE__, 2486); // if
+    PassPrediction::PassPeeper(2486); // if
     return;
   }
 
   if (isa<DISubprogram>(LS)) {
-    PassPrediction::PassPeeper(__FILE__, 2487); // if
+    PassPrediction::PassPeeper(2487); // if
     return;
   }
 
@@ -475,7 +475,7 @@ void AggressiveDeadCodeElimination::collectLiveScopes(const DILocation &DL) {
   // Even though DILocations are not scopes, shove them into AliveScopes so we
   // don't revisit them.
   if (!AliveScopes.insert(&DL).second) {
-    PassPrediction::PassPeeper(__FILE__, 2488); // if
+    PassPrediction::PassPeeper(2488); // if
     return;
   }
 
@@ -484,7 +484,7 @@ void AggressiveDeadCodeElimination::collectLiveScopes(const DILocation &DL) {
 
   // Tail-recurse through the inlined-at chain.
   if (const DILocation *IA = DL.getInlinedAt()) {
-    PassPrediction::PassPeeper(__FILE__, 2489); // if
+    PassPrediction::PassPeeper(2489); // if
     collectLiveScopes(*IA);
   }
 }
@@ -493,7 +493,7 @@ void AggressiveDeadCodeElimination::markPhiLive(PHINode *PN) {
   auto &Info = BlockInfo[PN->getParent()];
   // Only need to check this once per block.
   if (Info.HasLivePhiNodes) {
-    PassPrediction::PassPeeper(__FILE__, 2490); // if
+    PassPrediction::PassPeeper(2490); // if
     return;
   }
   Info.HasLivePhiNodes = true;
@@ -502,10 +502,10 @@ void AggressiveDeadCodeElimination::markPhiLive(PHINode *PN) {
   // which will trigger marking live branches upon which
   // that block is control dependent.
   for (auto *PredBB : predecessors(Info.BB)) {
-    PassPrediction::PassPeeper(__FILE__, 2491); // for-range
+    PassPrediction::PassPeeper(2491); // for-range
     auto &Info = BlockInfo[PredBB];
     if (!Info.CFLive) {
-      PassPrediction::PassPeeper(__FILE__, 2492); // if
+      PassPrediction::PassPeeper(2492); // if
       Info.CFLive = true;
       NewLiveBlocks.insert(PredBB);
     }
@@ -515,7 +515,7 @@ void AggressiveDeadCodeElimination::markPhiLive(PHINode *PN) {
 void AggressiveDeadCodeElimination::markLiveBranchesFromControlDependences() {
 
   if (BlocksWithDeadTerminators.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 2493); // if
+    PassPrediction::PassPeeper(2493); // if
     return;
   }
 
@@ -588,17 +588,17 @@ bool AggressiveDeadCodeElimination::removeDeadInstructions() {
   // NOTE: We reuse the Worklist vector here for memory efficiency.
   for (Instruction &I : instructions(F)) {
     // Check if the instruction is alive.
-    PassPrediction::PassPeeper(__FILE__, 2494); // for-range
+    PassPrediction::PassPeeper(2494); // for-range
     if (isLive(&I)) {
-      PassPrediction::PassPeeper(__FILE__, 2495); // if
+      PassPrediction::PassPeeper(2495); // if
       continue;
     }
 
     if (auto *DII = dyn_cast<DbgInfoIntrinsic>(&I)) {
       // Check if the scope of this variable location is alive.
-      PassPrediction::PassPeeper(__FILE__, 2496); // if
+      PassPrediction::PassPeeper(2496); // if
       if (AliveScopes.count(DII->getDebugLoc()->getScope())) {
-        PassPrediction::PassPeeper(__FILE__, 2497); // if
+        PassPrediction::PassPeeper(2497); // if
         continue;
       }
 
@@ -611,7 +611,7 @@ bool AggressiveDeadCodeElimination::removeDeadInstructions() {
   }
 
   for (Instruction *&I : Worklist) {
-    PassPrediction::PassPeeper(__FILE__, 2498); // for-range
+    PassPrediction::PassPeeper(2498); // for-range
     ++NumRemoved;
     I->eraseFromParent();
   }
@@ -634,16 +634,16 @@ void AggressiveDeadCodeElimination::updateDeadRegions() {
   bool HavePostOrder = false;
 
   for (auto *BB : BlocksWithDeadTerminators) {
-    PassPrediction::PassPeeper(__FILE__, 2499); // for-range
+    PassPrediction::PassPeeper(2499); // for-range
     auto &Info = BlockInfo[BB];
     if (Info.UnconditionalBranch) {
-      PassPrediction::PassPeeper(__FILE__, 2500); // if
+      PassPrediction::PassPeeper(2500); // if
       InstInfo[Info.Terminator].Live = true;
       continue;
     }
 
     if (!HavePostOrder) {
-      PassPrediction::PassPeeper(__FILE__, 2501); // if
+      PassPrediction::PassPeeper(2501); // if
       computeReversePostOrder();
       HavePostOrder = true;
     }
@@ -653,10 +653,10 @@ void AggressiveDeadCodeElimination::updateDeadRegions() {
     // live edge.
     BlockInfoType *PreferredSucc = nullptr;
     for (auto *Succ : successors(BB)) {
-      PassPrediction::PassPeeper(__FILE__, 2502); // for-range
+      PassPrediction::PassPeeper(2502); // for-range
       auto *Info = &BlockInfo[Succ];
       if (!PreferredSucc || PreferredSucc->PostOrder < Info->PostOrder) {
-        PassPrediction::PassPeeper(__FILE__, 2503); // if
+        PassPrediction::PassPeeper(2503); // if
         PreferredSucc = Info;
       }
     }
@@ -664,12 +664,12 @@ void AggressiveDeadCodeElimination::updateDeadRegions() {
            "Failed to find safe successor for dead branch");
     bool First = true;
     for (auto *Succ : successors(BB)) {
-      PassPrediction::PassPeeper(__FILE__, 2504); // for-range
+      PassPrediction::PassPeeper(2504); // for-range
       if (!First || Succ != PreferredSucc->BB) {
-        PassPrediction::PassPeeper(__FILE__, 2505); // if
+        PassPrediction::PassPeeper(2505); // if
         Succ->removePredecessor(BB);
       } else {
-        PassPrediction::PassPeeper(__FILE__, 2506); // else
+        PassPrediction::PassPeeper(2506); // else
         First = false;
       }
     }
@@ -691,13 +691,13 @@ void AggressiveDeadCodeElimination::computeReversePostOrder() {
   SmallPtrSet<BasicBlock *, 16> Visited;
   unsigned PostOrder = 0;
   for (auto &BB : F) {
-    PassPrediction::PassPeeper(__FILE__, 2507); // for-range
+    PassPrediction::PassPeeper(2507); // for-range
     if (succ_begin(&BB) != succ_end(&BB)) {
-      PassPrediction::PassPeeper(__FILE__, 2508); // if
+      PassPrediction::PassPeeper(2508); // if
       continue;
     }
     for (BasicBlock *Block : inverse_post_order_ext(&BB, Visited)) {
-      PassPrediction::PassPeeper(__FILE__, 2509); // for-range
+      PassPrediction::PassPeeper(2509); // for-range
       BlockInfo[Block].PostOrder = PostOrder++;
     }
   }
@@ -708,13 +708,13 @@ void AggressiveDeadCodeElimination::makeUnconditional(BasicBlock *BB,
   TerminatorInst *PredTerm = BB->getTerminator();
   // Collect the live debug info scopes attached to this instruction.
   if (const DILocation *DL = PredTerm->getDebugLoc()) {
-    PassPrediction::PassPeeper(__FILE__, 2510); // if
+    PassPrediction::PassPeeper(2510); // if
     collectLiveScopes(*DL);
   }
 
   // Just mark live an existing unconditional branch
   if (isUnconditionalBranch(PredTerm)) {
-    PassPrediction::PassPeeper(__FILE__, 2511); // if
+    PassPrediction::PassPeeper(2511); // if
     PredTerm->setSuccessor(0, Target);
     InstInfo[PredTerm].Live = true;
     return;
@@ -725,7 +725,7 @@ void AggressiveDeadCodeElimination::makeUnconditional(BasicBlock *BB,
   auto *NewTerm = Builder.CreateBr(Target);
   InstInfo[NewTerm].Live = true;
   if (const DILocation *DL = PredTerm->getDebugLoc()) {
-    PassPrediction::PassPeeper(__FILE__, 2512); // if
+    PassPrediction::PassPeeper(2512); // if
     NewTerm->setDebugLoc(DL);
   }
 }
@@ -738,7 +738,7 @@ void AggressiveDeadCodeElimination::makeUnconditional(BasicBlock *BB,
 PreservedAnalyses ADCEPass::run(Function &F, FunctionAnalysisManager &FAM) {
   auto &PDT = FAM.getResult<PostDominatorTreeAnalysis>(F);
   if (!AggressiveDeadCodeElimination(F, PDT).performDeadCodeElimination()) {
-    PassPrediction::PassPeeper(__FILE__, 2513); // if
+    PassPrediction::PassPeeper(2513); // if
     return PreservedAnalyses::all();
   }
 
@@ -757,7 +757,7 @@ struct ADCELegacyPass : public FunctionPass {
 
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 2514); // if
+      PassPrediction::PassPeeper(2514); // if
       return false;
     }
     auto &PDT = getAnalysis<PostDominatorTreeWrapperPass>().getPostDomTree();
@@ -767,7 +767,7 @@ struct ADCELegacyPass : public FunctionPass {
   void getAnalysisUsage(AnalysisUsage &AU) const override {
     AU.addRequired<PostDominatorTreeWrapperPass>();
     if (!RemoveControlFlowFlag) {
-      PassPrediction::PassPeeper(__FILE__, 2515); // if
+      PassPrediction::PassPeeper(2515); // if
       AU.setPreservesCFG();
     }
     AU.addPreserved<GlobalsAAWrapperPass>();

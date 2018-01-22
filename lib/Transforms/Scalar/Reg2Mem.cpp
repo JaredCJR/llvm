@@ -50,10 +50,10 @@ struct RegToMem : public FunctionPass {
   bool valueEscapes(const Instruction *Inst) const {
     const BasicBlock *BB = Inst->getParent();
     for (const User *U : Inst->users()) {
-      PassPrediction::PassPeeper(__FILE__, 2323); // for-range
+      PassPrediction::PassPeeper(2323); // for-range
       const Instruction *UI = cast<Instruction>(U);
       if (UI->getParent() != BB || isa<PHINode>(UI)) {
-        PassPrediction::PassPeeper(__FILE__, 2324); // if
+        PassPrediction::PassPeeper(2324); // if
         return true;
       }
     }
@@ -73,7 +73,7 @@ INITIALIZE_PASS_END(RegToMem, "reg2mem", "Demote all values to stack slots",
 
 bool RegToMem::runOnFunction(Function &F) {
   if (F.isDeclaration() || skipFunction(F)) {
-    PassPrediction::PassPeeper(__FILE__, 2325); // if
+    PassPrediction::PassPeeper(2325); // if
     return false;
   }
 
@@ -87,7 +87,7 @@ bool RegToMem::runOnFunction(Function &F) {
   // we'll get and assertion.
   BasicBlock::iterator I = BBEntry->begin();
   while (isa<AllocaInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2326); // while
+    PassPrediction::PassPeeper(2326); // while
     ++I;
   }
 
@@ -99,13 +99,13 @@ bool RegToMem::runOnFunction(Function &F) {
   // allocas in entry block.
   std::list<Instruction *> WorkList;
   for (BasicBlock &ibb : F) {
-    PassPrediction::PassPeeper(__FILE__, 2327); // for-range
+    PassPrediction::PassPeeper(2327); // for-range
     for (BasicBlock::iterator iib = ibb.begin(), iie = ibb.end(); iib != iie;
          ++iib) {
-      PassPrediction::PassPeeper(__FILE__, 2328); // for
+      PassPrediction::PassPeeper(2328); // for
       if (!(isa<AllocaInst>(iib) && iib->getParent() == BBEntry) &&
           valueEscapes(&*iib)) {
-        PassPrediction::PassPeeper(__FILE__, 2329); // if
+        PassPrediction::PassPeeper(2329); // if
         WorkList.push_front(&*iib);
       }
     }
@@ -114,7 +114,7 @@ bool RegToMem::runOnFunction(Function &F) {
   // Demote escaped instructions
   NumRegsDemoted += WorkList.size();
   for (Instruction *ilb : WorkList) {
-    PassPrediction::PassPeeper(__FILE__, 2330); // for-range
+    PassPrediction::PassPeeper(2330); // for-range
     DemoteRegToStack(*ilb, false, AllocaInsertionPoint);
   }
 
@@ -122,12 +122,12 @@ bool RegToMem::runOnFunction(Function &F) {
 
   // Find all phi's
   for (BasicBlock &ibb : F) {
-    PassPrediction::PassPeeper(__FILE__, 2331); // for-range
+    PassPrediction::PassPeeper(2331); // for-range
     for (BasicBlock::iterator iib = ibb.begin(), iie = ibb.end(); iib != iie;
          ++iib) {
-      PassPrediction::PassPeeper(__FILE__, 2332); // for
+      PassPrediction::PassPeeper(2332); // for
       if (isa<PHINode>(iib)) {
-        PassPrediction::PassPeeper(__FILE__, 2333); // if
+        PassPrediction::PassPeeper(2333); // if
         WorkList.push_front(&*iib);
       }
     }
@@ -136,7 +136,7 @@ bool RegToMem::runOnFunction(Function &F) {
   // Demote phi nodes
   NumPhisDemoted += WorkList.size();
   for (Instruction *ilb : WorkList) {
-    PassPrediction::PassPeeper(__FILE__, 2334); // for-range
+    PassPrediction::PassPeeper(2334); // for-range
     DemotePHIToStack(cast<PHINode>(ilb), AllocaInsertionPoint);
   }
 

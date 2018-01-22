@@ -111,22 +111,22 @@ public:
     Fail = false;
     ActiveBlocks.clear();
     for (BasicBlock *BB : Blocks) {
-      PassPrediction::PassPeeper(__FILE__, 1128); // for-range
+      PassPrediction::PassPeeper(1128); // for-range
       ActiveBlocks.insert(BB);
     }
     Insts.clear();
     for (BasicBlock *BB : Blocks) {
-      PassPrediction::PassPeeper(__FILE__, 1129); // for-range
+      PassPrediction::PassPeeper(1129); // for-range
       if (BB->size() <= 1) {
         // Block wasn't big enough - only contained a terminator.
-        PassPrediction::PassPeeper(__FILE__, 1130); // if
+        PassPrediction::PassPeeper(1130); // if
         ActiveBlocks.erase(BB);
         continue;
       }
       Insts.push_back(BB->getTerminator()->getPrevNode());
     }
     if (Insts.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 1131); // if
+      PassPrediction::PassPeeper(1131); // if
       Fail = true;
     }
   }
@@ -137,14 +137,14 @@ public:
 
   void restrictToBlocks(SmallPtrSetImpl<BasicBlock *> &Blocks) {
     for (auto II = Insts.begin(); II != Insts.end();) {
-      PassPrediction::PassPeeper(__FILE__, 1132); // for
+      PassPrediction::PassPeeper(1132); // for
       if (std::find(Blocks.begin(), Blocks.end(), (*II)->getParent()) ==
           Blocks.end()) {
-        PassPrediction::PassPeeper(__FILE__, 1133); // if
+        PassPrediction::PassPeeper(1133); // if
         ActiveBlocks.erase((*II)->getParent());
         II = Insts.erase(II);
       } else {
-        PassPrediction::PassPeeper(__FILE__, 1134); // else
+        PassPrediction::PassPeeper(1134); // else
         ++II;
       }
     }
@@ -152,22 +152,22 @@ public:
 
   void operator--() {
     if (Fail) {
-      PassPrediction::PassPeeper(__FILE__, 1135); // if
+      PassPrediction::PassPeeper(1135); // if
       return;
     }
     SmallVector<Instruction *, 4> NewInsts;
     for (auto *Inst : Insts) {
-      PassPrediction::PassPeeper(__FILE__, 1136); // for-range
+      PassPrediction::PassPeeper(1136); // for-range
       if (Inst == &Inst->getParent()->front()) {
-        PassPrediction::PassPeeper(__FILE__, 1137); // if
+        PassPrediction::PassPeeper(1137); // if
         ActiveBlocks.erase(Inst->getParent());
       } else {
-        PassPrediction::PassPeeper(__FILE__, 1138); // else
+        PassPrediction::PassPeeper(1138); // else
         NewInsts.push_back(Inst->getPrevNode());
       }
     }
     if (NewInsts.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 1139); // if
+      PassPrediction::PassPeeper(1139); // if
       Fail = true;
       return;
     }
@@ -224,7 +224,7 @@ public:
   ModelledPHI() {}
   ModelledPHI(const PHINode *PN) {
     for (unsigned I = 0, E = PN->getNumIncomingValues(); I != E; ++I) {
-      PassPrediction::PassPeeper(__FILE__, 1140); // for
+      PassPrediction::PassPeeper(1140); // for
       Blocks.push_back(PN->getIncomingBlock(I));
     }
     std::sort(Blocks.begin(), Blocks.end());
@@ -232,7 +232,7 @@ public:
     // This assumes the PHI is already well-formed and there aren't conflicting
     // incoming values for the same block.
     for (auto *B : Blocks) {
-      PassPrediction::PassPeeper(__FILE__, 1141); // for-range
+      PassPrediction::PassPeeper(1141); // for-range
       Values.push_back(PN->getIncomingValueForBlock(B));
     }
   }
@@ -257,7 +257,7 @@ public:
   ModelledPHI(ArrayRef<Instruction *> Insts, unsigned OpNum, const BArray &B) {
     std::copy(B.begin(), B.end(), std::back_inserter(Blocks));
     for (auto *I : Insts) {
-      PassPrediction::PassPeeper(__FILE__, 1142); // for-range
+      PassPrediction::PassPeeper(1142); // for-range
       Values.push_back(I->getOperand(OpNum));
     }
   }
@@ -271,11 +271,11 @@ public:
       assert(VI != Values.end());
       if (std::find(NewBlocks.begin(), NewBlocks.end(), *BI) ==
           NewBlocks.end()) {
-        PassPrediction::PassPeeper(__FILE__, 1143); // if
+        PassPrediction::PassPeeper(1143); // if
         BI = Blocks.erase(BI);
         VI = Values.erase(VI);
       } else {
-        PassPrediction::PassPeeper(__FILE__, 1144); // else
+        PassPrediction::PassPeeper(1144); // else
         ++BI;
         ++VI;
       }
@@ -347,7 +347,7 @@ public:
     setType(I->getType());
 
     for (auto &U : I->uses()) {
-      PassPrediction::PassPeeper(__FILE__, 1145); // for-range
+      PassPrediction::PassPeeper(1145); // for-range
       op_push_back(U.getUser());
     }
     std::sort(op_begin(), op_end());
@@ -364,7 +364,7 @@ public:
     hash_code H =
         hash_combine(getOpcode(), getType(), MemoryUseOrder, Volatile);
     for (auto *V : operands()) {
-      PassPrediction::PassPeeper(__FILE__, 1146); // for-range
+      PassPrediction::PassPeeper(1146); // for-range
       H = hash_combine(H, MapFn(V));
     }
     return H;
@@ -386,12 +386,12 @@ class ValueTable {
     InstructionUseExpr *E =
         new (Allocator) InstructionUseExpr(I, Recycler, Allocator);
     if (isMemoryInst(I)) {
-      PassPrediction::PassPeeper(__FILE__, 1147); // if
+      PassPrediction::PassPeeper(1147); // if
       E->setMemoryUseOrder(getMemoryUseOrder(I));
     }
 
     if (CmpInst *C = dyn_cast<CmpInst>(I)) {
-      PassPrediction::PassPeeper(__FILE__, 1148); // if
+      PassPrediction::PassPeeper(1148); // if
       CmpInst::Predicate Predicate = C->getPredicate();
       E->setOpcode((C->getOpcode() << 8) | Predicate);
     }
@@ -403,7 +403,7 @@ class ValueTable {
   /// volatility.
   template <class Inst> InstructionUseExpr *createMemoryExpr(Inst *I) {
     if (isStrongerThanUnordered(I->getOrdering()) || I->isAtomic()) {
-      PassPrediction::PassPeeper(__FILE__, 1149); // if
+      PassPrediction::PassPeeper(1149); // if
       return nullptr;
     }
     InstructionUseExpr *E = createExpr(I);
@@ -417,12 +417,12 @@ public:
   uint32_t lookupOrAdd(Value *V) {
     auto VI = ValueNumbering.find(V);
     if (VI != ValueNumbering.end()) {
-      PassPrediction::PassPeeper(__FILE__, 1150); // if
+      PassPrediction::PassPeeper(1150); // if
       return VI->second;
     }
 
     if (!isa<Instruction>(V)) {
-      PassPrediction::PassPeeper(__FILE__, 1151); // if
+      PassPrediction::PassPeeper(1151); // if
       ValueNumbering[V] = nextValueNumber;
       return nextValueNumber++;
     }
@@ -431,161 +431,161 @@ public:
     InstructionUseExpr *exp = nullptr;
     switch (I->getOpcode()) {
     case Instruction::Load:
-      PassPrediction::PassPeeper(__FILE__, 1152); // case
+      PassPrediction::PassPeeper(1152); // case
 
       exp = createMemoryExpr(cast<LoadInst>(I));
-      PassPrediction::PassPeeper(__FILE__, 1153); // break
+      PassPrediction::PassPeeper(1153); // break
       break;
     case Instruction::Store:
-      PassPrediction::PassPeeper(__FILE__, 1154); // case
+      PassPrediction::PassPeeper(1154); // case
 
       exp = createMemoryExpr(cast<StoreInst>(I));
-      PassPrediction::PassPeeper(__FILE__, 1155); // break
+      PassPrediction::PassPeeper(1155); // break
       break;
     case Instruction::Call:
-      PassPrediction::PassPeeper(__FILE__, 1156); // case
+      PassPrediction::PassPeeper(1156); // case
 
     case Instruction::Invoke:
-      PassPrediction::PassPeeper(__FILE__, 1157); // case
+      PassPrediction::PassPeeper(1157); // case
 
     case Instruction::Add:
-      PassPrediction::PassPeeper(__FILE__, 1158); // case
+      PassPrediction::PassPeeper(1158); // case
 
     case Instruction::FAdd:
-      PassPrediction::PassPeeper(__FILE__, 1159); // case
+      PassPrediction::PassPeeper(1159); // case
 
     case Instruction::Sub:
-      PassPrediction::PassPeeper(__FILE__, 1160); // case
+      PassPrediction::PassPeeper(1160); // case
 
     case Instruction::FSub:
-      PassPrediction::PassPeeper(__FILE__, 1161); // case
+      PassPrediction::PassPeeper(1161); // case
 
     case Instruction::Mul:
-      PassPrediction::PassPeeper(__FILE__, 1162); // case
+      PassPrediction::PassPeeper(1162); // case
 
     case Instruction::FMul:
-      PassPrediction::PassPeeper(__FILE__, 1163); // case
+      PassPrediction::PassPeeper(1163); // case
 
     case Instruction::UDiv:
-      PassPrediction::PassPeeper(__FILE__, 1164); // case
+      PassPrediction::PassPeeper(1164); // case
 
     case Instruction::SDiv:
-      PassPrediction::PassPeeper(__FILE__, 1165); // case
+      PassPrediction::PassPeeper(1165); // case
 
     case Instruction::FDiv:
-      PassPrediction::PassPeeper(__FILE__, 1166); // case
+      PassPrediction::PassPeeper(1166); // case
 
     case Instruction::URem:
-      PassPrediction::PassPeeper(__FILE__, 1167); // case
+      PassPrediction::PassPeeper(1167); // case
 
     case Instruction::SRem:
-      PassPrediction::PassPeeper(__FILE__, 1168); // case
+      PassPrediction::PassPeeper(1168); // case
 
     case Instruction::FRem:
-      PassPrediction::PassPeeper(__FILE__, 1169); // case
+      PassPrediction::PassPeeper(1169); // case
 
     case Instruction::Shl:
-      PassPrediction::PassPeeper(__FILE__, 1170); // case
+      PassPrediction::PassPeeper(1170); // case
 
     case Instruction::LShr:
-      PassPrediction::PassPeeper(__FILE__, 1171); // case
+      PassPrediction::PassPeeper(1171); // case
 
     case Instruction::AShr:
-      PassPrediction::PassPeeper(__FILE__, 1172); // case
+      PassPrediction::PassPeeper(1172); // case
 
     case Instruction::And:
-      PassPrediction::PassPeeper(__FILE__, 1173); // case
+      PassPrediction::PassPeeper(1173); // case
 
     case Instruction::Or:
-      PassPrediction::PassPeeper(__FILE__, 1174); // case
+      PassPrediction::PassPeeper(1174); // case
 
     case Instruction::Xor:
-      PassPrediction::PassPeeper(__FILE__, 1175); // case
+      PassPrediction::PassPeeper(1175); // case
 
     case Instruction::ICmp:
-      PassPrediction::PassPeeper(__FILE__, 1176); // case
+      PassPrediction::PassPeeper(1176); // case
 
     case Instruction::FCmp:
-      PassPrediction::PassPeeper(__FILE__, 1177); // case
+      PassPrediction::PassPeeper(1177); // case
 
     case Instruction::Trunc:
-      PassPrediction::PassPeeper(__FILE__, 1178); // case
+      PassPrediction::PassPeeper(1178); // case
 
     case Instruction::ZExt:
-      PassPrediction::PassPeeper(__FILE__, 1179); // case
+      PassPrediction::PassPeeper(1179); // case
 
     case Instruction::SExt:
-      PassPrediction::PassPeeper(__FILE__, 1180); // case
+      PassPrediction::PassPeeper(1180); // case
 
     case Instruction::FPToUI:
-      PassPrediction::PassPeeper(__FILE__, 1181); // case
+      PassPrediction::PassPeeper(1181); // case
 
     case Instruction::FPToSI:
-      PassPrediction::PassPeeper(__FILE__, 1182); // case
+      PassPrediction::PassPeeper(1182); // case
 
     case Instruction::UIToFP:
-      PassPrediction::PassPeeper(__FILE__, 1183); // case
+      PassPrediction::PassPeeper(1183); // case
 
     case Instruction::SIToFP:
-      PassPrediction::PassPeeper(__FILE__, 1184); // case
+      PassPrediction::PassPeeper(1184); // case
 
     case Instruction::FPTrunc:
-      PassPrediction::PassPeeper(__FILE__, 1185); // case
+      PassPrediction::PassPeeper(1185); // case
 
     case Instruction::FPExt:
-      PassPrediction::PassPeeper(__FILE__, 1186); // case
+      PassPrediction::PassPeeper(1186); // case
 
     case Instruction::PtrToInt:
-      PassPrediction::PassPeeper(__FILE__, 1187); // case
+      PassPrediction::PassPeeper(1187); // case
 
     case Instruction::IntToPtr:
-      PassPrediction::PassPeeper(__FILE__, 1188); // case
+      PassPrediction::PassPeeper(1188); // case
 
     case Instruction::BitCast:
-      PassPrediction::PassPeeper(__FILE__, 1189); // case
+      PassPrediction::PassPeeper(1189); // case
 
     case Instruction::Select:
-      PassPrediction::PassPeeper(__FILE__, 1190); // case
+      PassPrediction::PassPeeper(1190); // case
 
     case Instruction::ExtractElement:
-      PassPrediction::PassPeeper(__FILE__, 1191); // case
+      PassPrediction::PassPeeper(1191); // case
 
     case Instruction::InsertElement:
-      PassPrediction::PassPeeper(__FILE__, 1192); // case
+      PassPrediction::PassPeeper(1192); // case
 
     case Instruction::ShuffleVector:
-      PassPrediction::PassPeeper(__FILE__, 1193); // case
+      PassPrediction::PassPeeper(1193); // case
 
     case Instruction::InsertValue:
-      PassPrediction::PassPeeper(__FILE__, 1194); // case
+      PassPrediction::PassPeeper(1194); // case
 
     case Instruction::GetElementPtr:
-      PassPrediction::PassPeeper(__FILE__, 1195); // case
+      PassPrediction::PassPeeper(1195); // case
 
       exp = createExpr(I);
-      PassPrediction::PassPeeper(__FILE__, 1196); // break
+      PassPrediction::PassPeeper(1196); // break
       break;
     default:
-      PassPrediction::PassPeeper(__FILE__, 1197); // break
+      PassPrediction::PassPeeper(1197); // break
       break;
     }
 
     if (!exp) {
-      PassPrediction::PassPeeper(__FILE__, 1198); // if
+      PassPrediction::PassPeeper(1198); // if
       ValueNumbering[V] = nextValueNumber;
       return nextValueNumber++;
     }
 
     uint32_t e = ExpressionNumbering[exp];
     if (!e) {
-      PassPrediction::PassPeeper(__FILE__, 1199); // if
+      PassPrediction::PassPeeper(1199); // if
       hash_code H = exp->getHashValue([=](Value *V) { return lookupOrAdd(V); });
       auto I = HashNumbering.find(H);
       if (I != HashNumbering.end()) {
-        PassPrediction::PassPeeper(__FILE__, 1200); // if
+        PassPrediction::PassPeeper(1200); // if
         e = I->second;
       } else {
-        PassPrediction::PassPeeper(__FILE__, 1201); // else
+        PassPrediction::PassPeeper(1201); // else
         e = nextValueNumber++;
         HashNumbering[H] = e;
         ExpressionNumbering[exp] = e;
@@ -628,23 +628,23 @@ public:
     auto *BB = Inst->getParent();
     for (auto I = std::next(Inst->getIterator()), E = BB->end();
          I != E && !I->isTerminator(); ++I) {
-      PassPrediction::PassPeeper(__FILE__, 1202); // for
+      PassPrediction::PassPeeper(1202); // for
       if (!isMemoryInst(&*I)) {
-        PassPrediction::PassPeeper(__FILE__, 1203); // if
+        PassPrediction::PassPeeper(1203); // if
         continue;
       }
       if (isa<LoadInst>(&*I)) {
-        PassPrediction::PassPeeper(__FILE__, 1204); // if
+        PassPrediction::PassPeeper(1204); // if
         continue;
       }
       CallInst *CI = dyn_cast<CallInst>(&*I);
       if (CI && CI->onlyReadsMemory()) {
-        PassPrediction::PassPeeper(__FILE__, 1205); // if
+        PassPrediction::PassPeeper(1205); // if
         continue;
       }
       InvokeInst *II = dyn_cast<InvokeInst>(&*I);
       if (II && II->onlyReadsMemory()) {
-        PassPrediction::PassPeeper(__FILE__, 1206); // if
+        PassPrediction::PassPeeper(1206); // if
         continue;
       }
       return lookupOrAdd(&*I);
@@ -664,7 +664,7 @@ public:
     unsigned NumSunk = 0;
     ReversePostOrderTraversal<Function *> RPOT(&F);
     for (auto *N : RPOT) {
-      PassPrediction::PassPeeper(__FILE__, 1207); // for-range
+      PassPrediction::PassPeeper(1207); // for-range
       NumSunk += sinkBB(N);
     }
 
@@ -678,7 +678,7 @@ private:
     // These instructions may change or break semantics if moved.
     if (isa<PHINode>(I) || I->isEHPad() || isa<AllocaInst>(I) ||
         I->getType()->isTokenTy()) {
-      PassPrediction::PassPeeper(__FILE__, 1208); // if
+      PassPrediction::PassPeeper(1208); // if
       return true;
     }
     return false;
@@ -695,17 +695,17 @@ private:
   void analyzeInitialPHIs(BasicBlock *BB, ModelledPHISet &PHIs,
                           SmallPtrSetImpl<Value *> &PHIContents) {
     for (auto &I : *BB) {
-      PassPrediction::PassPeeper(__FILE__, 1209); // for-range
+      PassPrediction::PassPeeper(1209); // for-range
       auto *PN = dyn_cast<PHINode>(&I);
       if (!PN) {
-        PassPrediction::PassPeeper(__FILE__, 1210); // if
+        PassPrediction::PassPeeper(1210); // if
         return;
       }
 
       auto MPHI = ModelledPHI(PN);
       PHIs.insert(MPHI);
       for (auto *V : MPHI.getValues()) {
-        PassPrediction::PassPeeper(__FILE__, 1211); // for-range
+        PassPrediction::PassPeeper(1211); // for-range
         PHIContents.insert(V);
       }
     }
@@ -723,18 +723,18 @@ private:
   void foldPointlessPHINodes(BasicBlock *BB) {
     auto I = BB->begin();
     while (PHINode *PN = dyn_cast<PHINode>(I++)) {
-      PassPrediction::PassPeeper(__FILE__, 1212); // while
+      PassPrediction::PassPeeper(1212); // while
       if (!all_of(PN->incoming_values(), [&](const Value *V) {
             return V == PN->getIncomingValue(0);
           })) {
-        PassPrediction::PassPeeper(__FILE__, 1213); // if
+        PassPrediction::PassPeeper(1213); // if
         continue;
       }
       if (PN->getIncomingValue(0) != PN) {
-        PassPrediction::PassPeeper(__FILE__, 1214); // if
+        PassPrediction::PassPeeper(1214); // if
         PN->replaceAllUsesWith(PN->getIncomingValue(0));
       } else {
-        PassPrediction::PassPeeper(__FILE__, 1215); // else
+        PassPrediction::PassPeeper(1215); // else
         PN->replaceAllUsesWith(UndefValue::get(PN->getType()));
       }
       PN->eraseFromParent();
@@ -753,11 +753,11 @@ Optional<SinkingInstructionCandidate> GVNSink::analyzeInstructionForSinking(
 
   DenseMap<uint32_t, unsigned> VNums;
   for (auto *I : Insts) {
-    PassPrediction::PassPeeper(__FILE__, 1216); // for-range
+    PassPrediction::PassPeeper(1216); // for-range
     uint32_t N = VN.lookupOrAdd(I);
     DEBUG(dbgs() << " VN=" << utohexstr(N) << " for" << *I << "\n");
     if (N == ~0U) {
-      PassPrediction::PassPeeper(__FILE__, 1217); // if
+      PassPrediction::PassPeeper(1217); // if
       return None;
     }
     VNums[N]++;
@@ -772,7 +772,7 @@ Optional<SinkingInstructionCandidate> GVNSink::analyzeInstructionForSinking(
 
   if (VNums[VNumToSink] == 1) {
     // Can't sink anything!
-    PassPrediction::PassPeeper(__FILE__, 1218); // if
+    PassPrediction::PassPeeper(1218); // if
     return None;
   }
 
@@ -782,19 +782,19 @@ Optional<SinkingInstructionCandidate> GVNSink::analyzeInstructionForSinking(
   unsigned InitialActivePredSize = ActivePreds.size();
   SmallVector<Instruction *, 4> NewInsts;
   for (auto *I : Insts) {
-    PassPrediction::PassPeeper(__FILE__, 1219); // for-range
+    PassPrediction::PassPeeper(1219); // for-range
     if (VN.lookup(I) != VNumToSink) {
-      PassPrediction::PassPeeper(__FILE__, 1220); // if
+      PassPrediction::PassPeeper(1220); // if
       ActivePreds.erase(I->getParent());
     } else {
-      PassPrediction::PassPeeper(__FILE__, 1221); // else
+      PassPrediction::PassPeeper(1221); // else
       NewInsts.push_back(I);
     }
   }
   for (auto *I : NewInsts) {
-    PassPrediction::PassPeeper(__FILE__, 1222); // for-range
+    PassPrediction::PassPeeper(1222); // for-range
     if (isInstructionBlacklisted(I)) {
-      PassPrediction::PassPeeper(__FILE__, 1223); // if
+      PassPrediction::PassPeeper(1223); // if
       return None;
     }
   }
@@ -803,10 +803,10 @@ Optional<SinkingInstructionCandidate> GVNSink::analyzeInstructionForSinking(
   // to that set.
   bool RecomputePHIContents = false;
   if (ActivePreds.size() != InitialActivePredSize) {
-    PassPrediction::PassPeeper(__FILE__, 1224); // if
+    PassPrediction::PassPeeper(1224); // if
     ModelledPHISet NewNeededPHIs;
     for (auto P : NeededPHIs) {
-      PassPrediction::PassPeeper(__FILE__, 1225); // for-range
+      PassPrediction::PassPeeper(1225); // for-range
       P.restrictToBlocks(ActivePreds);
       NewNeededPHIs.insert(P);
     }
@@ -820,7 +820,7 @@ Optional<SinkingInstructionCandidate> GVNSink::analyzeInstructionForSinking(
 
   // Does sinking this instruction render previous PHIs redundant?
   if (NeededPHIs.find(NewPHI) != NeededPHIs.end()) {
-    PassPrediction::PassPeeper(__FILE__, 1226); // if
+    PassPrediction::PassPeeper(1226); // if
     NeededPHIs.erase(NewPHI);
     RecomputePHIContents = true;
   }
@@ -828,10 +828,10 @@ Optional<SinkingInstructionCandidate> GVNSink::analyzeInstructionForSinking(
   if (RecomputePHIContents) {
     // The needed PHIs have changed, so recompute the set of all needed
     // values.
-    PassPrediction::PassPeeper(__FILE__, 1227); // if
+    PassPrediction::PassPeeper(1227); // if
     PHIContents.clear();
     for (auto &PHI : NeededPHIs) {
-      PassPrediction::PassPeeper(__FILE__, 1228); // for-range
+      PassPrediction::PassPeeper(1228); // for-range
       PHIContents.insert(PHI.getValues().begin(), PHI.getValues().end());
     }
   }
@@ -839,12 +839,12 @@ Optional<SinkingInstructionCandidate> GVNSink::analyzeInstructionForSinking(
   // Is this instruction required by a later PHI that doesn't match this PHI?
   // if so, we can't sink this instruction.
   for (auto *V : NewPHI.getValues()) {
-    PassPrediction::PassPeeper(__FILE__, 1229); // for-range
+    PassPrediction::PassPeeper(1229); // for-range
     if (PHIContents.count(V)) {
       // V exists in this PHI, but the whole PHI is different to NewPHI
       // (else it would have been removed earlier). We cannot continue
       // because this isn't representable.
-      PassPrediction::PassPeeper(__FILE__, 1230); // if
+      PassPrediction::PassPeeper(1230); // if
       return None;
     }
   }
@@ -854,29 +854,29 @@ Optional<SinkingInstructionCandidate> GVNSink::analyzeInstructionForSinking(
   // try and continue making progress.
   Instruction *I0 = NewInsts[0];
   for (unsigned OpNum = 0, E = I0->getNumOperands(); OpNum != E; ++OpNum) {
-    PassPrediction::PassPeeper(__FILE__, 1231); // for
+    PassPrediction::PassPeeper(1231); // for
     ModelledPHI PHI(NewInsts, OpNum, ActivePreds);
     if (PHI.areAllIncomingValuesSame()) {
-      PassPrediction::PassPeeper(__FILE__, 1232); // if
+      PassPrediction::PassPeeper(1232); // if
       continue;
     }
     if (!canReplaceOperandWithVariable(I0, OpNum)) {
       // We can 't create a PHI from this instruction!
-      PassPrediction::PassPeeper(__FILE__, 1233); // if
+      PassPrediction::PassPeeper(1233); // if
       return None;
     }
     if (NeededPHIs.count(PHI)) {
-      PassPrediction::PassPeeper(__FILE__, 1234); // if
+      PassPrediction::PassPeeper(1234); // if
       continue;
     }
     if (!PHI.areAllIncomingValuesSameType()) {
-      PassPrediction::PassPeeper(__FILE__, 1235); // if
+      PassPrediction::PassPeeper(1235); // if
       return None;
     }
     // Don't create indirect calls! The called value is the final operand.
     if ((isa<CallInst>(I0) || isa<InvokeInst>(I0)) && OpNum == E - 1 &&
         PHI.areAnyIncomingValuesConstant()) {
-      PassPrediction::PassPeeper(__FILE__, 1236); // if
+      PassPrediction::PassPeeper(1236); // if
       return None;
     }
 
@@ -886,7 +886,7 @@ Optional<SinkingInstructionCandidate> GVNSink::analyzeInstructionForSinking(
   }
 
   if (isMemoryInst(NewInsts[0])) {
-    PassPrediction::PassPeeper(__FILE__, 1237); // if
+    PassPrediction::PassPeeper(1237); // if
     ++MemoryInstNum;
   }
 
@@ -896,7 +896,7 @@ Optional<SinkingInstructionCandidate> GVNSink::analyzeInstructionForSinking(
   Cand.NumBlocks = ActivePreds.size();
   Cand.NumPHIs = NeededPHIs.size();
   for (auto *C : ActivePreds) {
-    PassPrediction::PassPeeper(__FILE__, 1238); // for-range
+    PassPrediction::PassPeeper(1238); // for-range
     Cand.Blocks.push_back(C);
   }
 
@@ -908,18 +908,18 @@ unsigned GVNSink::sinkBB(BasicBlock *BBEnd) {
         BBEnd->printAsOperand(dbgs()); dbgs() << "\n");
   SmallVector<BasicBlock *, 4> Preds;
   for (auto *B : predecessors(BBEnd)) {
-    PassPrediction::PassPeeper(__FILE__, 1239); // for-range
+    PassPrediction::PassPeeper(1239); // for-range
     auto *T = B->getTerminator();
     if (isa<BranchInst>(T) || isa<SwitchInst>(T)) {
-      PassPrediction::PassPeeper(__FILE__, 1240); // if
+      PassPrediction::PassPeeper(1240); // if
       Preds.push_back(B);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 1241); // else
+      PassPrediction::PassPeeper(1241); // else
       return 0;
     }
   }
   if (Preds.size() < 2) {
-    PassPrediction::PassPeeper(__FILE__, 1242); // if
+    PassPrediction::PassPeeper(1242); // if
     return 0;
   }
   std::sort(Preds.begin(), Preds.end());
@@ -927,12 +927,12 @@ unsigned GVNSink::sinkBB(BasicBlock *BBEnd) {
   unsigned NumOrigPreds = Preds.size();
   // We can only sink instructions through unconditional branches.
   for (auto I = Preds.begin(); I != Preds.end();) {
-    PassPrediction::PassPeeper(__FILE__, 1243); // for
+    PassPrediction::PassPeeper(1243); // for
     if ((*I)->getTerminator()->getNumSuccessors() != 1) {
-      PassPrediction::PassPeeper(__FILE__, 1244); // if
+      PassPrediction::PassPeeper(1244); // if
       I = Preds.erase(I);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 1245); // else
+      PassPrediction::PassPeeper(1245); // else
       ++I;
     }
   }
@@ -946,11 +946,11 @@ unsigned GVNSink::sinkBB(BasicBlock *BBEnd) {
   unsigned NumOrigPHIs = NeededPHIs.size();
 
   while (LRI.isValid()) {
-    PassPrediction::PassPeeper(__FILE__, 1246); // while
+    PassPrediction::PassPeeper(1246); // while
     auto Cand = analyzeInstructionForSinking(LRI, InstNum, MemoryInstNum,
                                              NeededPHIs, PHIContents);
     if (!Cand) {
-      PassPrediction::PassPeeper(__FILE__, 1247); // if
+      PassPrediction::PassPeeper(1247); // if
       break;
     }
     Cand->calculateCost(NumOrigPHIs, Preds.size());
@@ -967,7 +967,7 @@ unsigned GVNSink::sinkBB(BasicBlock *BBEnd) {
 
   // Pick the top candidate, as long it is positive!
   if (Candidates.empty() || Candidates.front().Cost <= 0) {
-    PassPrediction::PassPeeper(__FILE__, 1248); // if
+    PassPrediction::PassPeeper(1248); // if
     return 0;
   }
   auto C = Candidates.front();
@@ -986,7 +986,7 @@ unsigned GVNSink::sinkBB(BasicBlock *BBEnd) {
   }
 
   for (unsigned I = 0; I < C.NumInstructions; ++I) {
-    PassPrediction::PassPeeper(__FILE__, 1249); // for
+    PassPrediction::PassPeeper(1249); // for
     sinkLastInstruction(C.Blocks, InsertBB);
   }
 
@@ -997,19 +997,19 @@ void GVNSink::sinkLastInstruction(ArrayRef<BasicBlock *> Blocks,
                                   BasicBlock *BBEnd) {
   SmallVector<Instruction *, 4> Insts;
   for (BasicBlock *BB : Blocks) {
-    PassPrediction::PassPeeper(__FILE__, 1250); // for-range
+    PassPrediction::PassPeeper(1250); // for-range
     Insts.push_back(BB->getTerminator()->getPrevNode());
   }
   Instruction *I0 = Insts.front();
 
   SmallVector<Value *, 4> NewOperands;
   for (unsigned O = 0, E = I0->getNumOperands(); O != E; ++O) {
-    PassPrediction::PassPeeper(__FILE__, 1251); // for
+    PassPrediction::PassPeeper(1251); // for
     bool NeedPHI = any_of(Insts, [&I0, O](const Instruction *I) {
       return I->getOperand(O) != I0->getOperand(O);
     });
     if (!NeedPHI) {
-      PassPrediction::PassPeeper(__FILE__, 1252); // if
+      PassPrediction::PassPeeper(1252); // if
       NewOperands.push_back(I0->getOperand(O));
       continue;
     }
@@ -1020,7 +1020,7 @@ void GVNSink::sinkLastInstruction(ArrayRef<BasicBlock *> Blocks,
     auto *PN = PHINode::Create(Op->getType(), Insts.size(),
                                Op->getName() + ".sink", &BBEnd->front());
     for (auto *I : Insts) {
-      PassPrediction::PassPeeper(__FILE__, 1253); // for-range
+      PassPrediction::PassPeeper(1253); // for-range
       PN->addIncoming(I->getOperand(O), I->getParent());
     }
     NewOperands.push_back(PN);
@@ -1029,25 +1029,25 @@ void GVNSink::sinkLastInstruction(ArrayRef<BasicBlock *> Blocks,
   // Arbitrarily use I0 as the new "common" instruction; remap its operands
   // and move it to the start of the successor block.
   for (unsigned O = 0, E = I0->getNumOperands(); O != E; ++O) {
-    PassPrediction::PassPeeper(__FILE__, 1254); // for
+    PassPrediction::PassPeeper(1254); // for
     I0->getOperandUse(O).set(NewOperands[O]);
   }
   I0->moveBefore(&*BBEnd->getFirstInsertionPt());
 
   // Update metadata and IR flags.
   for (auto *I : Insts) {
-    PassPrediction::PassPeeper(__FILE__, 1255); // for-range
+    PassPrediction::PassPeeper(1255); // for-range
     if (I != I0) {
-      PassPrediction::PassPeeper(__FILE__, 1256); // if
+      PassPrediction::PassPeeper(1256); // if
       combineMetadataForCSE(I0, I);
       I0->andIRFlags(I);
     }
   }
 
   for (auto *I : Insts) {
-    PassPrediction::PassPeeper(__FILE__, 1257); // for-range
+    PassPrediction::PassPeeper(1257); // for-range
     if (I != I0) {
-      PassPrediction::PassPeeper(__FILE__, 1258); // if
+      PassPrediction::PassPeeper(1258); // if
       I->replaceAllUsesWith(I0);
     }
   }
@@ -1055,9 +1055,9 @@ void GVNSink::sinkLastInstruction(ArrayRef<BasicBlock *> Blocks,
 
   // Finally nuke all instructions apart from the common instruction.
   for (auto *I : Insts) {
-    PassPrediction::PassPeeper(__FILE__, 1259); // for-range
+    PassPrediction::PassPeeper(1259); // for-range
     if (I != I0) {
-      PassPrediction::PassPeeper(__FILE__, 1260); // if
+      PassPrediction::PassPeeper(1260); // if
       I->eraseFromParent();
     }
   }
@@ -1078,7 +1078,7 @@ public:
 
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 1261); // if
+      PassPrediction::PassPeeper(1261); // if
       return false;
     }
     GVNSink G;
@@ -1094,7 +1094,7 @@ public:
 PreservedAnalyses GVNSinkPass::run(Function &F, FunctionAnalysisManager &AM) {
   GVNSink G;
   if (!G.run(F)) {
-    PassPrediction::PassPeeper(__FILE__, 1262); // if
+    PassPrediction::PassPeeper(1262); // if
     return PreservedAnalyses::all();
   }
 

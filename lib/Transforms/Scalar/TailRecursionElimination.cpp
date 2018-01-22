@@ -109,9 +109,9 @@ struct AllocaDerivedValueTracker {
 
     auto AddUsesToWorklist = [&](Value *V) {
       for (auto &U : V->uses()) {
-        PassPrediction::PassPeeper(__FILE__, 2903); // for-range
+        PassPrediction::PassPeeper(2903); // for-range
         if (!Visited.insert(&U).second) {
-          PassPrediction::PassPeeper(__FILE__, 2904); // if
+          PassPrediction::PassPeeper(2904); // if
           continue;
         }
         Worklist.push_back(&U);
@@ -121,16 +121,16 @@ struct AllocaDerivedValueTracker {
     AddUsesToWorklist(Root);
 
     while (!Worklist.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 2905); // while
+      PassPrediction::PassPeeper(2905); // while
       Use *U = Worklist.pop_back_val();
       Instruction *I = cast<Instruction>(U->getUser());
 
       switch (I->getOpcode()) {
       case Instruction::Call:
-        PassPrediction::PassPeeper(__FILE__, 2906); // case
+        PassPrediction::PassPeeper(2906); // case
 
       case Instruction::Invoke:
-        PassPrediction::PassPeeper(__FILE__, 2907); // case
+        PassPrediction::PassPeeper(2907); // case
         {
           CallSite CS(I);
           bool IsNocapture =
@@ -139,48 +139,48 @@ struct AllocaDerivedValueTracker {
           if (IsNocapture) {
             // If the alloca-derived argument is passed in as nocapture, then it
             // can't propagate to the call's return. That would be capturing.
-            PassPrediction::PassPeeper(__FILE__, 2908); // if
+            PassPrediction::PassPeeper(2908); // if
             continue;
           }
-          PassPrediction::PassPeeper(__FILE__, 2909); // break
+          PassPrediction::PassPeeper(2909); // break
           break;
         }
       case Instruction::Load:
-        PassPrediction::PassPeeper(__FILE__, 2910); // case
+        PassPrediction::PassPeeper(2910); // case
         {
           // The result of a load is not alloca-derived (unless an alloca has
           // otherwise escaped, but this is a local analysis).
           continue;
         }
       case Instruction::Store:
-        PassPrediction::PassPeeper(__FILE__, 2911); // case
+        PassPrediction::PassPeeper(2911); // case
         {
           if (U->getOperandNo() == 0) {
-            PassPrediction::PassPeeper(__FILE__, 2912); // if
+            PassPrediction::PassPeeper(2912); // if
             EscapePoints.insert(I);
           }
           continue; // Stores have no users to analyze.
         }
       case Instruction::BitCast:
-        PassPrediction::PassPeeper(__FILE__, 2913); // case
+        PassPrediction::PassPeeper(2913); // case
 
       case Instruction::GetElementPtr:
-        PassPrediction::PassPeeper(__FILE__, 2914); // case
+        PassPrediction::PassPeeper(2914); // case
 
       case Instruction::PHI:
-        PassPrediction::PassPeeper(__FILE__, 2915); // case
+        PassPrediction::PassPeeper(2915); // case
 
       case Instruction::Select:
-        PassPrediction::PassPeeper(__FILE__, 2916); // case
+        PassPrediction::PassPeeper(2916); // case
 
       case Instruction::AddrSpaceCast:
-        PassPrediction::PassPeeper(__FILE__, 2917); // case
+        PassPrediction::PassPeeper(2917); // case
 
-        PassPrediction::PassPeeper(__FILE__, 2918); // break
+        PassPrediction::PassPeeper(2918); // break
         break;
       default:
         EscapePoints.insert(I);
-        PassPrediction::PassPeeper(__FILE__, 2919); // break
+        PassPrediction::PassPeeper(2919); // break
         break;
       }
 
@@ -194,13 +194,13 @@ struct AllocaDerivedValueTracker {
 
     // If it's nocapture then it can't capture this alloca.
     if (IsNocapture) {
-      PassPrediction::PassPeeper(__FILE__, 2920); // if
+      PassPrediction::PassPeeper(2920); // if
       return;
     }
 
     // If it can write to memory, it can leak the alloca value.
     if (!CS.onlyReadsMemory()) {
-      PassPrediction::PassPeeper(__FILE__, 2921); // if
+      PassPrediction::PassPeeper(2921); // if
       EscapePoints.insert(CS.getInstruction());
     }
   }
@@ -212,7 +212,7 @@ struct AllocaDerivedValueTracker {
 
 static bool markTails(Function &F, bool &AllCallsAreTailCalls) {
   if (F.callsFunctionThatReturnsTwice()) {
-    PassPrediction::PassPeeper(__FILE__, 2922); // if
+    PassPrediction::PassPeeper(2922); // if
     return false;
   }
   AllCallsAreTailCalls = true;
@@ -220,18 +220,18 @@ static bool markTails(Function &F, bool &AllCallsAreTailCalls) {
   // The local stack holds all alloca instructions and all byval arguments.
   AllocaDerivedValueTracker Tracker;
   for (Argument &Arg : F.args()) {
-    PassPrediction::PassPeeper(__FILE__, 2923); // for-range
+    PassPrediction::PassPeeper(2923); // for-range
     if (Arg.hasByValAttr()) {
-      PassPrediction::PassPeeper(__FILE__, 2924); // if
+      PassPrediction::PassPeeper(2924); // if
       Tracker.walk(&Arg);
     }
   }
   for (auto &BB : F) {
-    PassPrediction::PassPeeper(__FILE__, 2925); // for-range
+    PassPrediction::PassPeeper(2925); // for-range
     for (auto &I : BB) {
-      PassPrediction::PassPeeper(__FILE__, 2926); // for-range
+      PassPrediction::PassPeeper(2926); // for-range
       if (AllocaInst *AI = dyn_cast<AllocaInst>(&I)) {
-        PassPrediction::PassPeeper(__FILE__, 2927); // if
+        PassPrediction::PassPeeper(2927); // if
         Tracker.walk(AI);
       }
     }
@@ -262,17 +262,17 @@ static bool markTails(Function &F, bool &AllCallsAreTailCalls) {
   BasicBlock *BB = &F.getEntryBlock();
   VisitType Escaped = UNESCAPED;
   do {
-    PassPrediction::PassPeeper(__FILE__, 2928); // do-while
+    PassPrediction::PassPeeper(2928); // do-while
     for (auto &I : *BB) {
-      PassPrediction::PassPeeper(__FILE__, 2929); // for-range
+      PassPrediction::PassPeeper(2929); // for-range
       if (Tracker.EscapePoints.count(&I)) {
-        PassPrediction::PassPeeper(__FILE__, 2930); // if
+        PassPrediction::PassPeeper(2930); // if
         Escaped = ESCAPED;
       }
 
       CallInst *CI = dyn_cast<CallInst>(&I);
       if (!CI || CI->isTailCall()) {
-        PassPrediction::PassPeeper(__FILE__, 2931); // if
+        PassPrediction::PassPeeper(2931); // if
         continue;
       }
 
@@ -286,27 +286,27 @@ static bool markTails(Function &F, bool &AllCallsAreTailCalls) {
         //
         // Note that this runs whether we know an alloca has escaped or not. If
         // it has, then we can't trust Tracker.AllocaUsers to be accurate.
-        PassPrediction::PassPeeper(__FILE__, 2932); // if
+        PassPrediction::PassPeeper(2932); // if
         bool SafeToTail = true;
         for (auto &Arg : CI->arg_operands()) {
-          PassPrediction::PassPeeper(__FILE__, 2933); // for-range
+          PassPrediction::PassPeeper(2933); // for-range
           if (isa<Constant>(Arg.getUser())) {
-            PassPrediction::PassPeeper(__FILE__, 2934); // if
+            PassPrediction::PassPeeper(2934); // if
             continue;
           }
           if (Argument *A = dyn_cast<Argument>(Arg.getUser())) {
-            PassPrediction::PassPeeper(__FILE__, 2935); // if
+            PassPrediction::PassPeeper(2935); // if
             if (!A->hasByValAttr()) {
-              PassPrediction::PassPeeper(__FILE__, 2936); // if
+              PassPrediction::PassPeeper(2936); // if
               continue;
             }
           }
           SafeToTail = false;
-          PassPrediction::PassPeeper(__FILE__, 2937); // break
+          PassPrediction::PassPeeper(2937); // break
           break;
         }
         if (SafeToTail) {
-          PassPrediction::PassPeeper(__FILE__, 2938); // if
+          PassPrediction::PassPeeper(2938); // if
           emitOptimizationRemark(
               F.getContext(), "tailcallelim", F, CI->getDebugLoc(),
               "marked this readnone call a tail call candidate");
@@ -317,45 +317,45 @@ static bool markTails(Function &F, bool &AllCallsAreTailCalls) {
       }
 
       if (!IsNoTail && Escaped == UNESCAPED && !Tracker.AllocaUsers.count(CI)) {
-        PassPrediction::PassPeeper(__FILE__, 2939); // if
+        PassPrediction::PassPeeper(2939); // if
         DeferredTails.push_back(CI);
       } else {
-        PassPrediction::PassPeeper(__FILE__, 2940); // else
+        PassPrediction::PassPeeper(2940); // else
         AllCallsAreTailCalls = false;
       }
     }
 
     for (auto *SuccBB : make_range(succ_begin(BB), succ_end(BB))) {
-      PassPrediction::PassPeeper(__FILE__, 2941); // for-range
+      PassPrediction::PassPeeper(2941); // for-range
       auto &State = Visited[SuccBB];
       if (State < Escaped) {
-        PassPrediction::PassPeeper(__FILE__, 2942); // if
+        PassPrediction::PassPeeper(2942); // if
         State = Escaped;
         if (State == ESCAPED) {
-          PassPrediction::PassPeeper(__FILE__, 2943); // if
+          PassPrediction::PassPeeper(2943); // if
           WorklistEscaped.push_back(SuccBB);
         } else {
-          PassPrediction::PassPeeper(__FILE__, 2944); // else
+          PassPrediction::PassPeeper(2944); // else
           WorklistUnescaped.push_back(SuccBB);
         }
       }
     }
 
     if (!WorklistEscaped.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 2945); // if
+      PassPrediction::PassPeeper(2945); // if
       BB = WorklistEscaped.pop_back_val();
       Escaped = ESCAPED;
     } else {
-      PassPrediction::PassPeeper(__FILE__, 2946); // else
+      PassPrediction::PassPeeper(2946); // else
       BB = nullptr;
       while (!WorklistUnescaped.empty()) {
-        PassPrediction::PassPeeper(__FILE__, 2947); // while
+        PassPrediction::PassPeeper(2947); // while
         auto *NextBB = WorklistUnescaped.pop_back_val();
         if (Visited[NextBB] == UNESCAPED) {
-          PassPrediction::PassPeeper(__FILE__, 2948); // if
+          PassPrediction::PassPeeper(2948); // if
           BB = NextBB;
           Escaped = UNESCAPED;
-          PassPrediction::PassPeeper(__FILE__, 2949); // break
+          PassPrediction::PassPeeper(2949); // break
           break;
         }
       }
@@ -363,18 +363,18 @@ static bool markTails(Function &F, bool &AllCallsAreTailCalls) {
   } while (BB);
 
   for (CallInst *CI : DeferredTails) {
-    PassPrediction::PassPeeper(__FILE__, 2950); // for-range
+    PassPrediction::PassPeeper(2950); // for-range
     if (Visited[CI->getParent()] != ESCAPED) {
       // If the escape point was part way through the block, calls after the
       // escape point wouldn't have been put into DeferredTails.
-      PassPrediction::PassPeeper(__FILE__, 2951); // if
+      PassPrediction::PassPeeper(2951); // if
       emitOptimizationRemark(F.getContext(), "tailcallelim", F,
                              CI->getDebugLoc(),
                              "marked this call a tail call candidate");
       CI->setTailCall();
       Modified = true;
     } else {
-      PassPrediction::PassPeeper(__FILE__, 2952); // else
+      PassPrediction::PassPeeper(2952); // else
       AllCallsAreTailCalls = false;
     }
   }
@@ -389,25 +389,25 @@ static bool markTails(Function &F, bool &AllCallsAreTailCalls) {
 static bool canMoveAboveCall(Instruction *I, CallInst *CI, AliasAnalysis *AA) {
   // FIXME: We can move load/store/call/free instructions above the call if the
   // call does not mod/ref the memory location being processed.
-  if (I->mayHaveSideEffects()) { // This also handles volatile loads.
-    PassPrediction::PassPeeper(__FILE__, 2953); // if
+  if (I->mayHaveSideEffects()) {      // This also handles volatile loads.
+    PassPrediction::PassPeeper(2953); // if
     return false;
   }
 
   if (LoadInst *L = dyn_cast<LoadInst>(I)) {
     // Loads may always be moved above calls without side effects.
-    PassPrediction::PassPeeper(__FILE__, 2954); // if
+    PassPrediction::PassPeeper(2954); // if
     if (CI->mayHaveSideEffects()) {
       // Non-volatile loads may be moved above a call with side effects if it
       // does not write to memory and the load provably won't trap.
       // Writes to memory only matter if they may alias the pointer
       // being loaded from.
-      PassPrediction::PassPeeper(__FILE__, 2955); // if
+      PassPrediction::PassPeeper(2955); // if
       const DataLayout &DL = L->getModule()->getDataLayout();
       if ((AA->getModRefInfo(CI, MemoryLocation::get(L)) & MRI_Mod) ||
           !isSafeToLoadUnconditionally(L->getPointerOperand(),
                                        L->getAlignment(), DL, L)) {
-        PassPrediction::PassPeeper(__FILE__, 2956); // if
+        PassPrediction::PassPeeper(2956); // if
         return false;
       }
     }
@@ -428,19 +428,19 @@ static bool canMoveAboveCall(Instruction *I, CallInst *CI, AliasAnalysis *AA) {
 /// part of the recursion.
 static bool isDynamicConstant(Value *V, CallInst *CI, ReturnInst *RI) {
   if (isa<Constant>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 2957); // if
-    return true; // Static constants are always dyn consts
+    PassPrediction::PassPeeper(2957); // if
+    return true;                      // Static constants are always dyn consts
   }
 
   // Check to see if this is an immutable argument, if so, the value
   // will be available to initialize the accumulator.
   if (Argument *Arg = dyn_cast<Argument>(V)) {
     // Figure out which argument number this is...
-    PassPrediction::PassPeeper(__FILE__, 2958); // if
+    PassPrediction::PassPeeper(2958); // if
     unsigned ArgNo = 0;
     Function *F = CI->getParent()->getParent();
     for (Function::arg_iterator AI = F->arg_begin(); &*AI != Arg; ++AI) {
-      PassPrediction::PassPeeper(__FILE__, 2959); // for
+      PassPrediction::PassPeeper(2959); // for
       ++ArgNo;
     }
 
@@ -448,7 +448,7 @@ static bool isDynamicConstant(Value *V, CallInst *CI, ReturnInst *RI) {
     // argument operand, then the argument is dynamically constant.
     // Otherwise, we cannot transform this function safely.
     if (CI->getArgOperand(ArgNo) == Arg) {
-      PassPrediction::PassPeeper(__FILE__, 2960); // if
+      PassPrediction::PassPeeper(2960); // if
       return true;
     }
   }
@@ -457,11 +457,11 @@ static bool isDynamicConstant(Value *V, CallInst *CI, ReturnInst *RI) {
   // on and the return is only reachable from one of its cases, it's
   // effectively constant.
   if (BasicBlock *UniquePred = RI->getParent()->getUniquePredecessor()) {
-    PassPrediction::PassPeeper(__FILE__, 2961); // if
+    PassPrediction::PassPeeper(2961); // if
     if (SwitchInst *SI = dyn_cast<SwitchInst>(UniquePred->getTerminator())) {
-      PassPrediction::PassPeeper(__FILE__, 2962); // if
+      PassPrediction::PassPeeper(2962); // if
       if (SI->getCondition() == V) {
-        PassPrediction::PassPeeper(__FILE__, 2963); // if
+        PassPrediction::PassPeeper(2963); // if
         return SI->getDefaultDest() != RI->getParent();
       }
     }
@@ -479,10 +479,10 @@ static Value *getCommonReturnValue(ReturnInst *IgnoreRI, CallInst *CI) {
   Value *ReturnedValue = nullptr;
 
   for (BasicBlock &BBI : *F) {
-    PassPrediction::PassPeeper(__FILE__, 2964); // for-range
+    PassPrediction::PassPeeper(2964); // for-range
     ReturnInst *RI = dyn_cast<ReturnInst>(BBI.getTerminator());
     if (RI == nullptr || RI == IgnoreRI) {
-      PassPrediction::PassPeeper(__FILE__, 2965); // if
+      PassPrediction::PassPeeper(2965); // if
       continue;
     }
 
@@ -492,12 +492,12 @@ static Value *getCommonReturnValue(ReturnInst *IgnoreRI, CallInst *CI) {
     //
     Value *RetOp = RI->getOperand(0);
     if (!isDynamicConstant(RetOp, CI, RI)) {
-      PassPrediction::PassPeeper(__FILE__, 2966); // if
+      PassPrediction::PassPeeper(2966); // if
       return nullptr;
     }
 
     if (ReturnedValue && RetOp != ReturnedValue) {
-      PassPrediction::PassPeeper(__FILE__, 2967); // if
+      PassPrediction::PassPeeper(2967); // if
       return nullptr; // Cannot transform if differing values are returned.
     }
     ReturnedValue = RetOp;
@@ -510,7 +510,7 @@ static Value *getCommonReturnValue(ReturnInst *IgnoreRI, CallInst *CI) {
 /// value.  Otherwise return null.
 static Value *canTransformAccumulatorRecursion(Instruction *I, CallInst *CI) {
   if (!I->isAssociative() || !I->isCommutative()) {
-    PassPrediction::PassPeeper(__FILE__, 2968); // if
+    PassPrediction::PassPeeper(2968); // if
     return nullptr;
   }
   assert(I->getNumOperands() == 2 &&
@@ -519,13 +519,13 @@ static Value *canTransformAccumulatorRecursion(Instruction *I, CallInst *CI) {
   // Exactly one operand should be the result of the call instruction.
   if ((I->getOperand(0) == CI && I->getOperand(1) == CI) ||
       (I->getOperand(0) != CI && I->getOperand(1) != CI)) {
-    PassPrediction::PassPeeper(__FILE__, 2969); // if
+    PassPrediction::PassPeeper(2969); // if
     return nullptr;
   }
 
   // The only user of this instruction we allow is a single return instruction.
   if (!I->hasOneUse() || !isa<ReturnInst>(I->user_back())) {
-    PassPrediction::PassPeeper(__FILE__, 2970); // if
+    PassPrediction::PassPeeper(2970); // if
     return nullptr;
   }
 
@@ -537,7 +537,7 @@ static Value *canTransformAccumulatorRecursion(Instruction *I, CallInst *CI) {
 
 static Instruction *firstNonDbg(BasicBlock::iterator I) {
   while (isa<DbgInfoIntrinsic>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 2971); // while
+    PassPrediction::PassPeeper(2971); // while
     ++I;
   }
   return &*I;
@@ -551,7 +551,7 @@ static CallInst *findTRECandidate(Instruction *TI,
 
   if (&BB->front() ==
       TI) { // Make sure there is something before the terminator.
-    PassPrediction::PassPeeper(__FILE__, 2972); // if
+    PassPrediction::PassPeeper(2972); // if
     return nullptr;
   }
 
@@ -560,16 +560,16 @@ static CallInst *findTRECandidate(Instruction *TI,
   CallInst *CI = nullptr;
   BasicBlock::iterator BBI(TI);
   while (true) {
-    PassPrediction::PassPeeper(__FILE__, 2973); // while
+    PassPrediction::PassPeeper(2973); // while
     CI = dyn_cast<CallInst>(BBI);
     if (CI && CI->getCalledFunction() == F) {
-      PassPrediction::PassPeeper(__FILE__, 2974); // if
+      PassPrediction::PassPeeper(2974); // if
       break;
     }
 
     if (BBI == BB->begin()) {
-      PassPrediction::PassPeeper(__FILE__, 2975); // if
-      return nullptr; // Didn't find a potential tail call.
+      PassPrediction::PassPeeper(2975); // if
+      return nullptr;                   // Didn't find a potential tail call.
     }
     --BBI;
   }
@@ -577,7 +577,7 @@ static CallInst *findTRECandidate(Instruction *TI,
   // If this call is marked as a tail call, and if there are dynamic allocas in
   // the function, we cannot perform this optimization.
   if (CI->isTailCall() && CannotTailCallElimCallsMarkedTail) {
-    PassPrediction::PassPeeper(__FILE__, 2976); // if
+    PassPrediction::PassPeeper(2976); // if
     return nullptr;
   }
 
@@ -591,18 +591,18 @@ static CallInst *findTRECandidate(Instruction *TI,
       !TTI->isLoweredToCall(CI->getCalledFunction())) {
     // A single-block function with just a call and a return. Check that
     // the arguments match.
-    PassPrediction::PassPeeper(__FILE__, 2977); // if
+    PassPrediction::PassPeeper(2977); // if
     CallSite::arg_iterator I = CallSite(CI).arg_begin(),
                            E = CallSite(CI).arg_end();
     Function::arg_iterator FI = F->arg_begin(), FE = F->arg_end();
     for (; I != E && FI != FE; ++I, ++FI) {
-      PassPrediction::PassPeeper(__FILE__, 2978); // for
+      PassPrediction::PassPeeper(2978); // for
       if (*I != &*FI) {
         break;
       }
     }
     if (I == E && FI == FE) {
-      PassPrediction::PassPeeper(__FILE__, 2979); // if
+      PassPrediction::PassPeeper(2979); // if
       return nullptr;
     }
   }
@@ -634,9 +634,9 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
   // Check that this is the case now.
   BasicBlock::iterator BBI(CI);
   for (++BBI; &*BBI != Ret; ++BBI) {
-    PassPrediction::PassPeeper(__FILE__, 2980); // for
+    PassPrediction::PassPeeper(2980); // for
     if (canMoveAboveCall(&*BBI, CI, AA)) {
-      PassPrediction::PassPeeper(__FILE__, 2981); // if
+      PassPrediction::PassPeeper(2981); // if
       continue;
     }
 
@@ -648,10 +648,10 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
              canTransformAccumulatorRecursion(&*BBI, CI))) {
       // Yes, this is accumulator recursion.  Remember which instruction
       // accumulates.
-      PassPrediction::PassPeeper(__FILE__, 2982); // if
+      PassPrediction::PassPeeper(2982); // if
       AccumulatorRecursionInstr = &*BBI;
     } else {
-      PassPrediction::PassPeeper(__FILE__, 2983); // else
+      PassPrediction::PassPeeper(2983); // else
       return false; // Otherwise, we cannot eliminate the tail recursion!
     }
   }
@@ -667,16 +667,16 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
     // One case remains that we are able to handle: the current return
     // instruction returns a constant, and all other return instructions
     // return a different constant.
-    PassPrediction::PassPeeper(__FILE__, 2984); // if
+    PassPrediction::PassPeeper(2984); // if
     if (!isDynamicConstant(Ret->getReturnValue(), CI, Ret)) {
-      PassPrediction::PassPeeper(__FILE__, 2985); // if
+      PassPrediction::PassPeeper(2985); // if
       return false; // Current return instruction does not return a constant.
     }
     // Check that all other return instructions return a common constant.  If
     // so, record it in AccumulatorRecursionEliminationInitVal.
     AccumulatorRecursionEliminationInitVal = getCommonReturnValue(Ret, CI);
     if (!AccumulatorRecursionEliminationInitVal) {
-      PassPrediction::PassPeeper(__FILE__, 2986); // if
+      PassPrediction::PassPeeper(2986); // if
       return false;
     }
   }
@@ -690,7 +690,7 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
   // OK! We can transform this tail call.  If this is the first one found,
   // create the new entry block, allowing us to branch back to the old entry.
   if (!OldEntry) {
-    PassPrediction::PassPeeper(__FILE__, 2987); // if
+    PassPrediction::PassPeeper(2987); // if
     OldEntry = &F->getEntryBlock();
     BasicBlock *NewEntry = BasicBlock::Create(F->getContext(), "", F, OldEntry);
     NewEntry->takeName(OldEntry);
@@ -702,15 +702,15 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
     TailCallsAreMarkedTail = CI->isTailCall();
     if (TailCallsAreMarkedTail) {
       // Move all fixed sized allocas from OldEntry to NewEntry.
-      PassPrediction::PassPeeper(__FILE__, 2988); // if
+      PassPrediction::PassPeeper(2988); // if
       for (BasicBlock::iterator OEBI = OldEntry->begin(), E = OldEntry->end(),
                                 NEBI = NewEntry->begin();
            OEBI != E;) {
-        PassPrediction::PassPeeper(__FILE__, 2989); // for
+        PassPrediction::PassPeeper(2989); // for
         if (AllocaInst *AI = dyn_cast<AllocaInst>(OEBI++)) {
-          PassPrediction::PassPeeper(__FILE__, 2990); // if
+          PassPrediction::PassPeeper(2990); // if
           if (isa<ConstantInt>(AI->getArraySize())) {
-            PassPrediction::PassPeeper(__FILE__, 2991); // if
+            PassPrediction::PassPeeper(2991); // if
             AI->moveBefore(&*NEBI);
           }
         }
@@ -724,7 +724,7 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
     Instruction *InsertPos = &OldEntry->front();
     for (Function::arg_iterator I = F->arg_begin(), E = F->arg_end(); I != E;
          ++I) {
-      PassPrediction::PassPeeper(__FILE__, 2992); // for
+      PassPrediction::PassPeeper(2992); // for
       PHINode *PN =
           PHINode::Create(I->getType(), 2, I->getName() + ".tr", InsertPos);
       I->replaceAllUsesWith(PN); // Everyone use the PHI node now!
@@ -740,7 +740,7 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
   // slightly better here in the case that the function has no entry block
   // allocas.
   if (TailCallsAreMarkedTail && !CI->isTailCall()) {
-    PassPrediction::PassPeeper(__FILE__, 2993); // if
+    PassPrediction::PassPeeper(2993); // if
     return false;
   }
 
@@ -748,7 +748,7 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
   // required PHI nodes, add entries into the PHI node for the actual
   // parameters passed into the tail-recursive call.
   for (unsigned i = 0, e = CI->getNumArgOperands(); i != e; ++i) {
-    PassPrediction::PassPeeper(__FILE__, 2994); // for
+    PassPrediction::PassPeeper(2994); // for
     ArgumentPHIs[i]->addIncoming(CI->getArgOperand(i), BB);
   }
 
@@ -758,7 +758,7 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
   // accumulator recursion predicate is set up.
   //
   if (AccumulatorRecursionEliminationInitVal) {
-    PassPrediction::PassPeeper(__FILE__, 2995); // if
+    PassPrediction::PassPeeper(2995); // if
     Instruction *AccRecInstr = AccumulatorRecursionInstr;
     // Start by inserting a new PHI node for the accumulator.
     pred_iterator PB = pred_begin(OldEntry), PE = pred_end(OldEntry);
@@ -773,13 +773,13 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
     // Because we haven't added the branch in the current block to OldEntry yet,
     // it will not show up as a predecessor.
     for (pred_iterator PI = PB; PI != PE; ++PI) {
-      PassPrediction::PassPeeper(__FILE__, 2996); // for
+      PassPrediction::PassPeeper(2996); // for
       BasicBlock *P = *PI;
       if (P == &F->getEntryBlock()) {
-        PassPrediction::PassPeeper(__FILE__, 2997); // if
+        PassPrediction::PassPeeper(2997); // if
         AccPN->addIncoming(AccumulatorRecursionEliminationInitVal, P);
       } else {
-        PassPrediction::PassPeeper(__FILE__, 2998); // else
+        PassPrediction::PassPeeper(2998); // else
         AccPN->addIncoming(AccPN, P);
       }
     }
@@ -787,7 +787,7 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
     if (AccRecInstr) {
       // Add an incoming argument for the current block, which is computed by
       // our associative and commutative accumulator instruction.
-      PassPrediction::PassPeeper(__FILE__, 2999); // if
+      PassPrediction::PassPeeper(2999); // if
       AccPN->addIncoming(AccRecInstr, BB);
 
       // Next, rewrite the accumulator recursion instruction so that it does not
@@ -797,7 +797,7 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
     } else {
       // Add an incoming argument for the current block, which is just the
       // constant returned by the current return instruction.
-      PassPrediction::PassPeeper(__FILE__, 3000); // else
+      PassPrediction::PassPeeper(3000); // else
       AccPN->addIncoming(Ret->getReturnValue(), BB);
     }
 
@@ -805,9 +805,9 @@ static bool eliminateRecursiveTailCall(CallInst *CI, ReturnInst *Ret,
     // node instead of the "initval" that they do currently.  This loop will
     // actually rewrite the return value we are destroying, but that's ok.
     for (BasicBlock &BBI : *F) {
-      PassPrediction::PassPeeper(__FILE__, 3001); // for-range
+      PassPrediction::PassPeeper(3001); // for-range
       if (ReturnInst *RI = dyn_cast<ReturnInst>(BBI.getTerminator())) {
-        PassPrediction::PassPeeper(__FILE__, 3002); // if
+        PassPrediction::PassPeeper(3002); // if
         RI->setOperand(0, AccPN);
       }
     }
@@ -844,20 +844,20 @@ static bool foldReturnAndProcessPred(BasicBlock *BB, ReturnInst *Ret,
   // in unconditional branch and recursive call(s).
   SmallVector<BranchInst *, 8> UncondBranchPreds;
   for (pred_iterator PI = pred_begin(BB), E = pred_end(BB); PI != E; ++PI) {
-    PassPrediction::PassPeeper(__FILE__, 3003); // for
+    PassPrediction::PassPeeper(3003); // for
     BasicBlock *Pred = *PI;
     TerminatorInst *PTI = Pred->getTerminator();
     if (BranchInst *BI = dyn_cast<BranchInst>(PTI)) {
-      PassPrediction::PassPeeper(__FILE__, 3004); // if
+      PassPrediction::PassPeeper(3004); // if
       if (BI->isUnconditional()) {
-        PassPrediction::PassPeeper(__FILE__, 3005); // if
+        PassPrediction::PassPeeper(3005); // if
         UncondBranchPreds.push_back(BI);
       }
     }
   }
 
   while (!UncondBranchPreds.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 3006); // while
+    PassPrediction::PassPeeper(3006); // while
     BranchInst *BI = UncondBranchPreds.pop_back_val();
     BasicBlock *Pred = BI->getParent();
     if (CallInst *CI =
@@ -871,7 +871,7 @@ static bool foldReturnAndProcessPred(BasicBlock *BB, ReturnInst *Ret,
       // because the ret instruction in there is still using a value which
       // eliminateRecursiveTailCall will attempt to remove.
       if (!BB->hasAddressTaken() && pred_begin(BB) == pred_end(BB)) {
-        PassPrediction::PassPeeper(__FILE__, 3007); // if
+        PassPrediction::PassPeeper(3007); // if
         BB->eraseFromParent();
       }
 
@@ -893,7 +893,7 @@ static bool processReturningBlock(ReturnInst *Ret, BasicBlock *&OldEntry,
                                   AliasAnalysis *AA) {
   CallInst *CI = findTRECandidate(Ret, CannotTailCallElimCallsMarkedTail, TTI);
   if (!CI) {
-    PassPrediction::PassPeeper(__FILE__, 3008); // if
+    PassPrediction::PassPeeper(3008); // if
     return false;
   }
 
@@ -904,7 +904,7 @@ static bool processReturningBlock(ReturnInst *Ret, BasicBlock *&OldEntry,
 static bool eliminateTailRecursion(Function &F, const TargetTransformInfo *TTI,
                                    AliasAnalysis *AA) {
   if (F.getFnAttribute("disable-tail-calls").getValueAsString() == "true") {
-    PassPrediction::PassPeeper(__FILE__, 3009); // if
+    PassPrediction::PassPeeper(3009); // if
     return false;
   }
 
@@ -912,14 +912,14 @@ static bool eliminateTailRecursion(Function &F, const TargetTransformInfo *TTI,
   bool AllCallsAreTailCalls = false;
   MadeChange |= markTails(F, AllCallsAreTailCalls);
   if (!AllCallsAreTailCalls) {
-    PassPrediction::PassPeeper(__FILE__, 3010); // if
+    PassPrediction::PassPeeper(3010); // if
     return MadeChange;
   }
 
   // If this function is a varargs function, we won't be able to PHI the args
   // right, so don't even try to convert it...
   if (F.getFunctionType()->isVarArg()) {
-    PassPrediction::PassPeeper(__FILE__, 3011); // if
+    PassPrediction::PassPeeper(3011); // if
     return false;
   }
 
@@ -939,15 +939,15 @@ static bool eliminateTailRecursion(Function &F, const TargetTransformInfo *TTI,
   // Until this is resolved, disable this transformation if that would ever
   // happen.  This bug is PR962.
   for (Function::iterator BBI = F.begin(), E = F.end(); BBI != E; /*in loop*/) {
-    PassPrediction::PassPeeper(__FILE__, 3012); // for
-    BasicBlock *BB = &*BBI++; // foldReturnAndProcessPred may delete BB.
+    PassPrediction::PassPeeper(3012); // for
+    BasicBlock *BB = &*BBI++;         // foldReturnAndProcessPred may delete BB.
     if (ReturnInst *Ret = dyn_cast<ReturnInst>(BB->getTerminator())) {
-      PassPrediction::PassPeeper(__FILE__, 3013); // if
+      PassPrediction::PassPeeper(3013); // if
       bool Change =
           processReturningBlock(Ret, OldEntry, TailCallsAreMarkedTail,
                                 ArgumentPHIs, !CanTRETailMarkedCall, TTI, AA);
       if (!Change && BB->getFirstNonPHIOrDbg() == Ret) {
-        PassPrediction::PassPeeper(__FILE__, 3014); // if
+        PassPrediction::PassPeeper(3014); // if
         Change = foldReturnAndProcessPred(BB, Ret, OldEntry,
                                           TailCallsAreMarkedTail, ArgumentPHIs,
                                           !CanTRETailMarkedCall, TTI, AA);
@@ -963,9 +963,9 @@ static bool eliminateTailRecursion(Function &F, const TargetTransformInfo *TTI,
   // call.
   for (PHINode *PN : ArgumentPHIs) {
     // If the PHI Node is a dynamic constant, replace it with the value it is.
-    PassPrediction::PassPeeper(__FILE__, 3015); // for-range
+    PassPrediction::PassPeeper(3015); // for-range
     if (Value *PNV = SimplifyInstruction(PN, F.getParent()->getDataLayout())) {
-      PassPrediction::PassPeeper(__FILE__, 3016); // if
+      PassPrediction::PassPeeper(3016); // if
       PN->replaceAllUsesWith(PNV);
       PN->eraseFromParent();
     }
@@ -989,7 +989,7 @@ struct TailCallElim : public FunctionPass {
 
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 3017); // if
+      PassPrediction::PassPeeper(3017); // if
       return false;
     }
 
@@ -1021,7 +1021,7 @@ PreservedAnalyses TailCallElimPass::run(Function &F,
   bool Changed = eliminateTailRecursion(F, &TTI, &AA);
 
   if (!Changed) {
-    PassPrediction::PassPeeper(__FILE__, 3018); // if
+    PassPrediction::PassPeeper(3018); // if
     return PreservedAnalyses::all();
   }
   PreservedAnalyses PA;

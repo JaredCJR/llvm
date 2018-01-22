@@ -159,7 +159,7 @@ struct TarjanSCC {
 
   void Start(const Instruction *Start) {
     if (Root.lookup(Start) == 0) {
-      PassPrediction::PassPeeper(__FILE__, 3019); // if
+      PassPrediction::PassPeeper(3019); // if
       FindSCC(Start);
     }
   }
@@ -178,15 +178,15 @@ private:
     // Store the DFS Number we had before it possibly gets incremented.
     unsigned int OurDFS = DFSNum;
     for (auto &Op : I->operands()) {
-      PassPrediction::PassPeeper(__FILE__, 3020); // for-range
+      PassPrediction::PassPeeper(3020); // for-range
       if (auto *InstOp = dyn_cast<Instruction>(Op)) {
-        PassPrediction::PassPeeper(__FILE__, 3021); // if
+        PassPrediction::PassPeeper(3021); // if
         if (Root.lookup(Op) == 0) {
-          PassPrediction::PassPeeper(__FILE__, 3022); // if
+          PassPrediction::PassPeeper(3022); // if
           FindSCC(InstOp);
         }
         if (!InComponent.count(Op)) {
-          PassPrediction::PassPeeper(__FILE__, 3023); // if
+          PassPrediction::PassPeeper(3023); // if
           Root[I] = std::min(Root.lookup(I), Root.lookup(Op));
         }
       }
@@ -196,7 +196,7 @@ private:
     // completed a component. If we do not, we are not the root of a component,
     // and belong on the component stack.
     if (Root.lookup(I) == OurDFS) {
-      PassPrediction::PassPeeper(__FILE__, 3024); // if
+      PassPrediction::PassPeeper(3024); // if
       unsigned ComponentID = Components.size();
       Components.resize(Components.size() + 1);
       auto &Component = Components.back();
@@ -206,7 +206,7 @@ private:
       ValueToComponent[I] = ComponentID;
       // Pop a component off the stack and label it.
       while (!Stack.empty() && Root.lookup(Stack.back()) >= OurDFS) {
-        PassPrediction::PassPeeper(__FILE__, 3026); // while
+        PassPrediction::PassPeeper(3026); // while
         auto *Member = Stack.back();
         DEBUG(dbgs() << "Component member is " << *Member << "\n");
         Component.insert(Member);
@@ -216,7 +216,7 @@ private:
       }
     } else {
       // Part of a component, push to stack
-      PassPrediction::PassPeeper(__FILE__, 3025); // else
+      PassPrediction::PassPeeper(3025); // else
       Stack.push_back(I);
     }
   }
@@ -295,7 +295,7 @@ public:
 
   void addPossibleNextLeader(std::pair<Value *, unsigned int> LeaderPair) {
     if (LeaderPair.second < NextLeader.second) {
-      PassPrediction::PassPeeper(__FILE__, 3027); // if
+      PassPrediction::PassPeeper(3027); // if
       NextLeader = LeaderPair;
     }
   }
@@ -348,25 +348,25 @@ public:
   // that every field but the ID number and the dead field are equivalent.
   bool isEquivalentTo(const CongruenceClass *Other) const {
     if (!Other) {
-      PassPrediction::PassPeeper(__FILE__, 3028); // if
+      PassPrediction::PassPeeper(3028); // if
       return false;
     }
     if (this == Other) {
-      PassPrediction::PassPeeper(__FILE__, 3029); // if
+      PassPrediction::PassPeeper(3029); // if
       return true;
     }
 
     if (std::tie(StoreCount, RepLeader, RepStoredValue, RepMemoryAccess) !=
         std::tie(Other->StoreCount, Other->RepLeader, Other->RepStoredValue,
                  Other->RepMemoryAccess)) {
-      PassPrediction::PassPeeper(__FILE__, 3030); // if
+      PassPrediction::PassPeeper(3030); // if
       return false;
     }
     if (DefiningExpr != Other->DefiningExpr) {
-      PassPrediction::PassPeeper(__FILE__, 3031); // if
+      PassPrediction::PassPeeper(3031); // if
       if (!DefiningExpr || !Other->DefiningExpr ||
           *DefiningExpr != *Other->DefiningExpr) {
-        PassPrediction::PassPeeper(__FILE__, 3032); // if
+        PassPrediction::PassPeeper(3032); // if
         return false;
       }
     }
@@ -430,7 +430,7 @@ template <> struct DenseMapInfo<const Expression *> {
   }
   static bool isEqual(const ExactEqualsExpression &LHS, const Expression *RHS) {
     if (RHS == getTombstoneKey() || RHS == getEmptyKey()) {
-      PassPrediction::PassPeeper(__FILE__, 3033); // if
+      PassPrediction::PassPeeper(3033); // if
       return false;
     }
     return LHS == *RHS;
@@ -438,12 +438,12 @@ template <> struct DenseMapInfo<const Expression *> {
 
   static bool isEqual(const Expression *LHS, const Expression *RHS) {
     if (LHS == RHS) {
-      PassPrediction::PassPeeper(__FILE__, 3034); // if
+      PassPrediction::PassPeeper(3034); // if
       return true;
     }
     if (LHS == getTombstoneKey() || RHS == getTombstoneKey() ||
         LHS == getEmptyKey() || RHS == getEmptyKey()) {
-      PassPrediction::PassPeeper(__FILE__, 3035); // if
+      PassPrediction::PassPeeper(3035); // if
       return false;
     }
     // Compare hashes before equality.  This is *not* what the hashtable does,
@@ -451,7 +451,7 @@ template <> struct DenseMapInfo<const Expression *> {
     // using the full hash keyspace.  Since the hashes are precomputed, this
     // check is *much* faster than equality.
     if (LHS->getComputedHash() != RHS->getComputedHash()) {
-      PassPrediction::PassPeeper(__FILE__, 3036); // if
+      PassPrediction::PassPeeper(3036); // if
       return false;
     }
     return *LHS == *RHS;
@@ -652,7 +652,7 @@ private:
   CongruenceClass *ensureLeaderOfMemoryClass(MemoryAccess *MA) {
     auto *CC = getMemoryClass(MA);
     if (CC->getMemoryLeader() != MA) {
-      PassPrediction::PassPeeper(__FILE__, 3037); // if
+      PassPrediction::PassPeeper(3037); // if
       CC = createMemoryClass(MA);
     }
     return CC;
@@ -795,7 +795,7 @@ private:
 template <typename T>
 static bool equalsLoadStoreHelper(const T &LHS, const Expression &RHS) {
   if (!isa<LoadExpression>(RHS) && !isa<StoreExpression>(RHS)) {
-    PassPrediction::PassPeeper(__FILE__, 3044); // if
+    PassPrediction::PassPeeper(3044); // if
     return false;
   }
   return LHS.MemoryExpression::equals(RHS);
@@ -807,14 +807,14 @@ bool LoadExpression::equals(const Expression &Other) const {
 
 bool StoreExpression::equals(const Expression &Other) const {
   if (!equalsLoadStoreHelper(*this, Other)) {
-    PassPrediction::PassPeeper(__FILE__, 3045); // if
+    PassPrediction::PassPeeper(3045); // if
     return false;
   }
   // Make sure that store vs store includes the value operand.
   if (const auto *S = dyn_cast<StoreExpression>(&Other)) {
-    PassPrediction::PassPeeper(__FILE__, 3046); // if
+    PassPrediction::PassPeeper(3046); // if
     if (getStoredValue() != S->getStoredValue()) {
-      PassPrediction::PassPeeper(__FILE__, 3047); // if
+      PassPrediction::PassPeeper(3047); // if
       return false;
     }
   }
@@ -824,7 +824,7 @@ bool StoreExpression::equals(const Expression &Other) const {
 // Determine if the edge From->To is a backedge
 bool NewGVN::isBackedge(BasicBlock *From, BasicBlock *To) const {
   if (From == To) {
-    PassPrediction::PassPeeper(__FILE__, 3048); // if
+    PassPrediction::PassPeeper(3048); // if
     return true;
   }
   auto *FromDTN = DT->getNode(From);
@@ -852,10 +852,10 @@ MemoryPhi *NewGVN::getMemoryAccess(const BasicBlock *BB) const {
 // Get the basic block from an instruction/memory value.
 BasicBlock *NewGVN::getBlockForValue(Value *V) const {
   if (auto *I = dyn_cast<Instruction>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 3049); // if
+    PassPrediction::PassPeeper(3049); // if
     auto *Parent = I->getParent();
     if (Parent) {
-      PassPrediction::PassPeeper(__FILE__, 3050); // if
+      PassPrediction::PassPeeper(3050); // if
       return Parent;
     }
     Parent = TempToBlock.lookup(V);
@@ -898,7 +898,7 @@ PHIExpression *NewGVN::createPHIExpression(Instruction *I, bool &HasBackedge,
   // fine.
   SmallVector<const Use *, 4> PHIOperands;
   for (const Use &U : PN->operands()) {
-    PassPrediction::PassPeeper(__FILE__, 3051); // for-range
+    PassPrediction::PassPeeper(3051); // for-range
     PHIOperands.push_back(&U);
   }
   std::sort(PHIOperands.begin(), PHIOperands.end(),
@@ -909,16 +909,16 @@ PHIExpression *NewGVN::createPHIExpression(Instruction *I, bool &HasBackedge,
   // Filter out unreachable phi operands.
   auto Filtered = make_filter_range(PHIOperands, [&](const Use *U) {
     if (*U == PN) {
-      PassPrediction::PassPeeper(__FILE__, 3052); // if
+      PassPrediction::PassPeeper(3052); // if
       return false;
     }
     if (!ReachableEdges.count({PN->getIncomingBlock(*U), PHIBlock})) {
-      PassPrediction::PassPeeper(__FILE__, 3053); // if
+      PassPrediction::PassPeeper(3053); // if
       return false;
     }
     // Things in TOPClass are equivalent to everything.
     if (ValueToClass.lookup(*U) == TOPClass) {
-      PassPrediction::PassPeeper(__FILE__, 3054); // if
+      PassPrediction::PassPeeper(3054); // if
       return false;
     }
     return lookupOperandLeader(*U) != PN;
@@ -939,10 +939,10 @@ PHIExpression *NewGVN::createPHIExpression(Instruction *I, bool &HasBackedge,
 bool NewGVN::setBasicExpressionInfo(Instruction *I, BasicExpression *E) const {
   bool AllConstant = true;
   if (auto *GEP = dyn_cast<GetElementPtrInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3055); // if
+    PassPrediction::PassPeeper(3055); // if
     E->setType(GEP->getSourceElementType());
   } else {
-    PassPrediction::PassPeeper(__FILE__, 3056); // else
+    PassPrediction::PassPeeper(3056); // else
     E->setType(I->getType());
   }
   E->setOpcode(I->getOpcode());
@@ -972,9 +972,9 @@ const Expression *NewGVN::createBinaryExpression(unsigned Opcode, Type *T,
     // of their operands get the same value number by sorting the operand value
     // numbers.  Since all commutative instructions have two operands it is more
     // efficient to sort by hand rather than using, say, std::sort.
-    PassPrediction::PassPeeper(__FILE__, 3057); // if
+    PassPrediction::PassPeeper(3057); // if
     if (shouldSwapOperands(Arg1, Arg2)) {
-      PassPrediction::PassPeeper(__FILE__, 3058); // if
+      PassPrediction::PassPeeper(3058); // if
       std::swap(Arg1, Arg2);
     }
   }
@@ -983,7 +983,7 @@ const Expression *NewGVN::createBinaryExpression(unsigned Opcode, Type *T,
 
   Value *V = SimplifyBinOp(Opcode, E->getOperand(0), E->getOperand(1), SQ);
   if (const Expression *SimplifiedE = checkSimplificationResults(E, I, V)) {
-    PassPrediction::PassPeeper(__FILE__, 3059); // if
+    PassPrediction::PassPeeper(3059); // if
     return SimplifiedE;
   }
   return E;
@@ -998,11 +998,11 @@ const Expression *NewGVN::checkSimplificationResults(Expression *E,
                                                      Instruction *I,
                                                      Value *V) const {
   if (!V) {
-    PassPrediction::PassPeeper(__FILE__, 3060); // if
+    PassPrediction::PassPeeper(3060); // if
     return nullptr;
   }
   if (auto *C = dyn_cast<Constant>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 3061); // if
+    PassPrediction::PassPeeper(3061); // if
     if (I) {
       DEBUG(dbgs() << "Simplified " << *I << " to "
                    << " constant " << *C << "\n");
@@ -1013,7 +1013,7 @@ const Expression *NewGVN::checkSimplificationResults(Expression *E,
     deleteExpression(E);
     return createConstantExpression(C);
   } else if (isa<Argument>(V) || isa<GlobalVariable>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 3062); // if
+    PassPrediction::PassPeeper(3062); // if
     if (I) {
       DEBUG(dbgs() << "Simplified " << *I << " to "
                    << " variable " << *V << "\n");
@@ -1026,12 +1026,12 @@ const Expression *NewGVN::checkSimplificationResults(Expression *E,
   if (CC && CC->getDefiningExpr()) {
     // If we simplified to something else, we need to communicate
     // that we're users of the value we simplified to.
-    PassPrediction::PassPeeper(__FILE__, 3063); // if
+    PassPrediction::PassPeeper(3063); // if
     if (I != V) {
       // Don't add temporary instructions to the user lists.
-      PassPrediction::PassPeeper(__FILE__, 3064); // if
+      PassPrediction::PassPeeper(3064); // if
       if (!AllTempInstructions.count(I)) {
-        PassPrediction::PassPeeper(__FILE__, 3065); // if
+        PassPrediction::PassPeeper(3065); // if
         addAdditionalUsers(V, I);
       }
     }
@@ -1059,7 +1059,7 @@ const Expression *NewGVN::createExpression(Instruction *I) const {
     // efficient to sort by hand rather than using, say, std::sort.
     assert(I->getNumOperands() == 2 && "Unsupported commutative instruction!");
     if (shouldSwapOperands(E->getOperand(0), E->getOperand(1))) {
-      PassPrediction::PassPeeper(__FILE__, 3066); // if
+      PassPrediction::PassPeeper(3066); // if
       E->swapOperands(0, 1);
     }
   }
@@ -1075,10 +1075,10 @@ const Expression *NewGVN::createExpression(Instruction *I) const {
   if (auto *CI = dyn_cast<CmpInst>(I)) {
     // Sort the operand value numbers so x<y and y>x get the same value
     // number.
-    PassPrediction::PassPeeper(__FILE__, 3067); // if
+    PassPrediction::PassPeeper(3067); // if
     CmpInst::Predicate Predicate = CI->getPredicate();
     if (shouldSwapOperands(E->getOperand(0), E->getOperand(1))) {
-      PassPrediction::PassPeeper(__FILE__, 3068); // if
+      PassPrediction::PassPeeper(3068); // if
       E->swapOperands(0, 1);
       Predicate = CmpInst::getSwappedPredicate(Predicate);
     }
@@ -1091,11 +1091,11 @@ const Expression *NewGVN::createExpression(Instruction *I) const {
     Value *V =
         SimplifyCmpInst(Predicate, E->getOperand(0), E->getOperand(1), SQ);
     if (const Expression *SimplifiedE = checkSimplificationResults(E, I, V)) {
-      PassPrediction::PassPeeper(__FILE__, 3069); // if
+      PassPrediction::PassPeeper(3069); // if
       return SimplifiedE;
     }
   } else if (isa<SelectInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3070); // if
+    PassPrediction::PassPeeper(3070); // if
     if (isa<Constant>(E->getOperand(0)) ||
         E->getOperand(0) == E->getOperand(1)) {
       assert(E->getOperand(1)->getType() == I->getOperand(1)->getType() &&
@@ -1103,32 +1103,32 @@ const Expression *NewGVN::createExpression(Instruction *I) const {
       Value *V = SimplifySelectInst(E->getOperand(0), E->getOperand(1),
                                     E->getOperand(2), SQ);
       if (const Expression *SimplifiedE = checkSimplificationResults(E, I, V)) {
-        PassPrediction::PassPeeper(__FILE__, 3071); // if
+        PassPrediction::PassPeeper(3071); // if
         return SimplifiedE;
       }
     }
   } else if (I->isBinaryOp()) {
-    PassPrediction::PassPeeper(__FILE__, 3072); // if
+    PassPrediction::PassPeeper(3072); // if
     Value *V =
         SimplifyBinOp(E->getOpcode(), E->getOperand(0), E->getOperand(1), SQ);
     if (const Expression *SimplifiedE = checkSimplificationResults(E, I, V)) {
-      PassPrediction::PassPeeper(__FILE__, 3073); // if
+      PassPrediction::PassPeeper(3073); // if
       return SimplifiedE;
     }
   } else if (auto *BI = dyn_cast<BitCastInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3074); // if
+    PassPrediction::PassPeeper(3074); // if
     Value *V =
         SimplifyCastInst(BI->getOpcode(), BI->getOperand(0), BI->getType(), SQ);
     if (const Expression *SimplifiedE = checkSimplificationResults(E, I, V)) {
-      PassPrediction::PassPeeper(__FILE__, 3075); // if
+      PassPrediction::PassPeeper(3075); // if
       return SimplifiedE;
     }
   } else if (isa<GetElementPtrInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3076); // if
+    PassPrediction::PassPeeper(3076); // if
     Value *V = SimplifyGEPInst(
         E->getType(), ArrayRef<Value *>(E->op_begin(), E->op_end()), SQ);
     if (const Expression *SimplifiedE = checkSimplificationResults(E, I, V)) {
-      PassPrediction::PassPeeper(__FILE__, 3077); // if
+      PassPrediction::PassPeeper(3077); // if
       return SimplifiedE;
     }
   } else if (AllConstant) {
@@ -1139,17 +1139,17 @@ const Expression *NewGVN::createExpression(Instruction *I) const {
     // zext i1 false to i8, which we don't have an interface to
     // simplify (IE there is no SimplifyZExt).
 
-    PassPrediction::PassPeeper(__FILE__, 3078); // if
+    PassPrediction::PassPeeper(3078); // if
     SmallVector<Constant *, 8> C;
     for (Value *Arg : E->operands()) {
-      PassPrediction::PassPeeper(__FILE__, 3079); // for-range
+      PassPrediction::PassPeeper(3079); // for-range
       C.emplace_back(cast<Constant>(Arg));
     }
 
     if (Value *V = ConstantFoldInstOperands(I, C, DL, TLI)) {
-      PassPrediction::PassPeeper(__FILE__, 3080); // if
+      PassPrediction::PassPeeper(3080); // if
       if (const Expression *SimplifiedE = checkSimplificationResults(E, I, V)) {
-        PassPrediction::PassPeeper(__FILE__, 3081); // if
+        PassPrediction::PassPeeper(3081); // if
         return SimplifiedE;
       }
     }
@@ -1160,7 +1160,7 @@ const Expression *NewGVN::createExpression(Instruction *I) const {
 const AggregateValueExpression *
 NewGVN::createAggregateValueExpression(Instruction *I) const {
   if (auto *II = dyn_cast<InsertValueInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3082); // if
+    PassPrediction::PassPeeper(3082); // if
     auto *E = new (ExpressionAllocator)
         AggregateValueExpression(I->getNumOperands(), II->getNumIndices());
     setBasicExpressionInfo(I, E);
@@ -1168,7 +1168,7 @@ NewGVN::createAggregateValueExpression(Instruction *I) const {
     std::copy(II->idx_begin(), II->idx_end(), int_op_inserter(E));
     return E;
   } else if (auto *EI = dyn_cast<ExtractValueInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3083); // if
+    PassPrediction::PassPeeper(3083); // if
     auto *E = new (ExpressionAllocator)
         AggregateValueExpression(I->getNumOperands(), EI->getNumIndices());
     setBasicExpressionInfo(EI, E);
@@ -1193,7 +1193,7 @@ const VariableExpression *NewGVN::createVariableExpression(Value *V) const {
 
 const Expression *NewGVN::createVariableOrConstant(Value *V) const {
   if (auto *C = dyn_cast<Constant>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 3084); // if
+    PassPrediction::PassPeeper(3084); // if
     return createConstantExpression(C);
   }
   return createVariableExpression(V);
@@ -1241,16 +1241,16 @@ bool NewGVN::someEquivalentDominates(const Instruction *Inst,
   // Depending on the rpo order picked, the leader could be the equivalent in
   // any of these siblings.
   if (!CC) {
-    PassPrediction::PassPeeper(__FILE__, 3085); // if
+    PassPrediction::PassPeeper(3085); // if
     return false;
   }
   if (DT->dominates(cast<Instruction>(CC->getLeader()), U)) {
-    PassPrediction::PassPeeper(__FILE__, 3086); // if
+    PassPrediction::PassPeeper(3086); // if
     return true;
   }
   if (CC->getNextLeader().first &&
       DT->dominates(cast<Instruction>(CC->getNextLeader().first), U)) {
-    PassPrediction::PassPeeper(__FILE__, 3087); // if
+    PassPrediction::PassPeeper(3087); // if
     return true;
   }
   return llvm::any_of(*CC, [&](const Value *Member) {
@@ -1267,9 +1267,9 @@ Value *NewGVN::lookupOperandLeader(Value *V) const {
     // Everything in TOP is represented by undef, as it can be any value.
     // We do have to make sure we get the type right though, so we can't set the
     // RepLeader to undef.
-    PassPrediction::PassPeeper(__FILE__, 3088); // if
+    PassPrediction::PassPeeper(3088); // if
     if (CC == TOPClass) {
-      PassPrediction::PassPeeper(__FILE__, 3089); // if
+      PassPrediction::PassPeeper(3089); // if
       return UndefValue::get(V->getType());
     }
     return CC->getStoredValue() ? CC->getStoredValue() : CC->getLeader();
@@ -1305,7 +1305,7 @@ LoadExpression *NewGVN::createLoadExpression(Type *LoadType, Value *PointerOp,
   E->setOpcode(0);
   E->op_push_back(PointerOp);
   if (LI) {
-    PassPrediction::PassPeeper(__FILE__, 3090); // if
+    PassPrediction::PassPeeper(3090); // if
     E->setAlignment(LI->getAlignment());
   }
 
@@ -1341,18 +1341,18 @@ const Expression *NewGVN::performSymbolicStoreEvaluation(Instruction *I) const {
   // Get the expression, if any, for the RHS of the MemoryDef.
   const MemoryAccess *StoreRHS = StoreAccess->getDefiningAccess();
   if (EnableStoreRefinement) {
-    PassPrediction::PassPeeper(__FILE__, 3091); // if
+    PassPrediction::PassPeeper(3091); // if
     StoreRHS = MSSAWalker->getClobberingMemoryAccess(StoreAccess);
   }
   // If we bypassed the use-def chains, make sure we add a use.
   if (StoreRHS != StoreAccess->getDefiningAccess()) {
-    PassPrediction::PassPeeper(__FILE__, 3092); // if
+    PassPrediction::PassPeeper(3092); // if
     addMemoryUsers(StoreRHS, StoreAccess);
   }
   StoreRHS = lookupMemoryLeader(StoreRHS);
   // If we are defined by ourselves, use the live on entry def.
   if (StoreRHS == StoreAccess) {
-    PassPrediction::PassPeeper(__FILE__, 3093); // if
+    PassPrediction::PassPeeper(3093); // if
     StoreRHS = MSSA->getLiveOnEntryDef();
   }
 
@@ -1360,7 +1360,7 @@ const Expression *NewGVN::performSymbolicStoreEvaluation(Instruction *I) const {
     // See if we are defined by a previous store expression, it already has a
     // value, and it's the same value as our current store. FIXME: Right now, we
     // only do this for simple stores, we should expand to cover memcpys, etc.
-    PassPrediction::PassPeeper(__FILE__, 3094); // if
+    PassPrediction::PassPeeper(3094); // if
     const auto *LastStore = createStoreExpression(SI, StoreRHS);
     const auto *LastCC = ExpressionToClass.lookup(LastStore);
     // We really want to check whether the expression we matched was a store. No
@@ -1369,7 +1369,7 @@ const Expression *NewGVN::performSymbolicStoreEvaluation(Instruction *I) const {
     // sufficient, because we must also be equivalent to that store's expression
     // for it to be in the same class as the load.
     if (LastCC && LastCC->getStoredValue() == LastStore->getStoredValue()) {
-      PassPrediction::PassPeeper(__FILE__, 3095); // if
+      PassPrediction::PassPeeper(3095); // if
       return LastStore;
     }
     // Also check if our value operand is defined by a load of the same memory
@@ -1377,12 +1377,12 @@ const Expression *NewGVN::performSymbolicStoreEvaluation(Instruction *I) const {
     // could have been overwritten later. See test32 in
     // transforms/DeadStoreElimination/simple.ll).
     if (auto *LI = dyn_cast<LoadInst>(LastStore->getStoredValue())) {
-      PassPrediction::PassPeeper(__FILE__, 3096); // if
+      PassPrediction::PassPeeper(3096); // if
       if ((lookupOperandLeader(LI->getPointerOperand()) ==
            LastStore->getOperand(0)) &&
           (lookupMemoryLeader(getMemoryAccess(LI)->getDefiningAccess()) ==
            StoreRHS)) {
-        PassPrediction::PassPeeper(__FILE__, 3097); // if
+        PassPrediction::PassPeeper(3097); // if
         return LastStore;
       }
     }
@@ -1406,15 +1406,15 @@ NewGVN::performSymbolicLoadCoercion(Type *LoadType, Value *LoadPtr,
     // Can't forward from non-atomic to atomic without violating memory model.
     // Also don't need to coerce if they are the same type, we will just
     // propogate..
-    PassPrediction::PassPeeper(__FILE__, 3098); // if
+    PassPrediction::PassPeeper(3098); // if
     if (LI->isAtomic() > DepSI->isAtomic() ||
         LoadType == DepSI->getValueOperand()->getType()) {
-      PassPrediction::PassPeeper(__FILE__, 3099); // if
+      PassPrediction::PassPeeper(3099); // if
       return nullptr;
     }
     int Offset = analyzeLoadFromClobberingStore(LoadType, LoadPtr, DepSI, DL);
     if (Offset >= 0) {
-      PassPrediction::PassPeeper(__FILE__, 3100); // if
+      PassPrediction::PassPeeper(3100); // if
       if (auto *C = dyn_cast<Constant>(
               lookupOperandLeader(DepSI->getValueOperand()))) {
         DEBUG(dbgs() << "Coercing load from store " << *DepSI << " to constant "
@@ -1426,17 +1426,17 @@ NewGVN::performSymbolicLoadCoercion(Type *LoadType, Value *LoadPtr,
 
   } else if (LoadInst *DepLI = dyn_cast<LoadInst>(DepInst)) {
     // Can't forward from non-atomic to atomic without violating memory model.
-    PassPrediction::PassPeeper(__FILE__, 3101); // if
+    PassPrediction::PassPeeper(3101); // if
     if (LI->isAtomic() > DepLI->isAtomic()) {
-      PassPrediction::PassPeeper(__FILE__, 3102); // if
+      PassPrediction::PassPeeper(3102); // if
       return nullptr;
     }
     int Offset = analyzeLoadFromClobberingLoad(LoadType, LoadPtr, DepLI, DL);
     if (Offset >= 0) {
       // We can coerce a constant load into a load
-      PassPrediction::PassPeeper(__FILE__, 3103); // if
+      PassPrediction::PassPeeper(3103); // if
       if (auto *C = dyn_cast<Constant>(lookupOperandLeader(DepLI))) {
-        PassPrediction::PassPeeper(__FILE__, 3104); // if
+        PassPrediction::PassPeeper(3104); // if
         if (auto *PossibleConstant =
                 getConstantLoadValueForLoad(C, Offset, LoadType, DL)) {
           DEBUG(dbgs() << "Coercing load from load " << *LI << " to constant "
@@ -1447,10 +1447,10 @@ NewGVN::performSymbolicLoadCoercion(Type *LoadType, Value *LoadPtr,
     }
 
   } else if (MemIntrinsic *DepMI = dyn_cast<MemIntrinsic>(DepInst)) {
-    PassPrediction::PassPeeper(__FILE__, 3105); // if
+    PassPrediction::PassPeeper(3105); // if
     int Offset = analyzeLoadFromClobberingMemInst(LoadType, LoadPtr, DepMI, DL);
     if (Offset >= 0) {
-      PassPrediction::PassPeeper(__FILE__, 3106); // if
+      PassPrediction::PassPeeper(3106); // if
       if (auto *PossibleConstant =
               getConstantMemInstValueForLoad(DepMI, Offset, LoadType, DL)) {
         DEBUG(dbgs() << "Coercing load from meminst " << *DepMI
@@ -1464,7 +1464,7 @@ NewGVN::performSymbolicLoadCoercion(Type *LoadType, Value *LoadPtr,
   // by the dependent instruction.
   if (LoadPtr != lookupOperandLeader(DepInst) &&
       !AA->isMustAlias(LoadPtr, DepInst)) {
-    PassPrediction::PassPeeper(__FILE__, 3107); // if
+    PassPrediction::PassPeeper(3107); // if
     return nullptr;
   }
   // If this load really doesn't depend on anything, then we must be loading an
@@ -1472,22 +1472,22 @@ NewGVN::performSymbolicLoadCoercion(Type *LoadType, Value *LoadPtr,
   // intervening stores, for example.  Note that this is only true in the case
   // that the result of the allocation is pointer equal to the load ptr.
   if (isa<AllocaInst>(DepInst) || isMallocLikeFn(DepInst, TLI)) {
-    PassPrediction::PassPeeper(__FILE__, 3108); // if
+    PassPrediction::PassPeeper(3108); // if
     return createConstantExpression(UndefValue::get(LoadType));
   }
   // If this load occurs either right after a lifetime begin,
   // then the loaded value is undefined.
   else if (auto *II = dyn_cast<IntrinsicInst>(DepInst)) {
-    PassPrediction::PassPeeper(__FILE__, 3109); // if
+    PassPrediction::PassPeeper(3109); // if
     if (II->getIntrinsicID() == Intrinsic::lifetime_start) {
-      PassPrediction::PassPeeper(__FILE__, 3110); // if
+      PassPrediction::PassPeeper(3110); // if
       return createConstantExpression(UndefValue::get(LoadType));
     }
   }
   // If this load follows a calloc (which zero initializes memory),
   // then the loaded value is zero
   else if (isCallocLikeFn(DepInst, TLI)) {
-    PassPrediction::PassPeeper(__FILE__, 3111); // if
+    PassPrediction::PassPeeper(3111); // if
     return createConstantExpression(Constant::getNullValue(LoadType));
   }
 
@@ -1500,14 +1500,14 @@ const Expression *NewGVN::performSymbolicLoadEvaluation(Instruction *I) const {
   // We can eliminate in favor of non-simple loads, but we won't be able to
   // eliminate the loads themselves.
   if (!LI->isSimple()) {
-    PassPrediction::PassPeeper(__FILE__, 3112); // if
+    PassPrediction::PassPeeper(3112); // if
     return nullptr;
   }
 
   Value *LoadAddressLeader = lookupOperandLeader(LI->getPointerOperand());
   // Load of undef is undef.
   if (isa<UndefValue>(LoadAddressLeader)) {
-    PassPrediction::PassPeeper(__FILE__, 3113); // if
+    PassPrediction::PassPeeper(3113); // if
     return createConstantExpression(UndefValue::get(LI->getType()));
   }
   MemoryAccess *OriginalAccess = getMemoryAccess(I);
@@ -1515,13 +1515,13 @@ const Expression *NewGVN::performSymbolicLoadEvaluation(Instruction *I) const {
       MSSAWalker->getClobberingMemoryAccess(OriginalAccess);
 
   if (!MSSA->isLiveOnEntryDef(DefiningAccess)) {
-    PassPrediction::PassPeeper(__FILE__, 3114); // if
+    PassPrediction::PassPeeper(3114); // if
     if (auto *MD = dyn_cast<MemoryDef>(DefiningAccess)) {
-      PassPrediction::PassPeeper(__FILE__, 3115); // if
+      PassPrediction::PassPeeper(3115); // if
       Instruction *DefiningInst = MD->getMemoryInst();
       // If the defining instruction is not reachable, replace with undef.
       if (!ReachableBlocks.count(DefiningInst->getParent())) {
-        PassPrediction::PassPeeper(__FILE__, 3116); // if
+        PassPrediction::PassPeeper(3116); // if
         return createConstantExpression(UndefValue::get(LI->getType()));
       }
       // This will handle stores and memory insts.  We only do if it the
@@ -1531,7 +1531,7 @@ const Expression *NewGVN::performSymbolicLoadEvaluation(Instruction *I) const {
       if (const auto *CoercionResult =
               performSymbolicLoadCoercion(LI->getType(), LoadAddressLeader, LI,
                                           DefiningInst, DefiningAccess)) {
-        PassPrediction::PassPeeper(__FILE__, 3117); // if
+        PassPrediction::PassPeeper(3117); // if
         return CoercionResult;
       }
     }
@@ -1546,7 +1546,7 @@ const Expression *
 NewGVN::performSymbolicPredicateInfoEvaluation(Instruction *I) const {
   auto *PI = PredInfo->getPredicateInfoFor(I);
   if (!PI) {
-    PassPrediction::PassPeeper(__FILE__, 3118); // if
+    PassPrediction::PassPeeper(3118); // if
     return nullptr;
   }
 
@@ -1554,7 +1554,7 @@ NewGVN::performSymbolicPredicateInfoEvaluation(Instruction *I) const {
 
   auto *PWC = dyn_cast<PredicateWithCondition>(PI);
   if (!PWC) {
-    PassPrediction::PassPeeper(__FILE__, 3119); // if
+    PassPrediction::PassPeeper(3119); // if
     return nullptr;
   }
 
@@ -1566,21 +1566,21 @@ NewGVN::performSymbolicPredicateInfoEvaluation(Instruction *I) const {
   if (CopyOf == Cond) {
     // We should not need to add predicate users because the predicate info is
     // already a use of this operand.
-    PassPrediction::PassPeeper(__FILE__, 3120); // if
+    PassPrediction::PassPeeper(3120); // if
     if (isa<PredicateAssume>(PI)) {
-      PassPrediction::PassPeeper(__FILE__, 3121); // if
+      PassPrediction::PassPeeper(3121); // if
       return createConstantExpression(ConstantInt::getTrue(Cond->getType()));
     }
     if (auto *PBranch = dyn_cast<PredicateBranch>(PI)) {
-      PassPrediction::PassPeeper(__FILE__, 3122); // if
+      PassPrediction::PassPeeper(3122); // if
       if (PBranch->TrueEdge) {
-        PassPrediction::PassPeeper(__FILE__, 3123); // if
+        PassPrediction::PassPeeper(3123); // if
         return createConstantExpression(ConstantInt::getTrue(Cond->getType()));
       }
       return createConstantExpression(ConstantInt::getFalse(Cond->getType()));
     }
     if (auto *PSwitch = dyn_cast<PredicateSwitch>(PI)) {
-      PassPrediction::PassPeeper(__FILE__, 3124); // if
+      PassPrediction::PassPeeper(3124); // if
       return createConstantExpression(cast<Constant>(PSwitch->CaseValue));
     }
   }
@@ -1597,7 +1597,7 @@ NewGVN::performSymbolicPredicateInfoEvaluation(Instruction *I) const {
   // Everything below relies on the condition being a comparison.
   auto *Cmp = dyn_cast<CmpInst>(Cond);
   if (!Cmp) {
-    PassPrediction::PassPeeper(__FILE__, 3125); // if
+    PassPrediction::PassPeeper(3125); // if
     return nullptr;
   }
 
@@ -1610,7 +1610,7 @@ NewGVN::performSymbolicPredicateInfoEvaluation(Instruction *I) const {
   bool SwappedOps = false;
   // Sort the ops
   if (shouldSwapOperands(FirstOp, SecondOp)) {
-    PassPrediction::PassPeeper(__FILE__, 3126); // if
+    PassPrediction::PassPeeper(3126); // if
     std::swap(FirstOp, SecondOp);
     SwappedOps = true;
   }
@@ -1620,9 +1620,9 @@ NewGVN::performSymbolicPredicateInfoEvaluation(Instruction *I) const {
   if (isa<PredicateAssume>(PI)) {
     // If the comparison is true when the operands are equal, then we know the
     // operands are equal, because assumes must always be true.
-    PassPrediction::PassPeeper(__FILE__, 3127); // if
+    PassPrediction::PassPeeper(3127); // if
     if (CmpInst::isTrueWhenEqual(Predicate)) {
-      PassPrediction::PassPeeper(__FILE__, 3128); // if
+      PassPrediction::PassPeeper(3128); // if
       addPredicateUsers(PI, I);
       addAdditionalUsers(Cmp->getOperand(0), I);
       return createVariableOrConstant(FirstOp);
@@ -1634,10 +1634,10 @@ NewGVN::performSymbolicPredicateInfoEvaluation(Instruction *I) const {
     // operations.  In particular, if the comparison is true/false when the
     // operands are equal, and we are on the right edge, we know this operation
     // is equal to something.
-    PassPrediction::PassPeeper(__FILE__, 3129); // if
+    PassPrediction::PassPeeper(3129); // if
     if ((PBranch->TrueEdge && Predicate == CmpInst::ICMP_EQ) ||
         (!PBranch->TrueEdge && Predicate == CmpInst::ICMP_NE)) {
-      PassPrediction::PassPeeper(__FILE__, 3130); // if
+      PassPrediction::PassPeeper(3130); // if
       addPredicateUsers(PI, I);
       addAdditionalUsers(Cmp->getOperand(0), I);
       return createVariableOrConstant(FirstOp);
@@ -1646,7 +1646,7 @@ NewGVN::performSymbolicPredicateInfoEvaluation(Instruction *I) const {
     if (((PBranch->TrueEdge && Predicate == CmpInst::FCMP_OEQ) ||
          (!PBranch->TrueEdge && Predicate == CmpInst::FCMP_UNE)) &&
         isa<ConstantFP>(FirstOp) && !cast<ConstantFP>(FirstOp)->isZero()) {
-      PassPrediction::PassPeeper(__FILE__, 3131); // if
+      PassPrediction::PassPeeper(3131); // if
       addPredicateUsers(PI, I);
       addAdditionalUsers(Cmp->getOperand(0), I);
       return createConstantExpression(cast<Constant>(FirstOp));
@@ -1660,13 +1660,13 @@ const Expression *NewGVN::performSymbolicCallEvaluation(Instruction *I) const {
   auto *CI = cast<CallInst>(I);
   if (auto *II = dyn_cast<IntrinsicInst>(I)) {
     // Instrinsics with the returned attribute are copies of arguments.
-    PassPrediction::PassPeeper(__FILE__, 3132); // if
+    PassPrediction::PassPeeper(3132); // if
     if (auto *ReturnedValue = II->getReturnedArgOperand()) {
-      PassPrediction::PassPeeper(__FILE__, 3133); // if
+      PassPrediction::PassPeeper(3133); // if
       if (II->getIntrinsicID() == Intrinsic::ssa_copy) {
-        PassPrediction::PassPeeper(__FILE__, 3134); // if
+        PassPrediction::PassPeeper(3134); // if
         if (const auto *Result = performSymbolicPredicateInfoEvaluation(I)) {
-          PassPrediction::PassPeeper(__FILE__, 3135); // if
+          PassPrediction::PassPeeper(3135); // if
           return Result;
         }
       }
@@ -1674,10 +1674,10 @@ const Expression *NewGVN::performSymbolicCallEvaluation(Instruction *I) const {
     }
   }
   if (AA->doesNotAccessMemory(CI)) {
-    PassPrediction::PassPeeper(__FILE__, 3136); // if
+    PassPrediction::PassPeeper(3136); // if
     return createCallExpression(CI, TOPClass->getMemoryLeader());
   } else if (AA->onlyReadsMemory(CI)) {
-    PassPrediction::PassPeeper(__FILE__, 3137); // if
+    PassPrediction::PassPeeper(3137); // if
     MemoryAccess *DefiningAccess = MSSAWalker->getClobberingMemoryAccess(CI);
     return createCallExpression(CI, DefiningAccess);
   }
@@ -1707,23 +1707,23 @@ bool NewGVN::setMemoryClass(const MemoryAccess *From,
   bool Changed = false;
   // If it's already in the table, see if the value changed.
   if (LookupResult != MemoryAccessToClass.end()) {
-    PassPrediction::PassPeeper(__FILE__, 3138); // if
+    PassPrediction::PassPeeper(3138); // if
     auto *OldClass = LookupResult->second;
     if (OldClass != NewClass) {
       // If this is a phi, we have to handle memory member updates.
-      PassPrediction::PassPeeper(__FILE__, 3139); // if
+      PassPrediction::PassPeeper(3139); // if
       if (auto *MP = dyn_cast<MemoryPhi>(From)) {
-        PassPrediction::PassPeeper(__FILE__, 3140); // if
+        PassPrediction::PassPeeper(3140); // if
         OldClass->memory_erase(MP);
         NewClass->memory_insert(MP);
         // This may have killed the class if it had no non-memory members
         if (OldClass->getMemoryLeader() == From) {
-          PassPrediction::PassPeeper(__FILE__, 3141); // if
+          PassPrediction::PassPeeper(3141); // if
           if (OldClass->definesNoMemory()) {
-            PassPrediction::PassPeeper(__FILE__, 3142); // if
+            PassPrediction::PassPeeper(3142); // if
             OldClass->setMemoryLeader(nullptr);
           } else {
-            PassPrediction::PassPeeper(__FILE__, 3143); // else
+            PassPrediction::PassPeeper(3143); // else
             OldClass->setMemoryLeader(getNextMemoryLeader(OldClass));
             DEBUG(dbgs() << "Memory class leader change for class "
                          << OldClass->getID() << " to "
@@ -1755,29 +1755,29 @@ bool NewGVN::isCycleFree(const Instruction *I) const {
   // copies).
   auto ICS = InstCycleState.lookup(I);
   if (ICS == ICS_Unknown) {
-    PassPrediction::PassPeeper(__FILE__, 3144); // if
+    PassPrediction::PassPeeper(3144); // if
     SCCFinder.Start(I);
     auto &SCC = SCCFinder.getComponentFor(I);
     // It's cycle free if it's size 1 or or the SCC is *only* phi nodes.
     if (SCC.size() == 1) {
-      PassPrediction::PassPeeper(__FILE__, 3145); // if
+      PassPrediction::PassPeeper(3145); // if
       InstCycleState.insert({I, ICS_CycleFree});
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3146); // else
+      PassPrediction::PassPeeper(3146); // else
       bool AllPhis =
           llvm::all_of(SCC, [](const Value *V) { return isa<PHINode>(V); });
       ICS = AllPhis ? ICS_CycleFree : ICS_Cycle;
       for (auto *Member : SCC) {
-        PassPrediction::PassPeeper(__FILE__, 3147); // for-range
+        PassPrediction::PassPeeper(3147); // for-range
         if (auto *MemberPhi = dyn_cast<PHINode>(Member)) {
-          PassPrediction::PassPeeper(__FILE__, 3148); // if
+          PassPrediction::PassPeeper(3148); // if
           InstCycleState.insert({MemberPhi, ICS});
         }
       }
     }
   }
   if (ICS == ICS_Cycle) {
-    PassPrediction::PassPeeper(__FILE__, 3149); // if
+    PassPrediction::PassPeeper(3149); // if
     return false;
   }
   return true;
@@ -1800,7 +1800,7 @@ const Expression *NewGVN::performSymbolicPHIEvaluation(Instruction *I) const {
   bool HasUndef = false;
   auto Filtered = make_filter_range(E->operands(), [&](Value *Arg) {
     if (isa<UndefValue>(Arg)) {
-      PassPrediction::PassPeeper(__FILE__, 3150); // if
+      PassPrediction::PassPeeper(3150); // if
       HasUndef = true;
       return false;
     }
@@ -1810,7 +1810,7 @@ const Expression *NewGVN::performSymbolicPHIEvaluation(Instruction *I) const {
   if (Filtered.begin() == Filtered.end()) {
     // If it has undef at this point, it means there are no-non-undef arguments,
     // and thus, the value of the phi node must be undef.
-    PassPrediction::PassPeeper(__FILE__, 3151); // if
+    PassPrediction::PassPeeper(3151); // if
     if (HasUndef) {
       DEBUG(dbgs() << "PHI Node " << *I
                    << " has no non-undef arguments, valuing it as undef\n");
@@ -1838,7 +1838,7 @@ const Expression *NewGVN::performSymbolicPHIEvaluation(Instruction *I) const {
     // expression to say if one is equivalent to the other.
     // We also special case undef, so that if we have an undef, we can't use the
     // common value unless it dominates the phi block.
-    PassPrediction::PassPeeper(__FILE__, 3152); // if
+    PassPrediction::PassPeeper(3152); // if
     if (HasUndef) {
       // If we have undef and at least one other value, this is really a
       // multivalued phi, and we need to know if it's cycle free in order to
@@ -1846,18 +1846,18 @@ const Expression *NewGVN::performSymbolicPHIEvaluation(Instruction *I) const {
       // just shortcuts.  If there is no backedge, or all operands are
       // constants, or all operands are ignored but the undef, it also must be
       // cycle free.
-      PassPrediction::PassPeeper(__FILE__, 3153); // if
+      PassPrediction::PassPeeper(3153); // if
       if (!AllConstant && HasBackedge && NumOps > 0 &&
           !isa<UndefValue>(AllSameValue) && !isCycleFree(I)) {
-        PassPrediction::PassPeeper(__FILE__, 3154); // if
+        PassPrediction::PassPeeper(3154); // if
         return E;
       }
 
       // Only have to check for instructions
       if (auto *AllSameInst = dyn_cast<Instruction>(AllSameValue)) {
-        PassPrediction::PassPeeper(__FILE__, 3155); // if
+        PassPrediction::PassPeeper(3155); // if
         if (!someEquivalentDominates(AllSameInst, I)) {
-          PassPrediction::PassPeeper(__FILE__, 3156); // if
+          PassPrediction::PassPeeper(3156); // if
           return E;
         }
       }
@@ -1867,7 +1867,7 @@ const Expression *NewGVN::performSymbolicPHIEvaluation(Instruction *I) const {
     // up. We will always be a class behind it.
     if (isa<Instruction>(AllSameValue) &&
         InstrToDFSNum(AllSameValue) > InstrToDFSNum(I)) {
-      PassPrediction::PassPeeper(__FILE__, 3157); // if
+      PassPrediction::PassPeeper(3157); // if
       return E;
     }
     NumGVNPhisAllSame++;
@@ -1882,44 +1882,44 @@ const Expression *NewGVN::performSymbolicPHIEvaluation(Instruction *I) const {
 const Expression *
 NewGVN::performSymbolicAggrValueEvaluation(Instruction *I) const {
   if (auto *EI = dyn_cast<ExtractValueInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3158); // if
+    PassPrediction::PassPeeper(3158); // if
     auto *II = dyn_cast<IntrinsicInst>(EI->getAggregateOperand());
     if (II && EI->getNumIndices() == 1 && *EI->idx_begin() == 0) {
-      PassPrediction::PassPeeper(__FILE__, 3159); // if
+      PassPrediction::PassPeeper(3159); // if
       unsigned Opcode = 0;
       // EI might be an extract from one of our recognised intrinsics. If it
       // is we'll synthesize a semantically equivalent expression instead on
       // an extract value expression.
       switch (II->getIntrinsicID()) {
       case Intrinsic::sadd_with_overflow:
-        PassPrediction::PassPeeper(__FILE__, 3160); // case
+        PassPrediction::PassPeeper(3160); // case
 
       case Intrinsic::uadd_with_overflow:
-        PassPrediction::PassPeeper(__FILE__, 3161); // case
+        PassPrediction::PassPeeper(3161); // case
 
         Opcode = Instruction::Add;
-        PassPrediction::PassPeeper(__FILE__, 3162); // break
+        PassPrediction::PassPeeper(3162); // break
         break;
       case Intrinsic::ssub_with_overflow:
-        PassPrediction::PassPeeper(__FILE__, 3163); // case
+        PassPrediction::PassPeeper(3163); // case
 
       case Intrinsic::usub_with_overflow:
-        PassPrediction::PassPeeper(__FILE__, 3164); // case
+        PassPrediction::PassPeeper(3164); // case
 
         Opcode = Instruction::Sub;
-        PassPrediction::PassPeeper(__FILE__, 3165); // break
+        PassPrediction::PassPeeper(3165); // break
         break;
       case Intrinsic::smul_with_overflow:
-        PassPrediction::PassPeeper(__FILE__, 3166); // case
+        PassPrediction::PassPeeper(3166); // case
 
       case Intrinsic::umul_with_overflow:
-        PassPrediction::PassPeeper(__FILE__, 3167); // case
+        PassPrediction::PassPeeper(3167); // case
 
         Opcode = Instruction::Mul;
-        PassPrediction::PassPeeper(__FILE__, 3168); // break
+        PassPrediction::PassPeeper(3168); // break
         break;
       default:
-        PassPrediction::PassPeeper(__FILE__, 3169); // break
+        PassPrediction::PassPeeper(3169); // break
         break;
       }
 
@@ -1945,7 +1945,7 @@ const Expression *NewGVN::performSymbolicCmpEvaluation(Instruction *I) const {
   auto Op1 = lookupOperandLeader(CI->getOperand(1));
   auto OurPredicate = CI->getPredicate();
   if (shouldSwapOperands(Op0, Op1)) {
-    PassPrediction::PassPeeper(__FILE__, 3170); // if
+    PassPrediction::PassPeeper(3170); // if
     std::swap(Op0, Op1);
     OurPredicate = CI->getSwappedPredicate();
   }
@@ -1956,18 +1956,18 @@ const Expression *NewGVN::performSymbolicCmpEvaluation(Instruction *I) const {
   // of an assume.
   auto *CmpPI = PredInfo->getPredicateInfoFor(I);
   if (dyn_cast_or_null<PredicateAssume>(CmpPI)) {
-    PassPrediction::PassPeeper(__FILE__, 3171); // if
+    PassPrediction::PassPeeper(3171); // if
     return createConstantExpression(ConstantInt::getTrue(CI->getType()));
   }
 
   if (Op0 == Op1) {
     // This condition does not depend on predicates, no need to add users
-    PassPrediction::PassPeeper(__FILE__, 3172); // if
+    PassPrediction::PassPeeper(3172); // if
     if (CI->isTrueWhenEqual()) {
-      PassPrediction::PassPeeper(__FILE__, 3173); // if
+      PassPrediction::PassPeeper(3173); // if
       return createConstantExpression(ConstantInt::getTrue(CI->getType()));
     } else if (CI->isFalseWhenEqual()) {
-      PassPrediction::PassPeeper(__FILE__, 3174); // if
+      PassPrediction::PassPeeper(3174); // if
       return createConstantExpression(ConstantInt::getFalse(CI->getType()));
     }
   }
@@ -1998,12 +1998,12 @@ const Expression *NewGVN::performSymbolicCmpEvaluation(Instruction *I) const {
   // See if our operands have predicate info, so that we may be able to derive
   // something from a previous comparison.
   for (const auto &Op : CI->operands()) {
-    PassPrediction::PassPeeper(__FILE__, 3175); // for-range
+    PassPrediction::PassPeeper(3175); // for-range
     auto *PI = PredInfo->getPredicateInfoFor(Op);
     if (const auto *PBranch = dyn_cast_or_null<PredicateBranch>(PI)) {
-      PassPrediction::PassPeeper(__FILE__, 3176); // if
+      PassPrediction::PassPeeper(3176); // if
       if (PI == LastPredInfo) {
-        PassPrediction::PassPeeper(__FILE__, 3177); // if
+        PassPrediction::PassPeeper(3177); // if
         continue;
       }
       LastPredInfo = PI;
@@ -2013,26 +2013,26 @@ const Expression *NewGVN::performSymbolicCmpEvaluation(Instruction *I) const {
       // TODO: We only handle actual comparison conditions below, not and/or.
       auto *BranchCond = dyn_cast<CmpInst>(PBranch->Condition);
       if (!BranchCond) {
-        PassPrediction::PassPeeper(__FILE__, 3178); // if
+        PassPrediction::PassPeeper(3178); // if
         continue;
       }
       auto *BranchOp0 = lookupOperandLeader(BranchCond->getOperand(0));
       auto *BranchOp1 = lookupOperandLeader(BranchCond->getOperand(1));
       auto BranchPredicate = BranchCond->getPredicate();
       if (shouldSwapOperands(BranchOp0, BranchOp1)) {
-        PassPrediction::PassPeeper(__FILE__, 3179); // if
+        PassPrediction::PassPeeper(3179); // if
         std::swap(BranchOp0, BranchOp1);
         BranchPredicate = BranchCond->getSwappedPredicate();
       }
       if (BranchOp0 == Op0 && BranchOp1 == Op1) {
-        PassPrediction::PassPeeper(__FILE__, 3180); // if
+        PassPrediction::PassPeeper(3180); // if
         if (PBranch->TrueEdge) {
           // If we know the previous predicate is true and we are in the true
           // edge then we may be implied true or false.
-          PassPrediction::PassPeeper(__FILE__, 3181); // if
+          PassPrediction::PassPeeper(3181); // if
           if (CmpInst::isImpliedTrueByMatchingCmp(BranchPredicate,
                                                   OurPredicate)) {
-            PassPrediction::PassPeeper(__FILE__, 3183); // if
+            PassPrediction::PassPeeper(3183); // if
             addPredicateUsers(PI, I);
             return createConstantExpression(
                 ConstantInt::getTrue(CI->getType()));
@@ -2040,7 +2040,7 @@ const Expression *NewGVN::performSymbolicCmpEvaluation(Instruction *I) const {
 
           if (CmpInst::isImpliedFalseByMatchingCmp(BranchPredicate,
                                                    OurPredicate)) {
-            PassPrediction::PassPeeper(__FILE__, 3184); // if
+            PassPrediction::PassPeeper(3184); // if
             addPredicateUsers(PI, I);
             return createConstantExpression(
                 ConstantInt::getFalse(CI->getType()));
@@ -2049,16 +2049,16 @@ const Expression *NewGVN::performSymbolicCmpEvaluation(Instruction *I) const {
         } else {
           // Just handle the ne and eq cases, where if we have the same
           // operands, we may know something.
-          PassPrediction::PassPeeper(__FILE__, 3182); // else
+          PassPrediction::PassPeeper(3182); // else
           if (BranchPredicate == OurPredicate) {
-            PassPrediction::PassPeeper(__FILE__, 3185); // if
+            PassPrediction::PassPeeper(3185); // if
             addPredicateUsers(PI, I);
             // Same predicate, same ops,we know it was false, so this is false.
             return createConstantExpression(
                 ConstantInt::getFalse(CI->getType()));
           } else if (BranchPredicate ==
                      CmpInst::getInversePredicate(OurPredicate)) {
-            PassPrediction::PassPeeper(__FILE__, 3186); // if
+            PassPrediction::PassPeeper(3186); // if
             addPredicateUsers(PI, I);
             // Inverse predicate, we know the other was false, so this is true.
             return createConstantExpression(
@@ -2086,168 +2086,168 @@ NewGVN::performSymbolicEvaluation(Value *V,
                                   SmallPtrSetImpl<Value *> &Visited) const {
   const Expression *E = nullptr;
   if (auto *C = dyn_cast<Constant>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 3187); // if
+    PassPrediction::PassPeeper(3187); // if
     E = createConstantExpression(C);
   } else if (isa<Argument>(V) || isa<GlobalVariable>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 3188); // if
+    PassPrediction::PassPeeper(3188); // if
     E = createVariableExpression(V);
   } else {
     // TODO: memory intrinsics.
     // TODO: Some day, we should do the forward propagation and reassociation
     // parts of the algorithm.
-    PassPrediction::PassPeeper(__FILE__, 3189); // else
+    PassPrediction::PassPeeper(3189); // else
     auto *I = cast<Instruction>(V);
     switch (I->getOpcode()) {
     case Instruction::ExtractValue:
-      PassPrediction::PassPeeper(__FILE__, 3190); // case
+      PassPrediction::PassPeeper(3190); // case
 
     case Instruction::InsertValue:
-      PassPrediction::PassPeeper(__FILE__, 3191); // case
+      PassPrediction::PassPeeper(3191); // case
 
       E = performSymbolicAggrValueEvaluation(I);
-      PassPrediction::PassPeeper(__FILE__, 3192); // break
+      PassPrediction::PassPeeper(3192); // break
       break;
     case Instruction::PHI:
-      PassPrediction::PassPeeper(__FILE__, 3193); // case
+      PassPrediction::PassPeeper(3193); // case
 
       E = performSymbolicPHIEvaluation(I);
-      PassPrediction::PassPeeper(__FILE__, 3194); // break
+      PassPrediction::PassPeeper(3194); // break
       break;
     case Instruction::Call:
-      PassPrediction::PassPeeper(__FILE__, 3195); // case
+      PassPrediction::PassPeeper(3195); // case
 
       E = performSymbolicCallEvaluation(I);
-      PassPrediction::PassPeeper(__FILE__, 3196); // break
+      PassPrediction::PassPeeper(3196); // break
       break;
     case Instruction::Store:
-      PassPrediction::PassPeeper(__FILE__, 3197); // case
+      PassPrediction::PassPeeper(3197); // case
 
       E = performSymbolicStoreEvaluation(I);
-      PassPrediction::PassPeeper(__FILE__, 3198); // break
+      PassPrediction::PassPeeper(3198); // break
       break;
     case Instruction::Load:
-      PassPrediction::PassPeeper(__FILE__, 3199); // case
+      PassPrediction::PassPeeper(3199); // case
 
       E = performSymbolicLoadEvaluation(I);
-      PassPrediction::PassPeeper(__FILE__, 3200); // break
+      PassPrediction::PassPeeper(3200); // break
       break;
     case Instruction::BitCast:
-      PassPrediction::PassPeeper(__FILE__, 3201); // case
+      PassPrediction::PassPeeper(3201); // case
       { E = createExpression(I); }
-      PassPrediction::PassPeeper(__FILE__, 3202); // break
+      PassPrediction::PassPeeper(3202); // break
       break;
     case Instruction::ICmp:
-      PassPrediction::PassPeeper(__FILE__, 3203); // case
+      PassPrediction::PassPeeper(3203); // case
 
     case Instruction::FCmp:
-      PassPrediction::PassPeeper(__FILE__, 3204); // case
+      PassPrediction::PassPeeper(3204); // case
       { E = performSymbolicCmpEvaluation(I); }
-      PassPrediction::PassPeeper(__FILE__, 3205); // break
+      PassPrediction::PassPeeper(3205); // break
       break;
     case Instruction::Add:
-      PassPrediction::PassPeeper(__FILE__, 3206); // case
+      PassPrediction::PassPeeper(3206); // case
 
     case Instruction::FAdd:
-      PassPrediction::PassPeeper(__FILE__, 3207); // case
+      PassPrediction::PassPeeper(3207); // case
 
     case Instruction::Sub:
-      PassPrediction::PassPeeper(__FILE__, 3208); // case
+      PassPrediction::PassPeeper(3208); // case
 
     case Instruction::FSub:
-      PassPrediction::PassPeeper(__FILE__, 3209); // case
+      PassPrediction::PassPeeper(3209); // case
 
     case Instruction::Mul:
-      PassPrediction::PassPeeper(__FILE__, 3210); // case
+      PassPrediction::PassPeeper(3210); // case
 
     case Instruction::FMul:
-      PassPrediction::PassPeeper(__FILE__, 3211); // case
+      PassPrediction::PassPeeper(3211); // case
 
     case Instruction::UDiv:
-      PassPrediction::PassPeeper(__FILE__, 3212); // case
+      PassPrediction::PassPeeper(3212); // case
 
     case Instruction::SDiv:
-      PassPrediction::PassPeeper(__FILE__, 3213); // case
+      PassPrediction::PassPeeper(3213); // case
 
     case Instruction::FDiv:
-      PassPrediction::PassPeeper(__FILE__, 3214); // case
+      PassPrediction::PassPeeper(3214); // case
 
     case Instruction::URem:
-      PassPrediction::PassPeeper(__FILE__, 3215); // case
+      PassPrediction::PassPeeper(3215); // case
 
     case Instruction::SRem:
-      PassPrediction::PassPeeper(__FILE__, 3216); // case
+      PassPrediction::PassPeeper(3216); // case
 
     case Instruction::FRem:
-      PassPrediction::PassPeeper(__FILE__, 3217); // case
+      PassPrediction::PassPeeper(3217); // case
 
     case Instruction::Shl:
-      PassPrediction::PassPeeper(__FILE__, 3218); // case
+      PassPrediction::PassPeeper(3218); // case
 
     case Instruction::LShr:
-      PassPrediction::PassPeeper(__FILE__, 3219); // case
+      PassPrediction::PassPeeper(3219); // case
 
     case Instruction::AShr:
-      PassPrediction::PassPeeper(__FILE__, 3220); // case
+      PassPrediction::PassPeeper(3220); // case
 
     case Instruction::And:
-      PassPrediction::PassPeeper(__FILE__, 3221); // case
+      PassPrediction::PassPeeper(3221); // case
 
     case Instruction::Or:
-      PassPrediction::PassPeeper(__FILE__, 3222); // case
+      PassPrediction::PassPeeper(3222); // case
 
     case Instruction::Xor:
-      PassPrediction::PassPeeper(__FILE__, 3223); // case
+      PassPrediction::PassPeeper(3223); // case
 
     case Instruction::Trunc:
-      PassPrediction::PassPeeper(__FILE__, 3224); // case
+      PassPrediction::PassPeeper(3224); // case
 
     case Instruction::ZExt:
-      PassPrediction::PassPeeper(__FILE__, 3225); // case
+      PassPrediction::PassPeeper(3225); // case
 
     case Instruction::SExt:
-      PassPrediction::PassPeeper(__FILE__, 3226); // case
+      PassPrediction::PassPeeper(3226); // case
 
     case Instruction::FPToUI:
-      PassPrediction::PassPeeper(__FILE__, 3227); // case
+      PassPrediction::PassPeeper(3227); // case
 
     case Instruction::FPToSI:
-      PassPrediction::PassPeeper(__FILE__, 3228); // case
+      PassPrediction::PassPeeper(3228); // case
 
     case Instruction::UIToFP:
-      PassPrediction::PassPeeper(__FILE__, 3229); // case
+      PassPrediction::PassPeeper(3229); // case
 
     case Instruction::SIToFP:
-      PassPrediction::PassPeeper(__FILE__, 3230); // case
+      PassPrediction::PassPeeper(3230); // case
 
     case Instruction::FPTrunc:
-      PassPrediction::PassPeeper(__FILE__, 3231); // case
+      PassPrediction::PassPeeper(3231); // case
 
     case Instruction::FPExt:
-      PassPrediction::PassPeeper(__FILE__, 3232); // case
+      PassPrediction::PassPeeper(3232); // case
 
     case Instruction::PtrToInt:
-      PassPrediction::PassPeeper(__FILE__, 3233); // case
+      PassPrediction::PassPeeper(3233); // case
 
     case Instruction::IntToPtr:
-      PassPrediction::PassPeeper(__FILE__, 3234); // case
+      PassPrediction::PassPeeper(3234); // case
 
     case Instruction::Select:
-      PassPrediction::PassPeeper(__FILE__, 3235); // case
+      PassPrediction::PassPeeper(3235); // case
 
     case Instruction::ExtractElement:
-      PassPrediction::PassPeeper(__FILE__, 3236); // case
+      PassPrediction::PassPeeper(3236); // case
 
     case Instruction::InsertElement:
-      PassPrediction::PassPeeper(__FILE__, 3237); // case
+      PassPrediction::PassPeeper(3237); // case
 
     case Instruction::ShuffleVector:
-      PassPrediction::PassPeeper(__FILE__, 3238); // case
+      PassPrediction::PassPeeper(3238); // case
 
     case Instruction::GetElementPtr:
-      PassPrediction::PassPeeper(__FILE__, 3239); // case
+      PassPrediction::PassPeeper(3239); // case
 
       E = createExpression(I);
-      PassPrediction::PassPeeper(__FILE__, 3240); // break
+      PassPrediction::PassPeeper(3240); // break
       break;
     default:
       return nullptr;
@@ -2262,9 +2262,9 @@ template <typename Map, typename KeyType, typename Func>
 void NewGVN::for_each_found(Map &M, const KeyType &Key, Func F) {
   const auto Result = M.find_as(Key);
   if (Result != M.end()) {
-    PassPrediction::PassPeeper(__FILE__, 3038); // if
+    PassPrediction::PassPeeper(3038); // if
     for (typename Map::mapped_type::value_type Mapped : Result->second) {
-      PassPrediction::PassPeeper(__FILE__, 3039); // for-range
+      PassPrediction::PassPeeper(3039); // for-range
       F(Mapped);
     }
   }
@@ -2276,9 +2276,9 @@ template <typename Map, typename KeyType>
 void NewGVN::touchAndErase(Map &M, const KeyType &Key) {
   const auto Result = M.find_as(Key);
   if (Result != M.end()) {
-    PassPrediction::PassPeeper(__FILE__, 3040); // if
+    PassPrediction::PassPeeper(3040); // if
     for (const typename Map::mapped_type::value_type Mapped : Result->second) {
-      PassPrediction::PassPeeper(__FILE__, 3041); // for-range
+      PassPrediction::PassPeeper(3041); // for-range
       TouchedInstructions.set(InstrToDFSNum(Mapped));
     }
     M.erase(Result);
@@ -2288,7 +2288,7 @@ void NewGVN::touchAndErase(Map &M, const KeyType &Key) {
 void NewGVN::addAdditionalUsers(Value *To, Value *User) const {
   assert(User && To != User);
   if (isa<Instruction>(To)) {
-    PassPrediction::PassPeeper(__FILE__, 3241); // if
+    PassPrediction::PassPeeper(3241); // if
     AdditionalUsers[To].insert(User);
   }
 }
@@ -2313,11 +2313,11 @@ void NewGVN::markMemoryDefTouched(const MemoryAccess *MA) {
 
 void NewGVN::markMemoryUsersTouched(const MemoryAccess *MA) {
   if (isa<MemoryUse>(MA)) {
-    PassPrediction::PassPeeper(__FILE__, 3242); // if
+    PassPrediction::PassPeeper(3242); // if
     return;
   }
   for (auto U : MA->users()) {
-    PassPrediction::PassPeeper(__FILE__, 3243); // for-range
+    PassPrediction::PassPeeper(3243); // for-range
     TouchedInstructions.set(MemoryToDFSNum(U));
   }
   touchAndErase(MemoryToUsers, MA);
@@ -2327,15 +2327,15 @@ void NewGVN::markMemoryUsersTouched(const MemoryAccess *MA) {
 void NewGVN::addPredicateUsers(const PredicateBase *PB, Instruction *I) const {
   // Don't add temporary instructions to the user lists.
   if (AllTempInstructions.count(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3244); // if
+    PassPrediction::PassPeeper(3244); // if
     return;
   }
 
   if (auto *PBranch = dyn_cast<PredicateBranch>(PB)) {
-    PassPrediction::PassPeeper(__FILE__, 3245); // if
+    PassPrediction::PassPeeper(3245); // if
     PredicateToUsers[PBranch->Condition].insert(I);
   } else if (auto *PAssume = dyn_cast<PredicateBranch>(PB)) {
-    PassPrediction::PassPeeper(__FILE__, 3246); // if
+    PassPrediction::PassPeeper(3246); // if
     PredicateToUsers[PAssume->Condition].insert(I);
   }
 }
@@ -2348,7 +2348,7 @@ void NewGVN::markPredicateUsersTouched(Instruction *I) {
 // Mark users affected by a memory leader change.
 void NewGVN::markMemoryLeaderChangeTouched(CongruenceClass *CC) {
   for (auto M : CC->memory()) {
-    PassPrediction::PassPeeper(__FILE__, 3247); // for-range
+    PassPrediction::PassPeeper(3247); // for-range
     markMemoryDefTouched(M);
   }
 }
@@ -2357,9 +2357,9 @@ void NewGVN::markMemoryLeaderChangeTouched(CongruenceClass *CC) {
 // leader change, and mark changed values.
 void NewGVN::markValueLeaderChangeTouched(CongruenceClass *CC) {
   for (auto M : *CC) {
-    PassPrediction::PassPeeper(__FILE__, 3248); // for-range
+    PassPrediction::PassPeeper(3248); // for-range
     if (auto *I = dyn_cast<Instruction>(M)) {
-      PassPrediction::PassPeeper(__FILE__, 3249); // if
+      PassPrediction::PassPeeper(3249); // if
       TouchedInstructions.set(InstrToDFSNum(I));
     }
     LeaderChanges.insert(M);
@@ -2372,10 +2372,10 @@ template <class T, class Range>
 T *NewGVN::getMinDFSOfRange(const Range &R) const {
   std::pair<T *, unsigned> MinDFS = {nullptr, ~0U};
   for (const auto X : R) {
-    PassPrediction::PassPeeper(__FILE__, 3042); // for-range
+    PassPrediction::PassPeeper(3042); // for-range
     auto DFSNum = InstrToDFSNum(X);
     if (DFSNum < MinDFS.second) {
-      PassPrediction::PassPeeper(__FILE__, 3043); // if
+      PassPrediction::PassPeeper(3043); // if
       MinDFS = {X, DFSNum};
     }
   }
@@ -2391,9 +2391,9 @@ const MemoryAccess *NewGVN::getNextMemoryLeader(CongruenceClass *CC) const {
   // Make sure there will be a leader to find
   assert(!CC->definesNoMemory() && "Can't get next leader if there is none");
   if (CC->getStoreCount() > 0) {
-    PassPrediction::PassPeeper(__FILE__, 3250); // if
+    PassPrediction::PassPeeper(3250); // if
     if (auto *NL = dyn_cast_or_null<StoreInst>(CC->getNextLeader().first)) {
-      PassPrediction::PassPeeper(__FILE__, 3251); // if
+      PassPrediction::PassPeeper(3251); // if
       return getMemoryAccess(NL);
     }
     // Find the store with the minimum DFS number.
@@ -2406,7 +2406,7 @@ const MemoryAccess *NewGVN::getNextMemoryLeader(CongruenceClass *CC) const {
   // Given our assertion, hitting this part must mean
   // !OldClass->memory_empty()
   if (CC->memory_size() == 1) {
-    PassPrediction::PassPeeper(__FILE__, 3252); // if
+    PassPrediction::PassPeeper(3252); // if
     return *CC->memory_begin();
   }
   return getMinDFSOfRange<const MemoryPhi>(CC->memory());
@@ -2421,14 +2421,14 @@ Value *NewGVN::getNextValueLeader(CongruenceClass *CC) const {
   // unreachable.
 
   if (CC->size() == 1 || CC == TOPClass) {
-    PassPrediction::PassPeeper(__FILE__, 3253); // if
+    PassPrediction::PassPeeper(3253); // if
     return *(CC->begin());
   } else if (CC->getNextLeader().first) {
-    PassPrediction::PassPeeper(__FILE__, 3254); // if
+    PassPrediction::PassPeeper(3254); // if
     ++NumGVNAvoidedSortedLeaderChanges;
     return CC->getNextLeader().first;
   } else {
-    PassPrediction::PassPeeper(__FILE__, 3255); // else
+    PassPrediction::PassPeeper(3255); // else
     ++NumGVNSortedLeaderChanges;
     // NOTE: If this ends up to slow, we can maintain a dual structure for
     // member testing/insertion, or keep things mostly sorted, and sort only
@@ -2471,9 +2471,9 @@ void NewGVN::moveMemoryToNewCongruenceClass(Instruction *I,
   setMemoryClass(InstMA, NewClass);
   // Now, fixup the old class if necessary
   if (OldClass->getMemoryLeader() == InstMA) {
-    PassPrediction::PassPeeper(__FILE__, 3256); // if
+    PassPrediction::PassPeeper(3256); // if
     if (!OldClass->definesNoMemory()) {
-      PassPrediction::PassPeeper(__FILE__, 3257); // if
+      PassPrediction::PassPeeper(3257); // if
       OldClass->setMemoryLeader(getNextMemoryLeader(OldClass));
       DEBUG(dbgs() << "Memory class leader change for class "
                    << OldClass->getID() << " to "
@@ -2481,7 +2481,7 @@ void NewGVN::moveMemoryToNewCongruenceClass(Instruction *I,
                    << " due to removal of old leader " << *InstMA << "\n");
       markMemoryLeaderChangeTouched(OldClass);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3258); // else
+      PassPrediction::PassPeeper(3258); // else
       OldClass->setMemoryLeader(nullptr);
     }
   }
@@ -2493,7 +2493,7 @@ void NewGVN::moveValueToNewCongruenceClass(Instruction *I, const Expression *E,
                                            CongruenceClass *OldClass,
                                            CongruenceClass *NewClass) {
   if (I == OldClass->getNextLeader().first) {
-    PassPrediction::PassPeeper(__FILE__, 3259); // if
+    PassPrediction::PassPeeper(3259); // if
     OldClass->resetNextLeader();
   }
 
@@ -2501,12 +2501,12 @@ void NewGVN::moveValueToNewCongruenceClass(Instruction *I, const Expression *E,
   NewClass->insert(I);
 
   if (NewClass->getLeader() != I) {
-    PassPrediction::PassPeeper(__FILE__, 3260); // if
+    PassPrediction::PassPeeper(3260); // if
     NewClass->addPossibleNextLeader({I, InstrToDFSNum(I)});
   }
   // Handle our special casing of stores.
   if (auto *SI = dyn_cast<StoreInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3261); // if
+    PassPrediction::PassPeeper(3261); // if
     OldClass->decStoreCount();
     // Okay, so when do we want to make a store a leader of a class?
     // If we have a store defined by an earlier load, we want the earlier load
@@ -2518,9 +2518,9 @@ void NewGVN::moveValueToNewCongruenceClass(Instruction *I, const Expression *E,
     if (NewClass->getStoreCount() == 0 && !NewClass->getStoredValue()) {
       // If it's a store expression we are using, it means we are not equivalent
       // to something earlier.
-      PassPrediction::PassPeeper(__FILE__, 3262); // if
+      PassPrediction::PassPeeper(3262); // if
       if (auto *SE = dyn_cast<StoreExpression>(E)) {
-        PassPrediction::PassPeeper(__FILE__, 3263); // if
+        PassPrediction::PassPeeper(3263); // if
         NewClass->setStoredValue(SE->getStoredValue());
         markValueLeaderChangeTouched(NewClass);
         // Shift the new class leader to be the store
@@ -2541,13 +2541,13 @@ void NewGVN::moveValueToNewCongruenceClass(Instruction *I, const Expression *E,
   // If it's not a memory use, set the MemoryAccess equivalence
   auto *InstMA = dyn_cast_or_null<MemoryDef>(getMemoryAccess(I));
   if (InstMA) {
-    PassPrediction::PassPeeper(__FILE__, 3264); // if
+    PassPrediction::PassPeeper(3264); // if
     moveMemoryToNewCongruenceClass(I, InstMA, OldClass, NewClass);
   }
   ValueToClass[I] = NewClass;
   // See if we destroyed the class or need to swap leaders.
   if (OldClass->empty() && OldClass != TOPClass) {
-    PassPrediction::PassPeeper(__FILE__, 3265); // if
+    PassPrediction::PassPeeper(3265); // if
     if (OldClass->getDefiningExpr()) {
       DEBUG(dbgs() << "Erasing expression " << *OldClass->getDefiningExpr()
                    << " from table\n");
@@ -2556,7 +2556,7 @@ void NewGVN::moveValueToNewCongruenceClass(Instruction *I, const Expression *E,
       auto Iter = ExpressionToClass.find_as(
           ExactEqualsExpression(*OldClass->getDefiningExpr()));
       if (Iter != ExpressionToClass.end()) {
-        PassPrediction::PassPeeper(__FILE__, 3266); // if
+        PassPrediction::PassPeeper(3266); // if
         ExpressionToClass.erase(Iter);
       }
 #ifdef EXPENSIVE_CHECKS
@@ -2577,9 +2577,9 @@ void NewGVN::moveValueToNewCongruenceClass(Instruction *I, const Expression *E,
     // happens below.  If we remove stores from a class, we may leave it as a
     // class of equivalent memory phis.
     if (OldClass->getStoreCount() == 0) {
-      PassPrediction::PassPeeper(__FILE__, 3267); // if
+      PassPrediction::PassPeeper(3267); // if
       if (OldClass->getStoredValue()) {
-        PassPrediction::PassPeeper(__FILE__, 3268); // if
+        PassPrediction::PassPeeper(3268); // if
         OldClass->setStoredValue(nullptr);
       }
     }
@@ -2607,36 +2607,36 @@ void NewGVN::performCongruenceFinding(Instruction *I, const Expression *E) {
 
   CongruenceClass *EClass = nullptr;
   if (const auto *VE = dyn_cast<VariableExpression>(E)) {
-    PassPrediction::PassPeeper(__FILE__, 3269); // if
+    PassPrediction::PassPeeper(3269); // if
     EClass = ValueToClass.lookup(VE->getVariableValue());
   } else if (isa<DeadExpression>(E)) {
-    PassPrediction::PassPeeper(__FILE__, 3270); // if
+    PassPrediction::PassPeeper(3270); // if
     EClass = TOPClass;
   }
   if (!EClass) {
-    PassPrediction::PassPeeper(__FILE__, 3271); // if
+    PassPrediction::PassPeeper(3271); // if
     auto lookupResult = ExpressionToClass.insert({E, nullptr});
 
     // If it's not in the value table, create a new congruence class.
     if (lookupResult.second) {
-      PassPrediction::PassPeeper(__FILE__, 3272); // if
+      PassPrediction::PassPeeper(3272); // if
       CongruenceClass *NewClass = createCongruenceClass(nullptr, E);
       auto place = lookupResult.first;
       place->second = NewClass;
 
       // Constants and variables should always be made the leader.
       if (const auto *CE = dyn_cast<ConstantExpression>(E)) {
-        PassPrediction::PassPeeper(__FILE__, 3274); // if
+        PassPrediction::PassPeeper(3274); // if
         NewClass->setLeader(CE->getConstantValue());
       } else if (const auto *SE = dyn_cast<StoreExpression>(E)) {
-        PassPrediction::PassPeeper(__FILE__, 3275); // if
+        PassPrediction::PassPeeper(3275); // if
         StoreInst *SI = SE->getStoreInst();
         NewClass->setLeader(SI);
         NewClass->setStoredValue(SE->getStoredValue());
         // The RepMemoryAccess field will be filled in properly by the
         // moveValueToNewCongruenceClass call.
       } else {
-        PassPrediction::PassPeeper(__FILE__, 3276); // else
+        PassPrediction::PassPeeper(3276); // else
         NewClass->setLeader(I);
       }
       assert(!isa<VariableExpression>(E) &&
@@ -2651,7 +2651,7 @@ void NewGVN::performCongruenceFinding(Instruction *I, const Expression *E) {
       }
       DEBUG(dbgs() << "\n");
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3273); // else
+      PassPrediction::PassPeeper(3273); // else
       EClass = lookupResult.first->second;
       if (isa<ConstantExpression>(E)) {
         assert((isa<Constant>(EClass->getLeader()) ||
@@ -2672,18 +2672,18 @@ void NewGVN::performCongruenceFinding(Instruction *I, const Expression *E) {
     DEBUG(dbgs() << "New class " << EClass->getID() << " for expression " << *E
                  << "\n");
     if (ClassChanged) {
-      PassPrediction::PassPeeper(__FILE__, 3277); // if
+      PassPrediction::PassPeeper(3277); // if
       moveValueToNewCongruenceClass(I, E, IClass, EClass);
       markPhiOfOpsChanged(E);
     }
 
     markUsersTouched(I);
     if (MemoryAccess *MA = getMemoryAccess(I)) {
-      PassPrediction::PassPeeper(__FILE__, 3278); // if
+      PassPrediction::PassPeeper(3278); // if
       markMemoryUsersTouched(MA);
     }
     if (auto *CI = dyn_cast<CmpInst>(I)) {
-      PassPrediction::PassPeeper(__FILE__, 3279); // if
+      PassPrediction::PassPeeper(3279); // if
       markPredicateUsersTouched(CI);
     }
   }
@@ -2692,17 +2692,17 @@ void NewGVN::performCongruenceFinding(Instruction *I, const Expression *E) {
   // value, so they will find old store expressions (and associated class
   // mappings) if we leave them in the table.
   if (ClassChanged && isa<StoreInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3280); // if
+    PassPrediction::PassPeeper(3280); // if
     auto *OldE = ValueToExpression.lookup(I);
     // It could just be that the old class died. We don't want to erase it if we
     // just moved classes.
     if (OldE && isa<StoreExpression>(OldE) && *E != *OldE) {
       // Erase this as an exact expression to ensure we don't erase expressions
       // equivalent to it.
-      PassPrediction::PassPeeper(__FILE__, 3281); // if
+      PassPrediction::PassPeeper(3281); // if
       auto Iter = ExpressionToClass.find_as(ExactEqualsExpression(*OldE));
       if (Iter != ExpressionToClass.end()) {
-        PassPrediction::PassPeeper(__FILE__, 3282); // if
+        PassPrediction::PassPeeper(3282); // if
         ExpressionToClass.erase(Iter);
       }
     }
@@ -2716,7 +2716,7 @@ void NewGVN::updateReachableEdge(BasicBlock *From, BasicBlock *To) {
   // Check if the Edge was reachable before.
   if (ReachableEdges.insert({From, To}).second) {
     // If this block wasn't reachable before, all instructions are touched.
-    PassPrediction::PassPeeper(__FILE__, 3283); // if
+    PassPrediction::PassPeeper(3283); // if
     if (ReachableBlocks.insert(To).second) {
       DEBUG(dbgs() << "Block " << getBlockName(To) << " marked reachable\n");
       const auto &InstRange = BlockInstRange.lookup(To);
@@ -2731,13 +2731,13 @@ void NewGVN::updateReachableEdge(BasicBlock *From, BasicBlock *To) {
       // they are the only thing that depend on new edges. Anything using their
       // values will get propagated to if necessary.
       if (MemoryAccess *MemPhi = getMemoryAccess(To)) {
-        PassPrediction::PassPeeper(__FILE__, 3284); // if
+        PassPrediction::PassPeeper(3284); // if
         TouchedInstructions.set(InstrToDFSNum(MemPhi));
       }
 
       auto BI = To->begin();
       while (isa<PHINode>(BI)) {
-        PassPrediction::PassPeeper(__FILE__, 3285); // while
+        PassPrediction::PassPeeper(3285); // while
         TouchedInstructions.set(InstrToDFSNum(&*BI));
         ++BI;
       }
@@ -2760,20 +2760,20 @@ void NewGVN::processOutgoingEdges(TerminatorInst *TI, BasicBlock *B) {
   // Evaluate reachability of terminator instruction.
   BranchInst *BR;
   if ((BR = dyn_cast<BranchInst>(TI)) && BR->isConditional()) {
-    PassPrediction::PassPeeper(__FILE__, 3286); // if
+    PassPrediction::PassPeeper(3286); // if
     Value *Cond = BR->getCondition();
     Value *CondEvaluated = findConditionEquivalence(Cond);
     if (!CondEvaluated) {
-      PassPrediction::PassPeeper(__FILE__, 3287); // if
+      PassPrediction::PassPeeper(3287); // if
       if (auto *I = dyn_cast<Instruction>(Cond)) {
-        PassPrediction::PassPeeper(__FILE__, 3288); // if
+        PassPrediction::PassPeeper(3288); // if
         const Expression *E = createExpression(I);
         if (const auto *CE = dyn_cast<ConstantExpression>(E)) {
-          PassPrediction::PassPeeper(__FILE__, 3289); // if
+          PassPrediction::PassPeeper(3289); // if
           CondEvaluated = CE->getConstantValue();
         }
       } else if (isa<ConstantInt>(Cond)) {
-        PassPrediction::PassPeeper(__FILE__, 3290); // if
+        PassPrediction::PassPeeper(3290); // if
         CondEvaluated = Cond;
       }
     }
@@ -2781,7 +2781,7 @@ void NewGVN::processOutgoingEdges(TerminatorInst *TI, BasicBlock *B) {
     BasicBlock *TrueSucc = BR->getSuccessor(0);
     BasicBlock *FalseSucc = BR->getSuccessor(1);
     if (CondEvaluated && (CI = dyn_cast<ConstantInt>(CondEvaluated))) {
-      PassPrediction::PassPeeper(__FILE__, 3291); // if
+      PassPrediction::PassPeeper(3291); // if
       if (CI->isOne()) {
         DEBUG(dbgs() << "Condition for Terminator " << *TI
                      << " evaluated to true\n");
@@ -2792,7 +2792,7 @@ void NewGVN::processOutgoingEdges(TerminatorInst *TI, BasicBlock *B) {
         updateReachableEdge(B, FalseSucc);
       }
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3292); // else
+      PassPrediction::PassPeeper(3292); // else
       updateReachableEdge(B, TrueSucc);
       updateReachableEdge(B, FalseSucc);
     }
@@ -2801,14 +2801,14 @@ void NewGVN::processOutgoingEdges(TerminatorInst *TI, BasicBlock *B) {
     // destinations.
 
     // Remember how many outgoing edges there are to every successor.
-    PassPrediction::PassPeeper(__FILE__, 3293); // if
+    PassPrediction::PassPeeper(3293); // if
     SmallDenseMap<BasicBlock *, unsigned, 16> SwitchEdges;
 
     Value *SwitchCond = SI->getCondition();
     Value *CondEvaluated = findConditionEquivalence(SwitchCond);
     // See if we were able to turn this switch statement into a constant.
     if (CondEvaluated && isa<ConstantInt>(CondEvaluated)) {
-      PassPrediction::PassPeeper(__FILE__, 3295); // if
+      PassPrediction::PassPeeper(3295); // if
       auto *CondVal = cast<ConstantInt>(CondEvaluated);
       // We should be able to get case value for this.
       auto Case = *SI->findCaseValue(CondVal);
@@ -2816,7 +2816,7 @@ void NewGVN::processOutgoingEdges(TerminatorInst *TI, BasicBlock *B) {
         // We proved the value is outside of the range of the case.
         // We can't do anything other than mark the default dest as reachable,
         // and go home.
-        PassPrediction::PassPeeper(__FILE__, 3297); // if
+        PassPrediction::PassPeeper(3297); // if
         updateReachableEdge(B, SI->getDefaultDest());
         return;
       }
@@ -2824,9 +2824,9 @@ void NewGVN::processOutgoingEdges(TerminatorInst *TI, BasicBlock *B) {
       BasicBlock *TargetBlock = Case.getCaseSuccessor();
       updateReachableEdge(B, TargetBlock);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3296); // else
+      PassPrediction::PassPeeper(3296); // else
       for (unsigned i = 0, e = SI->getNumSuccessors(); i != e; ++i) {
-        PassPrediction::PassPeeper(__FILE__, 3298); // for
+        PassPrediction::PassPeeper(3298); // for
         BasicBlock *TargetBlock = SI->getSuccessor(i);
         ++SwitchEdges[TargetBlock];
         updateReachableEdge(B, TargetBlock);
@@ -2835,9 +2835,9 @@ void NewGVN::processOutgoingEdges(TerminatorInst *TI, BasicBlock *B) {
   } else {
     // Otherwise this is either unconditional, or a type we have no
     // idea about. Just mark successors as reachable.
-    PassPrediction::PassPeeper(__FILE__, 3294); // else
+    PassPrediction::PassPeeper(3294); // else
     for (unsigned i = 0, e = TI->getNumSuccessors(); i != e; ++i) {
-      PassPrediction::PassPeeper(__FILE__, 3299); // for
+      PassPrediction::PassPeeper(3299); // for
       BasicBlock *TargetBlock = TI->getSuccessor(i);
       updateReachableEdge(B, TargetBlock);
     }
@@ -2847,10 +2847,10 @@ void NewGVN::processOutgoingEdges(TerminatorInst *TI, BasicBlock *B) {
     //
     auto *MA = getMemoryAccess(TI);
     if (MA && !isa<MemoryUse>(MA)) {
-      PassPrediction::PassPeeper(__FILE__, 3300); // if
+      PassPrediction::PassPeeper(3300); // if
       auto *CC = ensureLeaderOfMemoryClass(MA);
       if (setMemoryClass(MA, CC)) {
-        PassPrediction::PassPeeper(__FILE__, 3301); // if
+        PassPrediction::PassPeeper(3301); // if
         markMemoryUsersTouched(MA);
       }
     }
@@ -2877,12 +2877,12 @@ const Expression *
 NewGVN::makePossiblePhiOfOps(Instruction *I,
                              SmallPtrSetImpl<Value *> &Visited) {
   if (!okayForPHIOfOps(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3302); // if
+    PassPrediction::PassPeeper(3302); // if
     return nullptr;
   }
 
   if (!Visited.insert(I).second) {
-    PassPrediction::PassPeeper(__FILE__, 3303); // if
+    PassPrediction::PassPeeper(3303); // if
     return nullptr;
   }
   // For now, we require the instruction be cycle free because we don't
@@ -2890,7 +2890,7 @@ NewGVN::makePossiblePhiOfOps(Instruction *I,
   // of ops, we only do it if we think it is useful.  If we did do it all the
   // time, we could remove the cycle free check.
   if (!isCycleFree(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3304); // if
+    PassPrediction::PassPeeper(3304); // if
     return nullptr;
   }
 
@@ -2905,7 +2905,7 @@ NewGVN::makePossiblePhiOfOps(Instruction *I,
   // can't help, as it would still be killed by that memory operation.
   if (MemAccess && !isa<MemoryPhi>(MemAccess->getDefiningAccess()) &&
       MemAccess->getDefiningAccess()->getBlock() == I->getParent()) {
-    PassPrediction::PassPeeper(__FILE__, 3305); // if
+    PassPrediction::PassPeeper(3305); // if
     return nullptr;
   }
 
@@ -2919,44 +2919,44 @@ NewGVN::makePossiblePhiOfOps(Instruction *I,
     // To properly make a phi of ops for g, we'd have to properly translate and
     // use the instruction for f.  We should add this by splitting out the
     // instruction creation we do below.
-    PassPrediction::PassPeeper(__FILE__, 3306); // for-range
+    PassPrediction::PassPeeper(3306); // for-range
     if (isa<Instruction>(Op) && PHINodeUses.count(cast<Instruction>(Op))) {
-      PassPrediction::PassPeeper(__FILE__, 3307); // if
+      PassPrediction::PassPeeper(3307); // if
       return nullptr;
     }
     if (!isa<PHINode>(Op)) {
-      PassPrediction::PassPeeper(__FILE__, 3308); // if
+      PassPrediction::PassPeeper(3308); // if
       continue;
     }
     auto *OpPHI = cast<PHINode>(Op);
     // No point in doing this for one-operand phis.
     if (OpPHI->getNumOperands() == 1) {
-      PassPrediction::PassPeeper(__FILE__, 3309); // if
+      PassPrediction::PassPeeper(3309); // if
       continue;
     }
     if (!DebugCounter::shouldExecute(PHIOfOpsCounter)) {
-      PassPrediction::PassPeeper(__FILE__, 3310); // if
+      PassPrediction::PassPeeper(3310); // if
       return nullptr;
     }
     SmallVector<std::pair<Value *, BasicBlock *>, 4> Ops;
     auto *PHIBlock = getBlockForValue(OpPHI);
     for (auto PredBB : OpPHI->blocks()) {
-      PassPrediction::PassPeeper(__FILE__, 3311); // for-range
+      PassPrediction::PassPeeper(3311); // for-range
       Value *FoundVal = nullptr;
       // We could just skip unreachable edges entirely but it's tricky to do
       // with rewriting existing phi nodes.
       if (ReachableEdges.count({PredBB, PHIBlock})) {
         // Clone the instruction, create an expression from it, and see if we
         // have a leader.
-        PassPrediction::PassPeeper(__FILE__, 3312); // if
+        PassPrediction::PassPeeper(3312); // if
         Instruction *ValueOp = I->clone();
         if (MemAccess) {
-          PassPrediction::PassPeeper(__FILE__, 3313); // if
+          PassPrediction::PassPeeper(3313); // if
           TempToMemory.insert({ValueOp, MemAccess});
         }
 
         for (auto &Op : ValueOp->operands()) {
-          PassPrediction::PassPeeper(__FILE__, 3314); // for-range
+          PassPrediction::PassPeeper(3314); // for-range
           Op = Op->DoPHITranslation(PHIBlock, PredBB);
           // When this operand changes, it could change whether there is a
           // leader for us or not.
@@ -2973,21 +2973,21 @@ NewGVN::makePossiblePhiOfOps(Instruction *I,
         AllTempInstructions.erase(ValueOp);
         ValueOp->deleteValue();
         if (MemAccess) {
-          PassPrediction::PassPeeper(__FILE__, 3315); // if
+          PassPrediction::PassPeeper(3315); // if
           TempToMemory.erase(ValueOp);
         }
         if (!E) {
-          PassPrediction::PassPeeper(__FILE__, 3316); // if
+          PassPrediction::PassPeeper(3316); // if
           return nullptr;
         }
         FoundVal = findPhiOfOpsLeader(E, PredBB);
         if (!FoundVal) {
-          PassPrediction::PassPeeper(__FILE__, 3317); // if
+          PassPrediction::PassPeeper(3317); // if
           ExpressionToPhiOfOps[E].insert(I);
           return nullptr;
         }
         if (auto *SI = dyn_cast<StoreInst>(FoundVal)) {
-          PassPrediction::PassPeeper(__FILE__, 3318); // if
+          PassPrediction::PassPeeper(3318); // if
           FoundVal = SI->getValueOperand();
         }
       } else {
@@ -3004,23 +3004,23 @@ NewGVN::makePossiblePhiOfOps(Instruction *I,
     auto *ValuePHI = RealToTemp.lookup(I);
     bool NewPHI = false;
     if (!ValuePHI) {
-      PassPrediction::PassPeeper(__FILE__, 3319); // if
+      PassPrediction::PassPeeper(3319); // if
       ValuePHI = PHINode::Create(I->getType(), OpPHI->getNumOperands());
       addPhiOfOps(ValuePHI, PHIBlock, I);
       NewPHI = true;
       NumGVNPHIOfOpsCreated++;
     }
     if (NewPHI) {
-      PassPrediction::PassPeeper(__FILE__, 3320); // if
+      PassPrediction::PassPeeper(3320); // if
       for (auto PHIOp : Ops) {
-        PassPrediction::PassPeeper(__FILE__, 3322); // for-range
+        PassPrediction::PassPeeper(3322); // for-range
         ValuePHI->addIncoming(PHIOp.first, PHIOp.second);
       }
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3321); // else
+      PassPrediction::PassPeeper(3321); // else
       unsigned int i = 0;
       for (auto PHIOp : Ops) {
-        PassPrediction::PassPeeper(__FILE__, 3323); // for-range
+        PassPrediction::PassPeeper(3323); // for-range
         ValuePHI->setIncomingValue(i, PHIOp.first);
         ValuePHI->setIncomingBlock(i, PHIOp.second);
         ++i;
@@ -3055,7 +3055,7 @@ void NewGVN::initializeCongruenceClasses(Function &F) {
       createMemoryClass(MSSA->getLiveOnEntryDef());
 
   for (auto DTN : nodes(DT)) {
-    PassPrediction::PassPeeper(__FILE__, 3324); // for-range
+    PassPrediction::PassPeeper(3324); // for-range
     BasicBlock *BB = DTN->getBlock();
     // All MemoryAccesses are equivalent to live on entry to start. They must
     // be initialized to something so that initial changes are noticed. For
@@ -3063,36 +3063,36 @@ void NewGVN::initializeCongruenceClasses(Function &F) {
     // liveOnEntry.
     auto *MemoryBlockDefs = MSSA->getBlockDefs(BB);
     if (MemoryBlockDefs) {
-      PassPrediction::PassPeeper(__FILE__, 3325); // if
+      PassPrediction::PassPeeper(3325); // if
       for (const auto &Def : *MemoryBlockDefs) {
-        PassPrediction::PassPeeper(__FILE__, 3326); // for-range
+        PassPrediction::PassPeeper(3326); // for-range
         MemoryAccessToClass[&Def] = TOPClass;
         auto *MD = dyn_cast<MemoryDef>(&Def);
         // Insert the memory phis into the member list.
         if (!MD) {
-          PassPrediction::PassPeeper(__FILE__, 3327); // if
+          PassPrediction::PassPeeper(3327); // if
           const MemoryPhi *MP = cast<MemoryPhi>(&Def);
           TOPClass->memory_insert(MP);
           MemoryPhiState.insert({MP, MPS_TOP});
         }
 
         if (MD && isa<StoreInst>(MD->getMemoryInst())) {
-          PassPrediction::PassPeeper(__FILE__, 3328); // if
+          PassPrediction::PassPeeper(3328); // if
           TOPClass->incStoreCount();
         }
       }
     }
     for (auto &I : *BB) {
       // TODO: Move to helper
-      PassPrediction::PassPeeper(__FILE__, 3329); // for-range
+      PassPrediction::PassPeeper(3329); // for-range
       if (isa<PHINode>(&I)) {
-        PassPrediction::PassPeeper(__FILE__, 3330); // if
+        PassPrediction::PassPeeper(3330); // if
         for (auto *U : I.users()) {
-          PassPrediction::PassPeeper(__FILE__, 3331); // for-range
+          PassPrediction::PassPeeper(3331); // for-range
           if (auto *UInst = dyn_cast<Instruction>(U)) {
-            PassPrediction::PassPeeper(__FILE__, 3332); // if
+            PassPrediction::PassPeeper(3332); // if
             if (InstrToDFSNum(UInst) != 0 && okayForPHIOfOps(UInst)) {
-              PassPrediction::PassPeeper(__FILE__, 3333); // if
+              PassPrediction::PassPeeper(3333); // if
               PHINodeUses.insert(UInst);
             }
           }
@@ -3101,7 +3101,7 @@ void NewGVN::initializeCongruenceClasses(Function &F) {
       // Don't insert void terminators into the class. We don't value number
       // them, and they just end up sitting in TOP.
       if (isa<TerminatorInst>(I) && I.getType()->isVoidTy()) {
-        PassPrediction::PassPeeper(__FILE__, 3334); // if
+        PassPrediction::PassPeeper(3334); // if
         continue;
       }
       TOPClass->insert(&I);
@@ -3111,7 +3111,7 @@ void NewGVN::initializeCongruenceClasses(Function &F) {
 
   // Initialize arguments to be in their own unique congruence classes
   for (auto &FA : F.args()) {
-    PassPrediction::PassPeeper(__FILE__, 3335); // for-range
+    PassPrediction::PassPeeper(3335); // for-range
     createSingletonCongruenceClass(&FA);
   }
 }
@@ -3134,12 +3134,12 @@ void NewGVN::cleanupTables() {
   // We have to drop all references for everything first, so there are no uses
   // left as we delete them.
   for (auto *I : TempInst) {
-    PassPrediction::PassPeeper(__FILE__, 3336); // for-range
+    PassPrediction::PassPeeper(3336); // for-range
     I->dropAllReferences();
   }
 
   while (!TempInst.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 3337); // while
+    PassPrediction::PassPeeper(3337); // while
     auto *I = TempInst.back();
     TempInst.pop_back();
     I->deleteValue();
@@ -3178,7 +3178,7 @@ std::pair<unsigned, unsigned> NewGVN::assignDFSNumbers(BasicBlock *B,
                                                        unsigned Start) {
   unsigned End = Start;
   if (MemoryAccess *MemPhi = getMemoryAccess(B)) {
-    PassPrediction::PassPeeper(__FILE__, 3338); // if
+    PassPrediction::PassPeeper(3338); // if
     InstrDFS[MemPhi] = End++;
     DFSToInstr.emplace_back(MemPhi);
   }
@@ -3188,9 +3188,9 @@ std::pair<unsigned, unsigned> NewGVN::assignDFSNumbers(BasicBlock *B,
     // There's no need to call isInstructionTriviallyDead more than once on
     // an instruction. Therefore, once we know that an instruction is dead
     // we change its DFS number so that it doesn't get value numbered.
-    PassPrediction::PassPeeper(__FILE__, 3339); // for-range
+    PassPrediction::PassPeeper(3339); // for-range
     if (isInstructionTriviallyDead(&I, TLI)) {
-      PassPrediction::PassPeeper(__FILE__, 3340); // if
+      PassPrediction::PassPeeper(3340); // if
       InstrDFS[&I] = 0;
       DEBUG(dbgs() << "Skipping trivially dead instruction " << I << "\n");
       markInstructionForDeletion(&I);
@@ -3209,10 +3209,10 @@ std::pair<unsigned, unsigned> NewGVN::assignDFSNumbers(BasicBlock *B,
 void NewGVN::updateProcessedCount(const Value *V) {
 #ifndef NDEBUG
   if (ProcessedCount.count(V) == 0) {
-    PassPrediction::PassPeeper(__FILE__, 3341); // if
+    PassPrediction::PassPeeper(3341); // if
     ProcessedCount.insert({V, 1});
   } else {
-    PassPrediction::PassPeeper(__FILE__, 3342); // else
+    PassPrediction::PassPeeper(3342); // else
     ++ProcessedCount[V];
     assert(ProcessedCount[V] < 100 &&
            "Seem to have processed the same Value a lot");
@@ -3235,9 +3235,9 @@ void NewGVN::valueNumberMemoryPhi(MemoryPhi *MP) {
   // InitialClass.  Note: The only case this should happen is if we have at
   // least one self-argument.
   if (Filtered.begin() == Filtered.end()) {
-    PassPrediction::PassPeeper(__FILE__, 3343); // if
+    PassPrediction::PassPeeper(3343); // if
     if (setMemoryClass(MP, TOPClass)) {
-      PassPrediction::PassPeeper(__FILE__, 3344); // if
+      PassPrediction::PassPeeper(3344); // if
       markMemoryUsersTouched(MP);
     }
     return;
@@ -3276,7 +3276,7 @@ void NewGVN::valueNumberMemoryPhi(MemoryPhi *MP) {
   auto NewState = AllEqual ? MPS_Equivalent : MPS_Unique;
   MemoryPhiState[MP] = NewState;
   if (setMemoryClass(MP, CC) || OldState != NewState) {
-    PassPrediction::PassPeeper(__FILE__, 3345); // if
+    PassPrediction::PassPeeper(3345); // if
     markMemoryUsersTouched(MP);
   }
 }
@@ -3286,32 +3286,32 @@ void NewGVN::valueNumberMemoryPhi(MemoryPhi *MP) {
 void NewGVN::valueNumberInstruction(Instruction *I) {
   DEBUG(dbgs() << "Processing instruction " << *I << "\n");
   if (!I->isTerminator()) {
-    PassPrediction::PassPeeper(__FILE__, 3346); // if
+    PassPrediction::PassPeeper(3346); // if
     const Expression *Symbolized = nullptr;
     SmallPtrSet<Value *, 2> Visited;
     if (DebugCounter::shouldExecute(VNCounter)) {
-      PassPrediction::PassPeeper(__FILE__, 3348); // if
+      PassPrediction::PassPeeper(3348); // if
       Symbolized = performSymbolicEvaluation(I, Visited);
       // Make a phi of ops if necessary
       if (Symbolized && !isa<ConstantExpression>(Symbolized) &&
           !isa<VariableExpression>(Symbolized) && PHINodeUses.count(I)) {
-        PassPrediction::PassPeeper(__FILE__, 3350); // if
+        PassPrediction::PassPeeper(3350); // if
         auto *PHIE = makePossiblePhiOfOps(I, Visited);
         if (PHIE) {
-          PassPrediction::PassPeeper(__FILE__, 3351); // if
+          PassPrediction::PassPeeper(3351); // if
           Symbolized = PHIE;
         }
       }
 
     } else {
       // Mark the instruction as unused so we don't value number it again.
-      PassPrediction::PassPeeper(__FILE__, 3349); // else
+      PassPrediction::PassPeeper(3349); // else
       InstrDFS[I] = 0;
     }
     // If we couldn't come up with a symbolic expression, use the unknown
     // expression
     if (Symbolized == nullptr) {
-      PassPrediction::PassPeeper(__FILE__, 3352); // if
+      PassPrediction::PassPeeper(3352); // if
       Symbolized = createUnknownExpression(I);
     }
     performCongruenceFinding(I, Symbolized);
@@ -3319,9 +3319,9 @@ void NewGVN::valueNumberInstruction(Instruction *I) {
     // Handle terminators that return values. All of them produce values we
     // don't currently understand.  We don't place non-value producing
     // terminators in a class.
-    PassPrediction::PassPeeper(__FILE__, 3347); // else
+    PassPrediction::PassPeeper(3347); // else
     if (!I->getType()->isVoidTy()) {
-      PassPrediction::PassPeeper(__FILE__, 3353); // if
+      PassPrediction::PassPeeper(3353); // if
       auto *Symbolized = createUnknownExpression(I);
       performCongruenceFinding(I, Symbolized);
     }
@@ -3335,11 +3335,11 @@ bool NewGVN::singleReachablePHIPath(
     SmallPtrSet<const MemoryAccess *, 8> &Visited, const MemoryAccess *First,
     const MemoryAccess *Second) const {
   if (First == Second) {
-    PassPrediction::PassPeeper(__FILE__, 3354); // if
+    PassPrediction::PassPeeper(3354); // if
     return true;
   }
   if (MSSA->isLiveOnEntryDef(First)) {
-    PassPrediction::PassPeeper(__FILE__, 3355); // if
+    PassPrediction::PassPeeper(3355); // if
     return false;
   }
 
@@ -3349,20 +3349,20 @@ bool NewGVN::singleReachablePHIPath(
   // the complexity for the time being. So, we just keep a set of visited
   // MemoryAccess and return true when we hit a cycle.
   if (Visited.count(First)) {
-    PassPrediction::PassPeeper(__FILE__, 3356); // if
+    PassPrediction::PassPeeper(3356); // if
     return true;
   }
   Visited.insert(First);
 
   const auto *EndDef = First;
   for (auto *ChainDef : optimized_def_chain(First)) {
-    PassPrediction::PassPeeper(__FILE__, 3357); // for-range
+    PassPrediction::PassPeeper(3357); // for-range
     if (ChainDef == Second) {
-      PassPrediction::PassPeeper(__FILE__, 3358); // if
+      PassPrediction::PassPeeper(3358); // if
       return true;
     }
     if (MSSA->isLiveOnEntryDef(ChainDef)) {
-      PassPrediction::PassPeeper(__FILE__, 3359); // if
+      PassPrediction::PassPeeper(3359); // if
       return false;
     }
     EndDef = ChainDef;
@@ -3378,12 +3378,12 @@ bool NewGVN::singleReachablePHIPath(
             std::back_inserter(OperandList));
   bool Okay = OperandList.size() == 1;
   if (!Okay) {
-    PassPrediction::PassPeeper(__FILE__, 3360); // if
+    PassPrediction::PassPeeper(3360); // if
     Okay =
         std::equal(OperandList.begin(), OperandList.end(), OperandList.begin());
   }
   if (Okay) {
-    PassPrediction::PassPeeper(__FILE__, 3361); // if
+    PassPrediction::PassPeeper(3361); // if
     return singleReachablePHIPath(Visited, cast<MemoryAccess>(OperandList[0]),
                                   Second);
   }
@@ -3398,9 +3398,9 @@ void NewGVN::verifyMemoryCongruency() const {
 #ifndef NDEBUG
   // Verify that the memory table equivalence and memory member set match
   for (const auto *CC : CongruenceClasses) {
-    PassPrediction::PassPeeper(__FILE__, 3362); // for-range
+    PassPrediction::PassPeeper(3362); // for-range
     if (CC == TOPClass || CC->isDead()) {
-      PassPrediction::PassPeeper(__FILE__, 3363); // if
+      PassPrediction::PassPeeper(3363); // if
       continue;
     }
     if (CC->getStoreCount() != 0) {
@@ -3433,24 +3433,24 @@ void NewGVN::verifyMemoryCongruency() const {
         bool Result = ReachableBlocks.count(Pair.first->getBlock());
         if (!Result || MSSA->isLiveOnEntryDef(Pair.first) ||
             MemoryToDFSNum(Pair.first) == 0) {
-          PassPrediction::PassPeeper(__FILE__, 3364); // if
+          PassPrediction::PassPeeper(3364); // if
           return false;
         }
         if (auto *MemDef = dyn_cast<MemoryDef>(Pair.first)) {
-          PassPrediction::PassPeeper(__FILE__, 3365); // if
+          PassPrediction::PassPeeper(3365); // if
           return !isInstructionTriviallyDead(MemDef->getMemoryInst());
         }
 
         // We could have phi nodes which operands are all trivially dead,
         // so we don't process them.
         if (auto *MemPHI = dyn_cast<MemoryPhi>(Pair.first)) {
-          PassPrediction::PassPeeper(__FILE__, 3366); // if
+          PassPrediction::PassPeeper(3366); // if
           for (auto &U : MemPHI->incoming_values()) {
-            PassPrediction::PassPeeper(__FILE__, 3367); // for-range
+            PassPrediction::PassPeeper(3367); // for-range
             if (Instruction *I = dyn_cast<Instruction>(U.get())) {
-              PassPrediction::PassPeeper(__FILE__, 3368); // if
+              PassPrediction::PassPeeper(3368); // if
               if (!isInstructionTriviallyDead(I)) {
-                PassPrediction::PassPeeper(__FILE__, 3369); // if
+                PassPrediction::PassPeeper(3369); // if
                 return true;
               }
             }
@@ -3463,12 +3463,12 @@ void NewGVN::verifyMemoryCongruency() const {
 
   auto Filtered = make_filter_range(MemoryAccessToClass, ReachableAccessPred);
   for (auto KV : Filtered) {
-    PassPrediction::PassPeeper(__FILE__, 3370); // for-range
+    PassPrediction::PassPeeper(3370); // for-range
     if (auto *FirstMUD = dyn_cast<MemoryUseOrDef>(KV.first)) {
-      PassPrediction::PassPeeper(__FILE__, 3371); // if
+      PassPrediction::PassPeeper(3371); // if
       auto *SecondMUD = dyn_cast<MemoryUseOrDef>(KV.second->getMemoryLeader());
       if (FirstMUD && SecondMUD) {
-        PassPrediction::PassPeeper(__FILE__, 3372); // if
+        PassPrediction::PassPeeper(3372); // if
         SmallPtrSet<const MemoryAccess *, 8> VisitedMAS;
         assert((singleReachablePHIPath(VisitedMAS, FirstMUD, SecondMUD) ||
                 ValueToClass.lookup(FirstMUD->getMemoryInst()) ==
@@ -3480,7 +3480,7 @@ void NewGVN::verifyMemoryCongruency() const {
     } else if (auto *FirstMP = dyn_cast<MemoryPhi>(KV.first)) {
       // We can only sanely verify that MemoryDefs in the operand list all have
       // the same class.
-      PassPrediction::PassPeeper(__FILE__, 3373); // if
+      PassPrediction::PassPeeper(3373); // if
       auto ReachableOperandPred = [&](const Use &U) {
         return ReachableEdges.count(
                    {FirstMP->getIncomingBlock(U), FirstMP->getBlock()}) &&
@@ -3511,7 +3511,7 @@ void NewGVN::verifyIterationSettled(Function &F) {
 #ifndef NDEBUG
   DEBUG(dbgs() << "Beginning iteration verification\n");
   if (DebugCounter::isCounterSet(VNCounter)) {
-    PassPrediction::PassPeeper(__FILE__, 3374); // if
+    PassPrediction::PassPeeper(3374); // if
     DebugCounter::setCounterValue(VNCounter, StartingVNCounter);
   }
 
@@ -3522,12 +3522,12 @@ void NewGVN::verifyIterationSettled(Function &F) {
   std::map<const Value *, CongruenceClass> BeforeIteration;
 
   for (auto &KV : ValueToClass) {
-    PassPrediction::PassPeeper(__FILE__, 3375); // for-range
+    PassPrediction::PassPeeper(3375); // for-range
     if (auto *I = dyn_cast<Instruction>(KV.first)) {
       // Skip unused/dead instructions.
-      PassPrediction::PassPeeper(__FILE__, 3376); // if
+      PassPrediction::PassPeeper(3376); // if
       if (InstrToDFSNum(I) == 0) {
-        PassPrediction::PassPeeper(__FILE__, 3377); // if
+        PassPrediction::PassPeeper(3377); // if
         continue;
       }
     }
@@ -3540,12 +3540,12 @@ void NewGVN::verifyIterationSettled(Function &F) {
   DenseSet<std::pair<const CongruenceClass *, const CongruenceClass *>>
       EqualClasses;
   for (const auto &KV : ValueToClass) {
-    PassPrediction::PassPeeper(__FILE__, 3378); // for-range
+    PassPrediction::PassPeeper(3378); // for-range
     if (auto *I = dyn_cast<Instruction>(KV.first)) {
       // Skip unused/dead instructions.
-      PassPrediction::PassPeeper(__FILE__, 3379); // if
+      PassPrediction::PassPeeper(3379); // if
       if (InstrToDFSNum(I) == 0) {
-        PassPrediction::PassPeeper(__FILE__, 3380); // if
+        PassPrediction::PassPeeper(3380); // if
         continue;
       }
     }
@@ -3578,10 +3578,10 @@ void NewGVN::verifyStoreExpressions() const {
                 std::tuple<const Value *, const CongruenceClass *, Value *>>>
       StoreExpressionSet;
   for (const auto &KV : ExpressionToClass) {
-    PassPrediction::PassPeeper(__FILE__, 3381); // for-range
+    PassPrediction::PassPeeper(3381); // for-range
     if (auto *SE = dyn_cast<StoreExpression>(KV.first)) {
       // Make sure a version that will conflict with loads is not already there
-      PassPrediction::PassPeeper(__FILE__, 3382); // if
+      PassPrediction::PassPeeper(3382); // if
       auto Res = StoreExpressionSet.insert(
           {SE->getOperand(0), std::make_tuple(SE->getMemoryLeader(), KV.second,
                                               SE->getStoredValue())});
@@ -3590,7 +3590,7 @@ void NewGVN::verifyStoreExpressions() const {
       // identical in nature.
       // This can happen when the leader of the stored value changes over time.
       if (!Okay) {
-        PassPrediction::PassPeeper(__FILE__, 3383); // if
+        PassPrediction::PassPeeper(3383); // if
         Okay = (std::get<1>(Res.first->second) == KV.second) &&
                (lookupOperandLeader(std::get<2>(Res.first->second)) ==
                 lookupOperandLeader(SE->getStoredValue()));
@@ -3614,12 +3614,12 @@ void NewGVN::iterateTouchedInstructions() {
   int FirstInstr = TouchedInstructions.find_first();
   // Nothing set, nothing to iterate, just return.
   if (FirstInstr == -1) {
-    PassPrediction::PassPeeper(__FILE__, 3384); // if
+    PassPrediction::PassPeeper(3384); // if
     return;
   }
   const BasicBlock *LastBlock = getBlockForValue(InstrFromDFSNum(FirstInstr));
   while (TouchedInstructions.any()) {
-    PassPrediction::PassPeeper(__FILE__, 3385); // while
+    PassPrediction::PassPeeper(3385); // while
     ++Iterations;
     // Walk through all the instructions in all the blocks in RPO.
     // TODO: As we hit a new block, we should push and pop equalities into a
@@ -3629,9 +3629,9 @@ void NewGVN::iterateTouchedInstructions() {
 
       // This instruction was found to be dead. We don't bother looking
       // at it again.
-      PassPrediction::PassPeeper(__FILE__, 3386); // for-range
+      PassPrediction::PassPeeper(3386); // for-range
       if (InstrNum == 0) {
-        PassPrediction::PassPeeper(__FILE__, 3387); // if
+        PassPrediction::PassPeeper(3387); // if
         TouchedInstructions.reset(InstrNum);
         continue;
       }
@@ -3641,14 +3641,14 @@ void NewGVN::iterateTouchedInstructions() {
 
       // If we hit a new block, do reachability processing.
       if (CurrBlock != LastBlock) {
-        PassPrediction::PassPeeper(__FILE__, 3388); // if
+        PassPrediction::PassPeeper(3388); // if
         LastBlock = CurrBlock;
         bool BlockReachable = ReachableBlocks.count(CurrBlock);
         const auto &CurrInstRange = BlockInstRange.lookup(CurrBlock);
 
         // If it's not reachable, erase any touched instructions and move on.
         if (!BlockReachable) {
-          PassPrediction::PassPeeper(__FILE__, 3389); // if
+          PassPrediction::PassPeeper(3389); // if
           TouchedInstructions.reset(CurrInstRange.first, CurrInstRange.second);
           DEBUG(dbgs() << "Skipping instructions in block "
                        << getBlockName(CurrBlock)
@@ -3665,7 +3665,7 @@ void NewGVN::iterateTouchedInstructions() {
         DEBUG(dbgs() << "Processing MemoryPhi " << *MP << "\n");
         valueNumberMemoryPhi(MP);
       } else if (auto *I = dyn_cast<Instruction>(V)) {
-        PassPrediction::PassPeeper(__FILE__, 3390); // if
+        PassPrediction::PassPeeper(3390); // if
         valueNumberInstruction(I);
       } else {
         llvm_unreachable("Should have been a MemoryPhi or Instruction");
@@ -3679,7 +3679,7 @@ void NewGVN::iterateTouchedInstructions() {
 // This is the main transformation entry point.
 bool NewGVN::runGVN() {
   if (DebugCounter::isCounterSet(VNCounter)) {
-    PassPrediction::PassPeeper(__FILE__, 3391); // if
+    PassPrediction::PassPeeper(3391); // if
     StartingVNCounter = DebugCounter::getCounterValue(VNCounter);
   }
   bool Changed = false;
@@ -3703,17 +3703,17 @@ bool NewGVN::runGVN() {
   ReversePostOrderTraversal<Function *> RPOT(&F);
   unsigned Counter = 0;
   for (auto &B : RPOT) {
-    PassPrediction::PassPeeper(__FILE__, 3392); // for-range
+    PassPrediction::PassPeeper(3392); // for-range
     auto *Node = DT->getNode(B);
     assert(Node && "RPO and Dominator tree should have same reachability");
     RPOOrdering[Node] = ++Counter;
   }
   // Sort dominator tree children arrays into RPO.
   for (auto &B : RPOT) {
-    PassPrediction::PassPeeper(__FILE__, 3393); // for-range
+    PassPrediction::PassPeeper(3393); // for-range
     auto *Node = DT->getNode(B);
     if (Node->getChildren().size() > 1) {
-      PassPrediction::PassPeeper(__FILE__, 3394); // if
+      PassPrediction::PassPeeper(3394); // if
       std::sort(Node->begin(), Node->end(),
                 [&](const DomTreeNode *A, const DomTreeNode *B) {
                   return RPOOrdering[A] < RPOOrdering[B];
@@ -3723,7 +3723,7 @@ bool NewGVN::runGVN() {
 
   // Now a standard depth first ordering of the domtree is equivalent to RPO.
   for (auto DTN : depth_first(DT->getRootNode())) {
-    PassPrediction::PassPeeper(__FILE__, 3395); // for-range
+    PassPrediction::PassPeeper(3395); // for-range
     BasicBlock *B = DTN->getBlock();
     const auto &BlockRange = assignDFSNumbers(B, ICount);
     BlockInstRange.insert({B, BlockRange});
@@ -3753,14 +3753,14 @@ bool NewGVN::runGVN() {
 
   // Delete all instructions marked for deletion.
   for (Instruction *ToErase : InstructionsToErase) {
-    PassPrediction::PassPeeper(__FILE__, 3396); // for-range
+    PassPrediction::PassPeeper(3396); // for-range
     if (!ToErase->use_empty()) {
-      PassPrediction::PassPeeper(__FILE__, 3397); // if
+      PassPrediction::PassPeeper(3397); // if
       ToErase->replaceAllUsesWith(UndefValue::get(ToErase->getType()));
     }
 
     if (ToErase->getParent()) {
-      PassPrediction::PassPeeper(__FILE__, 3398); // if
+      PassPrediction::PassPeeper(3398); // if
       ToErase->eraseFromParent();
     }
   }
@@ -3846,7 +3846,7 @@ void NewGVN::convertClassToDFSOrdered(
     SmallPtrSetImpl<Instruction *> &ProbablyDead) const {
   for (auto D : Dense) {
     // First add the value.
-    PassPrediction::PassPeeper(__FILE__, 3399); // for-range
+    PassPrediction::PassPeeper(3399); // for-range
     BasicBlock *BB = getBlockForValue(D);
     // Constants are handled prior to ever calling this function, so
     // we should only be left with instructions as members.
@@ -3859,18 +3859,18 @@ void NewGVN::convertClassToDFSOrdered(
     // available, or the value operand.  TODO: We could do dominance checks to
     // find a dominating leader, but not worth it ATM.
     if (auto *SI = dyn_cast<StoreInst>(D)) {
-      PassPrediction::PassPeeper(__FILE__, 3400); // if
+      PassPrediction::PassPeeper(3400); // if
       auto Leader = lookupOperandLeader(SI->getValueOperand());
       if (alwaysAvailable(Leader)) {
-        PassPrediction::PassPeeper(__FILE__, 3402); // if
+        PassPrediction::PassPeeper(3402); // if
         VDDef.Def.setPointer(Leader);
       } else {
-        PassPrediction::PassPeeper(__FILE__, 3403); // else
+        PassPrediction::PassPeeper(3403); // else
         VDDef.Def.setPointer(SI->getValueOperand());
         VDDef.Def.setInt(true);
       }
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3401); // else
+      PassPrediction::PassPeeper(3401); // else
       VDDef.Def.setPointer(D);
     }
     assert(isa<Instruction>(D) &&
@@ -3880,11 +3880,11 @@ void NewGVN::convertClassToDFSOrdered(
     DFSOrderedSet.push_back(VDDef);
     // If there is a phi node equivalent, add it
     if (auto *PN = RealToTemp.lookup(Def)) {
-      PassPrediction::PassPeeper(__FILE__, 3404); // if
+      PassPrediction::PassPeeper(3404); // if
       auto *PHIE =
           dyn_cast_or_null<PHIExpression>(ValueToExpression.lookup(Def));
       if (PHIE) {
-        PassPrediction::PassPeeper(__FILE__, 3405); // if
+        PassPrediction::PassPeeper(3405); // if
         VDDef.Def.setInt(false);
         VDDef.Def.setPointer(PN);
         VDDef.LocalNum = 0;
@@ -3895,25 +3895,25 @@ void NewGVN::convertClassToDFSOrdered(
     unsigned int UseCount = 0;
     // Now add the uses.
     for (auto &U : Def->uses()) {
-      PassPrediction::PassPeeper(__FILE__, 3406); // for-range
+      PassPrediction::PassPeeper(3406); // for-range
       if (auto *I = dyn_cast<Instruction>(U.getUser())) {
         // Don't try to replace into dead uses
-        PassPrediction::PassPeeper(__FILE__, 3407); // if
+        PassPrediction::PassPeeper(3407); // if
         if (InstructionsToErase.count(I)) {
-          PassPrediction::PassPeeper(__FILE__, 3408); // if
+          PassPrediction::PassPeeper(3408); // if
           continue;
         }
         ValueDFS VDUse;
         // Put the phi node uses in the incoming block.
         BasicBlock *IBlock;
         if (auto *P = dyn_cast<PHINode>(I)) {
-          PassPrediction::PassPeeper(__FILE__, 3409); // if
+          PassPrediction::PassPeeper(3409); // if
           IBlock = P->getIncomingBlock(U);
           // Make phi node users appear last in the incoming block
           // they are from.
           VDUse.LocalNum = InstrDFS.size() + 1;
         } else {
-          PassPrediction::PassPeeper(__FILE__, 3410); // else
+          PassPrediction::PassPeeper(3410); // else
           IBlock = getBlockForValue(I);
           VDUse.LocalNum = InstrToDFSNum(I);
         }
@@ -3921,7 +3921,7 @@ void NewGVN::convertClassToDFSOrdered(
         // Skip uses in unreachable blocks, as we're going
         // to delete them.
         if (ReachableBlocks.count(IBlock) == 0) {
-          PassPrediction::PassPeeper(__FILE__, 3411); // if
+          PassPrediction::PassPeeper(3411); // if
           continue;
         }
 
@@ -3938,10 +3938,10 @@ void NewGVN::convertClassToDFSOrdered(
     // so not definitely dead. Otherwise, store the number of uses so we can
     // track if it becomes dead later).
     if (UseCount == 0) {
-      PassPrediction::PassPeeper(__FILE__, 3412); // if
+      PassPrediction::PassPeeper(3412); // if
       ProbablyDead.insert(Def);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 3413); // else
+      PassPrediction::PassPeeper(3413); // else
       UseCounts[Def] = UseCount;
     }
   }
@@ -3953,9 +3953,9 @@ void NewGVN::convertClassToLoadsAndStores(
     const CongruenceClass &Dense,
     SmallVectorImpl<ValueDFS> &LoadsAndStores) const {
   for (auto D : Dense) {
-    PassPrediction::PassPeeper(__FILE__, 3414); // for-range
+    PassPrediction::PassPeeper(3414); // for-range
     if (!isa<LoadInst>(D) && !isa<StoreInst>(D)) {
-      PassPrediction::PassPeeper(__FILE__, 3415); // if
+      PassPrediction::PassPeeper(3415); // if
       continue;
     }
 
@@ -3968,7 +3968,7 @@ void NewGVN::convertClassToLoadsAndStores(
 
     // If it's an instruction, use the real local dfs number.
     if (auto *I = dyn_cast<Instruction>(D)) {
-      PassPrediction::PassPeeper(__FILE__, 3416); // if
+      PassPrediction::PassPeeper(3416); // if
       VD.LocalNum = InstrToDFSNum(I);
     } else {
       llvm_unreachable("Should have been an instruction");
@@ -3981,7 +3981,7 @@ void NewGVN::convertClassToLoadsAndStores(
 static void patchReplacementInstruction(Instruction *I, Value *Repl) {
   auto *ReplInst = dyn_cast<Instruction>(Repl);
   if (!ReplInst) {
-    PassPrediction::PassPeeper(__FILE__, 3417); // if
+    PassPrediction::PassPeeper(3417); // if
     return;
   }
 
@@ -3992,7 +3992,7 @@ static void patchReplacementInstruction(Instruction *I, Value *Repl) {
   // would just erase all math flags from the original arithmetic
   // operation, which is clearly not wanted and not needed.
   if (!isa<LoadInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 3418); // if
+    PassPrediction::PassPeeper(3418); // if
     ReplInst->andIRFlags(I);
   }
 
@@ -4029,14 +4029,14 @@ void NewGVN::deleteInstructionsInBlock(BasicBlock *BB) {
   // Note that we explicitly recalculate BB->rend() on each iteration,
   // as it may change when we remove the first instruction.
   for (BasicBlock::reverse_iterator I(StartPoint); I != BB->rend();) {
-    PassPrediction::PassPeeper(__FILE__, 3419); // for
+    PassPrediction::PassPeeper(3419); // for
     Instruction &Inst = *I++;
     if (!Inst.use_empty()) {
-      PassPrediction::PassPeeper(__FILE__, 3420); // if
+      PassPrediction::PassPeeper(3420); // if
       Inst.replaceAllUsesWith(UndefValue::get(Inst.getType()));
     }
     if (isa<LandingPadInst>(Inst)) {
-      PassPrediction::PassPeeper(__FILE__, 3421); // if
+      PassPrediction::PassPeeper(3421); // if
       continue;
     }
 
@@ -4080,7 +4080,7 @@ public:
   bool empty() const { return DFSStack.empty(); }
   bool isInScope(int DFSIn, int DFSOut) const {
     if (empty()) {
-      PassPrediction::PassPeeper(__FILE__, 3422); // if
+      PassPrediction::PassPeeper(3422); // if
       return false;
     }
     return DFSIn >= DFSStack.back().first && DFSOut <= DFSStack.back().second;
@@ -4093,7 +4093,7 @@ public:
            "Mismatch between ValueStack and DFSStack");
     while (!DFSStack.empty() && !(DFSIn >= DFSStack.back().first &&
                                   DFSOut <= DFSStack.back().second)) {
-      PassPrediction::PassPeeper(__FILE__, 3423); // while
+      PassPrediction::PassPeeper(3423); // while
       DFSStack.pop_back();
       ValueStack.pop_back();
     }
@@ -4111,37 +4111,37 @@ Value *NewGVN::findPhiOfOpsLeader(const Expression *E,
                                   const BasicBlock *BB) const {
   // It would already be constant if we could make it constant
   if (auto *CE = dyn_cast<ConstantExpression>(E)) {
-    PassPrediction::PassPeeper(__FILE__, 3424); // if
+    PassPrediction::PassPeeper(3424); // if
     return CE->getConstantValue();
   }
   if (auto *VE = dyn_cast<VariableExpression>(E)) {
-    PassPrediction::PassPeeper(__FILE__, 3425); // if
+    PassPrediction::PassPeeper(3425); // if
     return VE->getVariableValue();
   }
 
   auto *CC = ExpressionToClass.lookup(E);
   if (!CC) {
-    PassPrediction::PassPeeper(__FILE__, 3426); // if
+    PassPrediction::PassPeeper(3426); // if
     return nullptr;
   }
   if (alwaysAvailable(CC->getLeader())) {
-    PassPrediction::PassPeeper(__FILE__, 3427); // if
+    PassPrediction::PassPeeper(3427); // if
     return CC->getLeader();
   }
 
   for (auto Member : *CC) {
-    PassPrediction::PassPeeper(__FILE__, 3428); // for-range
+    PassPrediction::PassPeeper(3428); // for-range
     auto *MemberInst = dyn_cast<Instruction>(Member);
     // Anything that isn't an instruction is always available.
     if (!MemberInst) {
-      PassPrediction::PassPeeper(__FILE__, 3429); // if
+      PassPrediction::PassPeeper(3429); // if
       return Member;
     }
     // If we are looking for something in the same block as the member, it must
     // be a leader because this function is looking for operands for a phi node.
     if (MemberInst->getParent() == BB ||
         DT->dominates(MemberInst->getParent(), BB)) {
-      PassPrediction::PassPeeper(__FILE__, 3430); // if
+      PassPrediction::PassPeeper(3430); // if
       return Member;
     }
   }
@@ -4182,7 +4182,7 @@ bool NewGVN::eliminateInstructions(Function &F) {
   // unreachable edges.
   auto ReplaceUnreachablePHIArgs = [&](PHINode &PHI, BasicBlock *BB) {
     for (auto &Operand : PHI.incoming_values()) {
-      PassPrediction::PassPeeper(__FILE__, 3431); // for-range
+      PassPrediction::PassPeeper(3431); // for-range
       if (!ReachableEdges.count({PHI.getIncomingBlock(Operand), BB})) {
         DEBUG(dbgs() << "Replacing incoming value of " << PHI << " for block "
                      << getBlockName(PHI.getIncomingBlock(Operand))
@@ -4193,27 +4193,27 @@ bool NewGVN::eliminateInstructions(Function &F) {
   };
   SmallPtrSet<BasicBlock *, 8> BlocksWithPhis;
   for (auto &B : F) {
-    PassPrediction::PassPeeper(__FILE__, 3432); // for-range
+    PassPrediction::PassPeeper(3432); // for-range
     if ((!B.empty() && isa<PHINode>(*B.begin())) ||
         (PHIOfOpsPHIs.find(&B) != PHIOfOpsPHIs.end())) {
-      PassPrediction::PassPeeper(__FILE__, 3433); // if
+      PassPrediction::PassPeeper(3433); // if
       BlocksWithPhis.insert(&B);
     }
   }
   DenseMap<const BasicBlock *, unsigned> ReachablePredCount;
   for (auto KV : ReachableEdges) {
-    PassPrediction::PassPeeper(__FILE__, 3434); // for-range
+    PassPrediction::PassPeeper(3434); // for-range
     ReachablePredCount[KV.getEnd()]++;
   }
   for (auto *BB : BlocksWithPhis) {
     // TODO: It would be faster to use getNumIncomingBlocks() on a phi node in
     // the block and subtract the pred count, but it's more complicated.
-    PassPrediction::PassPeeper(__FILE__, 3435); // for-range
+    PassPrediction::PassPeeper(3435); // for-range
     if (ReachablePredCount.lookup(BB) !=
         unsigned(std::distance(pred_begin(BB), pred_end(BB)))) {
-      PassPrediction::PassPeeper(__FILE__, 3436); // if
+      PassPrediction::PassPeeper(3436); // if
       for (auto II = BB->begin(); isa<PHINode>(II); ++II) {
-        PassPrediction::PassPeeper(__FILE__, 3437); // for
+        PassPrediction::PassPeeper(3437); // for
         auto &PHI = cast<PHINode>(*II);
         ReplaceUnreachablePHIArgs(PHI, BB);
       }
@@ -4232,17 +4232,17 @@ bool NewGVN::eliminateInstructions(Function &F) {
     SmallVector<ValueDFS, 8> PossibleDeadStores;
     SmallPtrSet<Instruction *, 8> ProbablyDead;
     if (CC->isDead() || CC->empty()) {
-      PassPrediction::PassPeeper(__FILE__, 3438); // if
+      PassPrediction::PassPeeper(3438); // if
       continue;
     }
     // Everything still in the TOP class is unreachable or dead.
     if (CC == TOPClass) {
-      PassPrediction::PassPeeper(__FILE__, 3439); // if
+      PassPrediction::PassPeeper(3439); // if
       for (auto M : *CC) {
-        PassPrediction::PassPeeper(__FILE__, 3440); // for-range
+        PassPrediction::PassPeeper(3440); // for-range
         auto *VTE = ValueToExpression.lookup(M);
         if (VTE && isa<DeadExpression>(VTE)) {
-          PassPrediction::PassPeeper(__FILE__, 3441); // if
+          PassPrediction::PassPeeper(3441); // if
           markInstructionForDeletion(cast<Instruction>(M));
         }
         assert((!ReachableBlocks.count(cast<Instruction>(M)->getParent()) ||
@@ -4261,15 +4261,15 @@ bool NewGVN::eliminateInstructions(Function &F) {
     Value *Leader =
         CC->getStoredValue() ? CC->getStoredValue() : CC->getLeader();
     if (alwaysAvailable(Leader)) {
-      PassPrediction::PassPeeper(__FILE__, 3442); // if
+      PassPrediction::PassPeeper(3442); // if
       CongruenceClass::MemberSet MembersLeft;
       for (auto M : *CC) {
-        PassPrediction::PassPeeper(__FILE__, 3444); // for-range
+        PassPrediction::PassPeeper(3444); // for-range
         Value *Member = M;
         // Void things have no uses we can replace.
         if (Member == Leader || !isa<Instruction>(Member) ||
             Member->getType()->isVoidTy()) {
-          PassPrediction::PassPeeper(__FILE__, 3445); // if
+          PassPrediction::PassPeeper(3445); // if
           MembersLeft.insert(Member);
           continue;
         }
@@ -4283,13 +4283,13 @@ bool NewGVN::eliminateInstructions(Function &F) {
       CC->swap(MembersLeft);
     } else {
       // If this is a singleton, we can skip it.
-      PassPrediction::PassPeeper(__FILE__, 3443); // else
+      PassPrediction::PassPeeper(3443); // else
       if (CC->size() != 1 || RealToTemp.lookup(Leader)) {
         // This is a stack because equality replacement/etc may place
         // constants in the middle of the member list, and we want to use
         // those constant values in preference to the current leader, over
         // the scope of those constants.
-        PassPrediction::PassPeeper(__FILE__, 3446); // if
+        PassPrediction::PassPeeper(3446); // if
         ValueDFSStack EliminationStack;
 
         // Convert the members to DFS ordered sets and then merge them.
@@ -4299,7 +4299,7 @@ bool NewGVN::eliminateInstructions(Function &F) {
         // Sort the whole thing.
         std::sort(DFSOrderedSet.begin(), DFSOrderedSet.end());
         for (auto &VD : DFSOrderedSet) {
-          PassPrediction::PassPeeper(__FILE__, 3447); // for-range
+          PassPrediction::PassPeeper(3447); // for-range
           int MemberDFSIn = VD.DFSIn;
           int MemberDFSOut = VD.DFSOut;
           Value *Def = VD.Def.getPointer();
@@ -4307,12 +4307,12 @@ bool NewGVN::eliminateInstructions(Function &F) {
           Use *U = VD.U;
           // We ignore void things because we can't get a value from them.
           if (Def && Def->getType()->isVoidTy()) {
-            PassPrediction::PassPeeper(__FILE__, 3448); // if
+            PassPrediction::PassPeeper(3448); // if
             continue;
           }
           auto *DefInst = dyn_cast_or_null<Instruction>(Def);
           if (DefInst && AllTempInstructions.count(DefInst)) {
-            PassPrediction::PassPeeper(__FILE__, 3449); // if
+            PassPrediction::PassPeeper(3449); // if
             auto *PN = cast<PHINode>(DefInst);
 
             // If this is a value phi and that's the expression we used, insert
@@ -4357,11 +4357,11 @@ bool NewGVN::eliminateInstructions(Function &F) {
 
           if (OutOfScope || ShouldPush) {
             // Sync to our current scope.
-            PassPrediction::PassPeeper(__FILE__, 3450); // if
+            PassPrediction::PassPeeper(3450); // if
             EliminationStack.popUntilDFSScope(MemberDFSIn, MemberDFSOut);
             bool ShouldPush = Def && EliminationStack.empty();
             if (ShouldPush) {
-              PassPrediction::PassPeeper(__FILE__, 3451); // if
+              PassPrediction::PassPeeper(3451); // if
               EliminationStack.push_back(Def, MemberDFSIn, MemberDFSOut);
             }
           }
@@ -4381,10 +4381,10 @@ bool NewGVN::eliminateInstructions(Function &F) {
             // because stores are put in terms of the stored value, we skip
             // stored values here. If the stored value is really dead, it will
             // still be marked for deletion when we process it in its own class.
-            PassPrediction::PassPeeper(__FILE__, 3452); // if
+            PassPrediction::PassPeeper(3452); // if
             if (!EliminationStack.empty() && Def != EliminationStack.back() &&
                 isa<Instruction>(Def) && !FromStore) {
-              PassPrediction::PassPeeper(__FILE__, 3453); // if
+              PassPrediction::PassPeeper(3453); // if
               markInstructionForDeletion(cast<Instruction>(Def));
             }
             continue;
@@ -4403,10 +4403,10 @@ bool NewGVN::eliminateInstructions(Function &F) {
           // because we are already walking all the uses anyway.
           Instruction *InstUse = cast<Instruction>(U->getUser());
           if (InstructionsToErase.count(InstUse)) {
-            PassPrediction::PassPeeper(__FILE__, 3454); // if
+            PassPrediction::PassPeeper(3454); // if
             auto &UseCount = UseCounts[U->get()];
             if (--UseCount == 0) {
-              PassPrediction::PassPeeper(__FILE__, 3455); // if
+              PassPrediction::PassPeeper(3455); // if
               ProbablyDead.insert(cast<Instruction>(U->get()));
             }
           }
@@ -4414,7 +4414,7 @@ bool NewGVN::eliminateInstructions(Function &F) {
           // If we get to this point, and the stack is empty we must have a use
           // with nothing we can use to eliminate this use, so just skip it.
           if (EliminationStack.empty()) {
-            PassPrediction::PassPeeper(__FILE__, 3456); // if
+            PassPrediction::PassPeeper(3456); // if
             continue;
           }
 
@@ -4422,13 +4422,13 @@ bool NewGVN::eliminateInstructions(Function &F) {
 
           auto *II = dyn_cast<IntrinsicInst>(DominatingLeader);
           if (II && II->getIntrinsicID() == Intrinsic::ssa_copy) {
-            PassPrediction::PassPeeper(__FILE__, 3457); // if
+            PassPrediction::PassPeeper(3457); // if
             DominatingLeader = II->getOperand(0);
           }
 
           // Don't replace our existing users with ourselves.
           if (U->get() == DominatingLeader) {
-            PassPrediction::PassPeeper(__FILE__, 3458); // if
+            PassPrediction::PassPeeper(3458); // if
             continue;
           }
           DEBUG(dbgs() << "Found replacement " << *DominatingLeader << " for "
@@ -4440,7 +4440,7 @@ bool NewGVN::eliminateInstructions(Function &F) {
           auto *ReplacedInst = cast<Instruction>(U->get());
           auto *PI = PredInfo->getPredicateInfoFor(ReplacedInst);
           if (!PI || DominatingLeader != PI->OriginalOp) {
-            PassPrediction::PassPeeper(__FILE__, 3459); // if
+            PassPrediction::PassPeeper(3459); // if
             patchReplacementInstruction(ReplacedInst, DominatingLeader);
           }
           U->set(DominatingLeader);
@@ -4449,11 +4449,11 @@ bool NewGVN::eliminateInstructions(Function &F) {
           auto &LeaderUseCount = UseCounts[DominatingLeader];
           // It's about to be alive again.
           if (LeaderUseCount == 0 && isa<Instruction>(DominatingLeader)) {
-            PassPrediction::PassPeeper(__FILE__, 3460); // if
+            PassPrediction::PassPeeper(3460); // if
             ProbablyDead.erase(cast<Instruction>(DominatingLeader));
           }
           if (LeaderUseCount == 0 && II) {
-            PassPrediction::PassPeeper(__FILE__, 3461); // if
+            PassPrediction::PassPeeper(3461); // if
             ProbablyDead.insert(II);
           }
           ++LeaderUseCount;
@@ -4465,9 +4465,9 @@ bool NewGVN::eliminateInstructions(Function &F) {
     // At this point, anything still in the ProbablyDead set is actually dead if
     // would be trivially dead.
     for (auto *I : ProbablyDead) {
-      PassPrediction::PassPeeper(__FILE__, 3462); // for-range
+      PassPrediction::PassPeeper(3462); // for-range
       if (wouldInstructionBeTriviallyDead(I)) {
-        PassPrediction::PassPeeper(__FILE__, 3463); // if
+        PassPrediction::PassPeeper(3463); // if
         markInstructionForDeletion(I);
       }
     }
@@ -4475,10 +4475,10 @@ bool NewGVN::eliminateInstructions(Function &F) {
     // Cleanup the congruence class.
     CongruenceClass::MemberSet MembersLeft;
     for (auto *Member : *CC) {
-      PassPrediction::PassPeeper(__FILE__, 3464); // for-range
+      PassPrediction::PassPeeper(3464); // for-range
       if (!isa<Instruction>(Member) ||
           !InstructionsToErase.count(cast<Instruction>(Member))) {
-        PassPrediction::PassPeeper(__FILE__, 3465); // if
+        PassPrediction::PassPeeper(3465); // if
         MembersLeft.insert(Member);
       }
     }
@@ -4486,29 +4486,29 @@ bool NewGVN::eliminateInstructions(Function &F) {
 
     // If we have possible dead stores to look at, try to eliminate them.
     if (CC->getStoreCount() > 0) {
-      PassPrediction::PassPeeper(__FILE__, 3466); // if
+      PassPrediction::PassPeeper(3466); // if
       convertClassToLoadsAndStores(*CC, PossibleDeadStores);
       std::sort(PossibleDeadStores.begin(), PossibleDeadStores.end());
       ValueDFSStack EliminationStack;
       for (auto &VD : PossibleDeadStores) {
-        PassPrediction::PassPeeper(__FILE__, 3467); // for-range
+        PassPrediction::PassPeeper(3467); // for-range
         int MemberDFSIn = VD.DFSIn;
         int MemberDFSOut = VD.DFSOut;
         Instruction *Member = cast<Instruction>(VD.Def.getPointer());
         if (EliminationStack.empty() ||
             !EliminationStack.isInScope(MemberDFSIn, MemberDFSOut)) {
           // Sync to our current scope.
-          PassPrediction::PassPeeper(__FILE__, 3468); // if
+          PassPrediction::PassPeeper(3468); // if
           EliminationStack.popUntilDFSScope(MemberDFSIn, MemberDFSOut);
           if (EliminationStack.empty()) {
-            PassPrediction::PassPeeper(__FILE__, 3469); // if
+            PassPrediction::PassPeeper(3469); // if
             EliminationStack.push_back(Member, MemberDFSIn, MemberDFSOut);
             continue;
           }
         }
         // We already did load elimination, so nothing to do here.
         if (isa<LoadInst>(Member)) {
-          PassPrediction::PassPeeper(__FILE__, 3470); // if
+          PassPrediction::PassPeeper(3470); // if
           continue;
         }
         assert(!EliminationStack.empty());
@@ -4537,18 +4537,18 @@ unsigned int NewGVN::getRank(const Value *V) const {
   // Undef is a constant, have to check it first.
   // Prefer smaller constants to constantexprs
   if (isa<ConstantExpr>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 3471); // if
+    PassPrediction::PassPeeper(3471); // if
     return 2;
   }
   if (isa<UndefValue>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 3472); // if
+    PassPrediction::PassPeeper(3472); // if
     return 1;
   }
   if (isa<Constant>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 3473); // if
+    PassPrediction::PassPeeper(3473); // if
     return 0;
   } else if (auto *A = dyn_cast<Argument>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 3474); // if
+    PassPrediction::PassPeeper(3474); // if
     return 3 + A->getArgNo();
   }
 
@@ -4556,7 +4556,7 @@ unsigned int NewGVN::getRank(const Value *V) const {
   // the constant and argument ranking above.
   unsigned Result = InstrToDFSNum(V);
   if (Result > 0) {
-    PassPrediction::PassPeeper(__FILE__, 3475); // if
+    PassPrediction::PassPeeper(3475); // if
     return 4 + NumFuncArgs + Result;
   }
   // Unreachable or something else, just return a really large number.
@@ -4596,7 +4596,7 @@ private:
 
 bool NewGVNLegacyPass::runOnFunction(Function &F) {
   if (skipFunction(F)) {
-    PassPrediction::PassPeeper(__FILE__, 3476); // if
+    PassPrediction::PassPeeper(3476); // if
     return false;
   }
   return NewGVN(F, &getAnalysis<DominatorTreeWrapperPass>().getDomTree(),
@@ -4637,7 +4637,7 @@ PreservedAnalyses NewGVNPass::run(Function &F, AnalysisManager<Function> &AM) {
       NewGVN(F, &DT, &AC, &TLI, &AA, &MSSA, F.getParent()->getDataLayout())
           .runGVN();
   if (!Changed) {
-    PassPrediction::PassPeeper(__FILE__, 3477); // if
+    PassPrediction::PassPeeper(3477); // if
     return PreservedAnalyses::all();
   }
   PreservedAnalyses PA;

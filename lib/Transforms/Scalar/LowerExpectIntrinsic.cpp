@@ -58,20 +58,20 @@ static cl::opt<uint32_t> UnlikelyBranchWeight(
 static bool handleSwitchExpect(SwitchInst &SI) {
   CallInst *CI = dyn_cast<CallInst>(SI.getCondition());
   if (!CI) {
-    PassPrediction::PassPeeper(__FILE__, 4122); // if
+    PassPrediction::PassPeeper(4122); // if
     return false;
   }
 
   Function *Fn = CI->getCalledFunction();
   if (!Fn || Fn->getIntrinsicID() != Intrinsic::expect) {
-    PassPrediction::PassPeeper(__FILE__, 4123); // if
+    PassPrediction::PassPeeper(4123); // if
     return false;
   }
 
   Value *ArgValue = CI->getArgOperand(0);
   ConstantInt *ExpectedValue = dyn_cast<ConstantInt>(CI->getArgOperand(1));
   if (!ExpectedValue) {
-    PassPrediction::PassPeeper(__FILE__, 4124); // if
+    PassPrediction::PassPeeper(4124); // if
     return false;
   }
 
@@ -80,10 +80,10 @@ static bool handleSwitchExpect(SwitchInst &SI) {
   SmallVector<uint32_t, 16> Weights(n + 1, UnlikelyBranchWeight);
 
   if (Case == *SI.case_default()) {
-    PassPrediction::PassPeeper(__FILE__, 4125); // if
+    PassPrediction::PassPeeper(4125); // if
     Weights[0] = LikelyBranchWeight;
   } else {
-    PassPrediction::PassPeeper(__FILE__, 4126); // else
+    PassPrediction::PassPeeper(4126); // else
     Weights[Case.getCaseIndex() + 1] = LikelyBranchWeight;
   }
 
@@ -105,7 +105,7 @@ static void handlePhiDef(CallInst *Expect) {
   Value &Arg = *Expect->getArgOperand(0);
   ConstantInt *ExpectedValue = dyn_cast<ConstantInt>(Expect->getArgOperand(1));
   if (!ExpectedValue) {
-    PassPrediction::PassPeeper(__FILE__, 4127); // if
+    PassPrediction::PassPeeper(4127); // if
     return;
   }
   const APInt &ExpectedPhiValue = ExpectedValue->getValue();
@@ -123,16 +123,16 @@ static void handlePhiDef(CallInst *Expect) {
   Value *V = &Arg;
   SmallVector<Instruction *, 4> Operations;
   while (!isa<PHINode>(V)) {
-    PassPrediction::PassPeeper(__FILE__, 4128); // while
+    PassPrediction::PassPeeper(4128); // while
     if (ZExtInst *ZExt = dyn_cast<ZExtInst>(V)) {
-      PassPrediction::PassPeeper(__FILE__, 4129); // if
+      PassPrediction::PassPeeper(4129); // if
       V = ZExt->getOperand(0);
       Operations.push_back(ZExt);
       continue;
     }
 
     if (SExtInst *SExt = dyn_cast<SExtInst>(V)) {
-      PassPrediction::PassPeeper(__FILE__, 4130); // if
+      PassPrediction::PassPeeper(4130); // if
       V = SExt->getOperand(0);
       Operations.push_back(SExt);
       continue;
@@ -140,13 +140,13 @@ static void handlePhiDef(CallInst *Expect) {
 
     BinaryOperator *BinOp = dyn_cast<BinaryOperator>(V);
     if (!BinOp || BinOp->getOpcode() != Instruction::Xor) {
-      PassPrediction::PassPeeper(__FILE__, 4131); // if
+      PassPrediction::PassPeeper(4131); // if
       return;
     }
 
     ConstantInt *CInt = dyn_cast<ConstantInt>(BinOp->getOperand(1));
     if (!CInt) {
-      PassPrediction::PassPeeper(__FILE__, 4132); // if
+      PassPrediction::PassPeeper(4132); // if
       return;
     }
 
@@ -158,25 +158,25 @@ static void handlePhiDef(CallInst *Expect) {
   auto ApplyOperations = [&](const APInt &Value) {
     APInt Result = Value;
     for (auto Op : llvm::reverse(Operations)) {
-      PassPrediction::PassPeeper(__FILE__, 4133); // for-range
+      PassPrediction::PassPeeper(4133); // for-range
       switch (Op->getOpcode()) {
       case Instruction::Xor:
-        PassPrediction::PassPeeper(__FILE__, 4134); // case
+        PassPrediction::PassPeeper(4134); // case
 
         Result ^= cast<ConstantInt>(Op->getOperand(1))->getValue();
-        PassPrediction::PassPeeper(__FILE__, 4135); // break
+        PassPrediction::PassPeeper(4135); // break
         break;
       case Instruction::ZExt:
-        PassPrediction::PassPeeper(__FILE__, 4136); // case
+        PassPrediction::PassPeeper(4136); // case
 
         Result = Result.zext(Op->getType()->getIntegerBitWidth());
-        PassPrediction::PassPeeper(__FILE__, 4137); // break
+        PassPrediction::PassPeeper(4137); // break
         break;
       case Instruction::SExt:
-        PassPrediction::PassPeeper(__FILE__, 4138); // case
+        PassPrediction::PassPeeper(4138); // case
 
         Result = Result.sext(Op->getType()->getIntegerBitWidth());
-        PassPrediction::PassPeeper(__FILE__, 4139); // break
+        PassPrediction::PassPeeper(4139); // break
         break;
       default:
         llvm_unreachable("Unexpected operation");
@@ -193,17 +193,17 @@ static void handlePhiDef(CallInst *Expect) {
     BasicBlock *BB = PhiDef->getIncomingBlock(i);
     BranchInst *BI = dyn_cast<BranchInst>(BB->getTerminator());
     if (BI && BI->isConditional()) {
-      PassPrediction::PassPeeper(__FILE__, 4140); // if
+      PassPrediction::PassPeeper(4140); // if
       return BI;
     }
     BB = BB->getSinglePredecessor();
     if (!BB) {
-      PassPrediction::PassPeeper(__FILE__, 4141); // if
+      PassPrediction::PassPeeper(4141); // if
       return nullptr;
     }
     BI = dyn_cast<BranchInst>(BB->getTerminator());
     if (!BI || BI->isUnconditional()) {
-      PassPrediction::PassPeeper(__FILE__, 4142); // if
+      PassPrediction::PassPeeper(4142); // if
       return nullptr;
     }
     return BI;
@@ -214,11 +214,11 @@ static void handlePhiDef(CallInst *Expect) {
   // indicates the incoming edge to that operand is unlikely.
   for (unsigned i = 0, e = PhiDef->getNumIncomingValues(); i != e; ++i) {
 
-    PassPrediction::PassPeeper(__FILE__, 4143); // for
+    PassPrediction::PassPeeper(4143); // for
     Value *PhiOpnd = PhiDef->getIncomingValue(i);
     ConstantInt *CI = dyn_cast<ConstantInt>(PhiOpnd);
     if (!CI) {
-      PassPrediction::PassPeeper(__FILE__, 4144); // if
+      PassPrediction::PassPeeper(4144); // if
       continue;
     }
 
@@ -226,13 +226,13 @@ static void handlePhiDef(CallInst *Expect) {
     // anything useful when the operand value matches the expected phi
     // output.
     if (ExpectedPhiValue == ApplyOperations(CI->getValue())) {
-      PassPrediction::PassPeeper(__FILE__, 4145); // if
+      PassPrediction::PassPeeper(4145); // if
       continue;
     }
 
     BranchInst *BI = GetDomConditional(i);
     if (!BI) {
-      PassPrediction::PassPeeper(__FILE__, 4146); // if
+      PassPrediction::PassPeeper(4146); // if
       continue;
     }
 
@@ -251,26 +251,26 @@ static void handlePhiDef(CallInst *Expect) {
       if (OpndIncomingBB == Succ) {
         // If this successor is the incoming block for this
         // Phi operand, then this successor does lead to the Phi.
-        PassPrediction::PassPeeper(__FILE__, 4147); // if
+        PassPrediction::PassPeeper(4147); // if
         return true;
       }
       if (OpndIncomingBB == BI->getParent() && Succ == PhiDef->getParent()) {
         // Otherwise, if the edge is directly from the branch
         // to the Phi, this successor is the one feeding this
         // Phi operand.
-        PassPrediction::PassPeeper(__FILE__, 4148); // if
+        PassPrediction::PassPeeper(4148); // if
         return true;
       }
       return false;
     };
 
     if (IsOpndComingFromSuccessor(BI->getSuccessor(1))) {
-      PassPrediction::PassPeeper(__FILE__, 4149); // if
+      PassPrediction::PassPeeper(4149); // if
       BI->setMetadata(
           LLVMContext::MD_prof,
           MDB.createBranchWeights(LikelyBranchWeight, UnlikelyBranchWeight));
     } else if (IsOpndComingFromSuccessor(BI->getSuccessor(0))) {
-      PassPrediction::PassPeeper(__FILE__, 4150); // if
+      PassPrediction::PassPeeper(4150); // if
       BI->setMetadata(
           LLVMContext::MD_prof,
           MDB.createBranchWeights(UnlikelyBranchWeight, LikelyBranchWeight));
@@ -296,35 +296,35 @@ template <class BrSelInst> static bool handleBrSelExpect(BrSelInst &BSI) {
   CmpInst::Predicate Predicate;
   ConstantInt *CmpConstOperand = nullptr;
   if (!CmpI) {
-    PassPrediction::PassPeeper(__FILE__, 4151); // if
+    PassPrediction::PassPeeper(4151); // if
     CI = dyn_cast<CallInst>(BSI.getCondition());
     Predicate = CmpInst::ICMP_NE;
   } else {
-    PassPrediction::PassPeeper(__FILE__, 4152); // else
+    PassPrediction::PassPeeper(4152); // else
     Predicate = CmpI->getPredicate();
     if (Predicate != CmpInst::ICMP_NE && Predicate != CmpInst::ICMP_EQ) {
-      PassPrediction::PassPeeper(__FILE__, 4153); // if
+      PassPrediction::PassPeeper(4153); // if
       return false;
     }
 
     CmpConstOperand = dyn_cast<ConstantInt>(CmpI->getOperand(1));
     if (!CmpConstOperand) {
-      PassPrediction::PassPeeper(__FILE__, 4154); // if
+      PassPrediction::PassPeeper(4154); // if
       return false;
     }
     CI = dyn_cast<CallInst>(CmpI->getOperand(0));
   }
 
   if (!CI) {
-    PassPrediction::PassPeeper(__FILE__, 4155); // if
+    PassPrediction::PassPeeper(4155); // if
     return false;
   }
 
   uint64_t ValueComparedTo = 0;
   if (CmpConstOperand) {
-    PassPrediction::PassPeeper(__FILE__, 4156); // if
+    PassPrediction::PassPeeper(4156); // if
     if (CmpConstOperand->getBitWidth() > 64) {
-      PassPrediction::PassPeeper(__FILE__, 4157); // if
+      PassPrediction::PassPeeper(4157); // if
       return false;
     }
     ValueComparedTo = CmpConstOperand->getZExtValue();
@@ -332,14 +332,14 @@ template <class BrSelInst> static bool handleBrSelExpect(BrSelInst &BSI) {
 
   Function *Fn = CI->getCalledFunction();
   if (!Fn || Fn->getIntrinsicID() != Intrinsic::expect) {
-    PassPrediction::PassPeeper(__FILE__, 4158); // if
+    PassPrediction::PassPeeper(4158); // if
     return false;
   }
 
   Value *ArgValue = CI->getArgOperand(0);
   ConstantInt *ExpectedValue = dyn_cast<ConstantInt>(CI->getArgOperand(1));
   if (!ExpectedValue) {
-    PassPrediction::PassPeeper(__FILE__, 4159); // if
+    PassPrediction::PassPeeper(4159); // if
     return false;
   }
 
@@ -348,20 +348,20 @@ template <class BrSelInst> static bool handleBrSelExpect(BrSelInst &BSI) {
 
   if ((ExpectedValue->getZExtValue() == ValueComparedTo) ==
       (Predicate == CmpInst::ICMP_EQ)) {
-    PassPrediction::PassPeeper(__FILE__, 4160); // if
+    PassPrediction::PassPeeper(4160); // if
     Node = MDB.createBranchWeights(LikelyBranchWeight, UnlikelyBranchWeight);
   } else {
-    PassPrediction::PassPeeper(__FILE__, 4161); // else
+    PassPrediction::PassPeeper(4161); // else
     Node = MDB.createBranchWeights(UnlikelyBranchWeight, LikelyBranchWeight);
   }
 
   BSI.setMetadata(LLVMContext::MD_prof, Node);
 
   if (CmpI) {
-    PassPrediction::PassPeeper(__FILE__, 4162); // if
+    PassPrediction::PassPeeper(4162); // if
     CmpI->setOperand(0, ArgValue);
   } else {
-    PassPrediction::PassPeeper(__FILE__, 4163); // else
+    PassPrediction::PassPeeper(4163); // else
     BSI.setCondition(ArgValue);
   }
   return true;
@@ -369,7 +369,7 @@ template <class BrSelInst> static bool handleBrSelExpect(BrSelInst &BSI) {
 
 static bool handleBranchExpect(BranchInst &BI) {
   if (BI.isUnconditional()) {
-    PassPrediction::PassPeeper(__FILE__, 4164); // if
+    PassPrediction::PassPeeper(4164); // if
     return false;
   }
 
@@ -381,17 +381,17 @@ static bool lowerExpectIntrinsic(Function &F) {
 
   for (BasicBlock &BB : F) {
     // Create "block_weights" metadata.
-    PassPrediction::PassPeeper(__FILE__, 4165); // for-range
+    PassPrediction::PassPeeper(4165); // for-range
     if (BranchInst *BI = dyn_cast<BranchInst>(BB.getTerminator())) {
-      PassPrediction::PassPeeper(__FILE__, 4166); // if
+      PassPrediction::PassPeeper(4166); // if
       if (handleBranchExpect(*BI)) {
-        PassPrediction::PassPeeper(__FILE__, 4167); // if
+        PassPrediction::PassPeeper(4167); // if
         ExpectIntrinsicsHandled++;
       }
     } else if (SwitchInst *SI = dyn_cast<SwitchInst>(BB.getTerminator())) {
-      PassPrediction::PassPeeper(__FILE__, 4168); // if
+      PassPrediction::PassPeeper(4168); // if
       if (handleSwitchExpect(*SI)) {
-        PassPrediction::PassPeeper(__FILE__, 4169); // if
+        PassPrediction::PassPeeper(4169); // if
         ExpectIntrinsicsHandled++;
       }
     }
@@ -400,15 +400,15 @@ static bool lowerExpectIntrinsic(Function &F) {
     // to process select instructions before the intrinsic gets
     // removed.
     for (auto BI = BB.rbegin(), BE = BB.rend(); BI != BE;) {
-      PassPrediction::PassPeeper(__FILE__, 4170); // for
+      PassPrediction::PassPeeper(4170); // for
       Instruction *Inst = &*BI++;
       CallInst *CI = dyn_cast<CallInst>(Inst);
       if (!CI) {
-        PassPrediction::PassPeeper(__FILE__, 4171); // if
+        PassPrediction::PassPeeper(4171); // if
         if (SelectInst *SI = dyn_cast<SelectInst>(Inst)) {
-          PassPrediction::PassPeeper(__FILE__, 4172); // if
+          PassPrediction::PassPeeper(4172); // if
           if (handleBrSelExpect(*SI)) {
-            PassPrediction::PassPeeper(__FILE__, 4173); // if
+            PassPrediction::PassPeeper(4173); // if
             ExpectIntrinsicsHandled++;
           }
         }
@@ -420,7 +420,7 @@ static bool lowerExpectIntrinsic(Function &F) {
         // Before erasing the llvm.expect, walk backward to find
         // phi that define llvm.expect's first arg, and
         // infer branch probability:
-        PassPrediction::PassPeeper(__FILE__, 4174); // if
+        PassPrediction::PassPeeper(4174); // if
         handlePhiDef(CI);
         Value *Exp = CI->getArgOperand(0);
         CI->replaceAllUsesWith(Exp);
@@ -436,7 +436,7 @@ static bool lowerExpectIntrinsic(Function &F) {
 PreservedAnalyses LowerExpectIntrinsicPass::run(Function &F,
                                                 FunctionAnalysisManager &) {
   if (lowerExpectIntrinsic(F)) {
-    PassPrediction::PassPeeper(__FILE__, 4175); // if
+    PassPrediction::PassPeeper(4175); // if
     return PreservedAnalyses::none();
   }
 

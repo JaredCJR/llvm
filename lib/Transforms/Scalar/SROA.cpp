@@ -155,19 +155,19 @@ public:
   /// same start position.
   bool operator<(const Slice &RHS) const {
     if (beginOffset() < RHS.beginOffset()) {
-      PassPrediction::PassPeeper(__FILE__, 705); // if
+      PassPrediction::PassPeeper(705); // if
       return true;
     }
     if (beginOffset() > RHS.beginOffset()) {
-      PassPrediction::PassPeeper(__FILE__, 706); // if
+      PassPrediction::PassPeeper(706); // if
       return false;
     }
     if (isSplittable() != RHS.isSplittable()) {
-      PassPrediction::PassPeeper(__FILE__, 707); // if
+      PassPrediction::PassPeeper(707); // if
       return !isSplittable();
     }
     if (endOffset() > RHS.endOffset()) {
-      PassPrediction::PassPeeper(__FILE__, 708); // if
+      PassPrediction::PassPeeper(708); // if
       return true;
     }
     return false;
@@ -421,7 +421,7 @@ class AllocaSlices::partition_iterator
     // If not already at the end, advance our state to form the initial
     // partition.
     if (SI != SE) {
-      PassPrediction::PassPeeper(__FILE__, 709); // if
+      PassPrediction::PassPeeper(709); // if
       advance();
     }
   }
@@ -435,17 +435,17 @@ class AllocaSlices::partition_iterator
 
     // Clear out any split uses which have ended.
     if (!P.SplitTails.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 710); // if
+      PassPrediction::PassPeeper(710); // if
       if (P.EndOffset >= MaxSplitSliceEndOffset) {
         // If we've finished all splits, this is easy.
-        PassPrediction::PassPeeper(__FILE__, 711); // if
+        PassPrediction::PassPeeper(711); // if
         P.SplitTails.clear();
         MaxSplitSliceEndOffset = 0;
       } else {
         // Remove the uses which have ended in the prior partition. This
         // cannot change the max split slice end because we just checked that
         // the prior partition ended prior to that max.
-        PassPrediction::PassPeeper(__FILE__, 712); // else
+        PassPrediction::PassPeeper(712); // else
         P.SplitTails.erase(
             remove_if(P.SplitTails,
                       [&](Slice *S) { return S->endOffset() <= P.EndOffset; }),
@@ -475,11 +475,11 @@ class AllocaSlices::partition_iterator
     if (P.SI != P.SJ) {
       // Accumulate all the splittable slices which started in the old
       // partition into the split list.
-      PassPrediction::PassPeeper(__FILE__, 713); // if
+      PassPrediction::PassPeeper(713); // if
       for (Slice &S : P) {
-        PassPrediction::PassPeeper(__FILE__, 714); // for-range
+        PassPrediction::PassPeeper(714); // for-range
         if (S.isSplittable() && S.endOffset() > P.EndOffset) {
-          PassPrediction::PassPeeper(__FILE__, 715); // if
+          PassPrediction::PassPeeper(715); // if
           P.SplitTails.push_back(&S);
           MaxSplitSliceEndOffset =
               std::max(S.endOffset(), MaxSplitSliceEndOffset);
@@ -491,7 +491,7 @@ class AllocaSlices::partition_iterator
 
       // If P.SI is now at the end, we at most have a tail of split slices.
       if (P.SI == SE) {
-        PassPrediction::PassPeeper(__FILE__, 716); // if
+        PassPrediction::PassPeeper(716); // if
         P.BeginOffset = P.EndOffset;
         P.EndOffset = MaxSplitSliceEndOffset;
         return;
@@ -502,7 +502,7 @@ class AllocaSlices::partition_iterator
       // slices up until the next slice begins.
       if (!P.SplitTails.empty() && P.SI->beginOffset() != P.EndOffset &&
           !P.SI->isSplittable()) {
-        PassPrediction::PassPeeper(__FILE__, 717); // if
+        PassPrediction::PassPeeper(717); // if
         P.BeginOffset = P.EndOffset;
         P.EndOffset = P.SI->beginOffset();
         return;
@@ -528,9 +528,9 @@ class AllocaSlices::partition_iterator
       // Form a partition including all of the overlapping slices with this
       // unsplittable slice.
       while (P.SJ != SE && P.SJ->beginOffset() < P.EndOffset) {
-        PassPrediction::PassPeeper(__FILE__, 718); // while
+        PassPrediction::PassPeeper(718); // while
         if (!P.SJ->isSplittable()) {
-          PassPrediction::PassPeeper(__FILE__, 719); // if
+          PassPrediction::PassPeeper(719); // if
           P.EndOffset = std::max(P.EndOffset, P.SJ->endOffset());
         }
         ++P.SJ;
@@ -549,7 +549,7 @@ class AllocaSlices::partition_iterator
     // Collect all of the overlapping splittable slices.
     while (P.SJ != SE && P.SJ->beginOffset() < P.EndOffset &&
            P.SJ->isSplittable()) {
-      PassPrediction::PassPeeper(__FILE__, 720); // while
+      PassPrediction::PassPeeper(720); // while
       P.EndOffset = std::max(P.EndOffset, P.SJ->endOffset());
       ++P.SJ;
     }
@@ -609,11 +609,11 @@ static Value *foldSelectInst(SelectInst &SI) {
   // being selected between, fold the select. Yes this does (rarely) happen
   // early on.
   if (ConstantInt *CI = dyn_cast<ConstantInt>(SI.getCondition())) {
-    PassPrediction::PassPeeper(__FILE__, 721); // if
+    PassPrediction::PassPeeper(721); // if
     return SI.getOperand(1 + CI->isZero());
   }
   if (SI.getOperand(1) == SI.getOperand(2)) {
-    PassPrediction::PassPeeper(__FILE__, 722); // if
+    PassPrediction::PassPeeper(722); // if
     return SI.getOperand(1);
   }
 
@@ -624,7 +624,7 @@ static Value *foldSelectInst(SelectInst &SI) {
 static Value *foldPHINodeOrSelectInst(Instruction &I) {
   if (PHINode *PN = dyn_cast<PHINode>(&I)) {
     // If PN merges together the same value, return that value.
-    PassPrediction::PassPeeper(__FILE__, 723); // if
+    PassPrediction::PassPeeper(723); // if
     return PN->hasConstantValue();
   }
   return foldSelectInst(cast<SelectInst>(I));
@@ -656,7 +656,7 @@ public:
 private:
   void markAsDead(Instruction &I) {
     if (VisitedDeadInsts.insert(&I).second) {
-      PassPrediction::PassPeeper(__FILE__, 724); // if
+      PassPrediction::PassPeeper(724); // if
       AS.DeadUsers.push_back(&I);
     }
   }
@@ -697,7 +697,7 @@ private:
 
   void visitBitCastInst(BitCastInst &BC) {
     if (BC.use_empty()) {
-      PassPrediction::PassPeeper(__FILE__, 725); // if
+      PassPrediction::PassPeeper(725); // if
       return markAsDead(BC);
     }
 
@@ -706,7 +706,7 @@ private:
 
   void visitGetElementPtrInst(GetElementPtrInst &GEPI) {
     if (GEPI.use_empty()) {
-      PassPrediction::PassPeeper(__FILE__, 726); // if
+      PassPrediction::PassPeeper(726); // if
       return markAsDead(GEPI);
     }
 
@@ -718,22 +718,22 @@ private:
       // PtrUseVisitor, but it is easier to experiment with SROAStrictInbounds
       // by writing out the code here where we have the underlying allocation
       // size readily available.
-      PassPrediction::PassPeeper(__FILE__, 727); // if
+      PassPrediction::PassPeeper(727); // if
       APInt GEPOffset = Offset;
       const DataLayout &DL = GEPI.getModule()->getDataLayout();
       for (gep_type_iterator GTI = gep_type_begin(GEPI),
                              GTE = gep_type_end(GEPI);
            GTI != GTE; ++GTI) {
-        PassPrediction::PassPeeper(__FILE__, 728); // for
+        PassPrediction::PassPeeper(728); // for
         ConstantInt *OpC = dyn_cast<ConstantInt>(GTI.getOperand());
         if (!OpC) {
-          PassPrediction::PassPeeper(__FILE__, 729); // if
+          PassPrediction::PassPeeper(729); // if
           break;
         }
 
         // Handle a struct index, which adds its field offset to the pointer.
         if (StructType *STy = GTI.getStructTypeOrNull()) {
-          PassPrediction::PassPeeper(__FILE__, 730); // if
+          PassPrediction::PassPeeper(730); // if
           unsigned ElementIdx = OpC->getZExtValue();
           const StructLayout *SL = DL.getStructLayout(STy);
           GEPOffset +=
@@ -741,7 +741,7 @@ private:
         } else {
           // For array or vector indices, scale the index by the size of the
           // type.
-          PassPrediction::PassPeeper(__FILE__, 731); // else
+          PassPrediction::PassPeeper(731); // else
           APInt Index = OpC->getValue().sextOrTrunc(Offset.getBitWidth());
           GEPOffset += Index * APInt(Offset.getBitWidth(),
                                      DL.getTypeAllocSize(GTI.getIndexedType()));
@@ -751,7 +751,7 @@ private:
         // inbounds, then the result of the GEP is a poison value and we can
         // delete it and all uses.
         if (GEPOffset.ugt(AllocSize)) {
-          PassPrediction::PassPeeper(__FILE__, 732); // if
+          PassPrediction::PassPeeper(732); // if
           return markAsDead(GEPI);
         }
       }
@@ -775,7 +775,7 @@ private:
            "All simple FCA loads should have been pre-split");
 
     if (!IsOffsetKnown) {
-      PassPrediction::PassPeeper(__FILE__, 733); // if
+      PassPrediction::PassPeeper(733); // if
       return PI.setAborted(&LI);
     }
 
@@ -787,11 +787,11 @@ private:
   void visitStoreInst(StoreInst &SI) {
     Value *ValOp = SI.getValueOperand();
     if (ValOp == *U) {
-      PassPrediction::PassPeeper(__FILE__, 734); // if
+      PassPrediction::PassPeeper(734); // if
       return PI.setEscapedAndAborted(&SI);
     }
     if (!IsOffsetKnown) {
-      PassPrediction::PassPeeper(__FILE__, 735); // if
+      PassPrediction::PassPeeper(735); // if
       return PI.setAborted(&SI);
     }
 
@@ -825,12 +825,12 @@ private:
     if ((Length && Length->getValue() == 0) ||
         (IsOffsetKnown && Offset.uge(AllocSize))) {
       // Zero-length mem transfer intrinsics can be ignored entirely.
-      PassPrediction::PassPeeper(__FILE__, 736); // if
+      PassPrediction::PassPeeper(736); // if
       return markAsDead(II);
     }
 
     if (!IsOffsetKnown) {
-      PassPrediction::PassPeeper(__FILE__, 737); // if
+      PassPrediction::PassPeeper(737); // if
       return PI.setAborted(&II);
     }
 
@@ -844,19 +844,19 @@ private:
     ConstantInt *Length = dyn_cast<ConstantInt>(II.getLength());
     if (Length && Length->getValue() == 0) {
       // Zero-length mem transfer intrinsics can be ignored entirely.
-      PassPrediction::PassPeeper(__FILE__, 738); // if
+      PassPrediction::PassPeeper(738); // if
       return markAsDead(II);
     }
 
     // Because we can visit these intrinsics twice, also check to see if the
     // first time marked this instruction as dead. If so, skip it.
     if (VisitedDeadInsts.count(&II)) {
-      PassPrediction::PassPeeper(__FILE__, 739); // if
+      PassPrediction::PassPeeper(739); // if
       return;
     }
 
     if (!IsOffsetKnown) {
-      PassPrediction::PassPeeper(__FILE__, 740); // if
+      PassPrediction::PassPeeper(740); // if
       return PI.setAborted(&II);
     }
 
@@ -866,11 +866,11 @@ private:
     // FIXME: Yet another place we really should bypass this when
     // instrumenting for ASan.
     if (Offset.uge(AllocSize)) {
-      PassPrediction::PassPeeper(__FILE__, 741); // if
+      PassPrediction::PassPeeper(741); // if
       SmallDenseMap<Instruction *, unsigned>::iterator MTPI =
           MemTransferSliceMap.find(&II);
       if (MTPI != MemTransferSliceMap.end()) {
-        PassPrediction::PassPeeper(__FILE__, 742); // if
+        PassPrediction::PassPeeper(742); // if
         AS.Slices[MTPI->second].kill();
       }
       return markAsDead(II);
@@ -883,9 +883,9 @@ private:
     // source and dest.
     if (*U == II.getRawDest() && *U == II.getRawSource()) {
       // For non-volatile transfers this is a no-op.
-      PassPrediction::PassPeeper(__FILE__, 743); // if
+      PassPrediction::PassPeeper(743); // if
       if (!II.isVolatile()) {
-        PassPrediction::PassPeeper(__FILE__, 744); // if
+        PassPrediction::PassPeeper(744); // if
         return markAsDead(II);
       }
 
@@ -900,13 +900,13 @@ private:
         MemTransferSliceMap.insert(std::make_pair(&II, AS.Slices.size()));
     unsigned PrevIdx = MTPI->second;
     if (!Inserted) {
-      PassPrediction::PassPeeper(__FILE__, 745); // if
+      PassPrediction::PassPeeper(745); // if
       Slice &PrevP = AS.Slices[PrevIdx];
 
       // Check if the begin offsets match and this is a non-volatile transfer.
       // In that case, we can completely elide the transfer.
       if (!II.isVolatile() && PrevP.beginOffset() == RawOffset) {
-        PassPrediction::PassPeeper(__FILE__, 746); // if
+        PassPrediction::PassPeeper(746); // if
         PrevP.kill();
         return markAsDead(II);
       }
@@ -929,13 +929,13 @@ private:
   // doesn't make sense.
   void visitIntrinsicInst(IntrinsicInst &II) {
     if (!IsOffsetKnown) {
-      PassPrediction::PassPeeper(__FILE__, 747); // if
+      PassPrediction::PassPeeper(747); // if
       return PI.setAborted(&II);
     }
 
     if (II.getIntrinsicID() == Intrinsic::lifetime_start ||
         II.getIntrinsicID() == Intrinsic::lifetime_end) {
-      PassPrediction::PassPeeper(__FILE__, 748); // if
+      PassPrediction::PassPeeper(748); // if
       ConstantInt *Length = cast<ConstantInt>(II.getArgOperand(0));
       uint64_t Size = std::min(AllocSize - Offset.getLimitedValue(),
                                Length->getLimitedValue());
@@ -960,20 +960,20 @@ private:
     // a size zero access.
     Size = 0;
     do {
-      PassPrediction::PassPeeper(__FILE__, 749); // do-while
+      PassPrediction::PassPeeper(749); // do-while
       Instruction *I, *UsedI;
       std::tie(UsedI, I) = Uses.pop_back_val();
 
       if (LoadInst *LI = dyn_cast<LoadInst>(I)) {
-        PassPrediction::PassPeeper(__FILE__, 750); // if
+        PassPrediction::PassPeeper(750); // if
         Size = std::max(Size, DL.getTypeStoreSize(LI->getType()));
         continue;
       }
       if (StoreInst *SI = dyn_cast<StoreInst>(I)) {
-        PassPrediction::PassPeeper(__FILE__, 751); // if
+        PassPrediction::PassPeeper(751); // if
         Value *Op = SI->getOperand(0);
         if (Op == UsedI) {
-          PassPrediction::PassPeeper(__FILE__, 752); // if
+          PassPrediction::PassPeeper(752); // if
           return SI;
         }
         Size = std::max(Size, DL.getTypeStoreSize(Op->getType()));
@@ -981,21 +981,21 @@ private:
       }
 
       if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(I)) {
-        PassPrediction::PassPeeper(__FILE__, 753); // if
+        PassPrediction::PassPeeper(753); // if
         if (!GEP->hasAllZeroIndices()) {
-          PassPrediction::PassPeeper(__FILE__, 754); // if
+          PassPrediction::PassPeeper(754); // if
           return GEP;
         }
       } else if (!isa<BitCastInst>(I) && !isa<PHINode>(I) &&
                  !isa<SelectInst>(I)) {
-        PassPrediction::PassPeeper(__FILE__, 755); // if
+        PassPrediction::PassPeeper(755); // if
         return I;
       }
 
       for (User *U : I->users()) {
-        PassPrediction::PassPeeper(__FILE__, 756); // for-range
+        PassPrediction::PassPeeper(756); // for-range
         if (Visited.insert(cast<Instruction>(U)).second) {
-          PassPrediction::PassPeeper(__FILE__, 757); // if
+          PassPrediction::PassPeeper(757); // if
           Uses.push_back(std::make_pair(I, cast<Instruction>(U)));
         }
       }
@@ -1007,7 +1007,7 @@ private:
   void visitPHINodeOrSelectInst(Instruction &I) {
     assert(isa<PHINode>(I) || isa<SelectInst>(I));
     if (I.use_empty()) {
-      PassPrediction::PassPeeper(__FILE__, 758); // if
+      PassPrediction::PassPeeper(758); // if
       return markAsDead(I);
     }
 
@@ -1020,16 +1020,16 @@ private:
     // %other)" may trap because the select may return the first operand
     // "undef".
     if (Value *Result = foldPHINodeOrSelectInst(I)) {
-      PassPrediction::PassPeeper(__FILE__, 759); // if
+      PassPrediction::PassPeeper(759); // if
       if (Result == *U) {
         // If the result of the constant fold will be the pointer, recurse
         // through the PHI/select as if we had RAUW'ed it.
-        PassPrediction::PassPeeper(__FILE__, 760); // if
+        PassPrediction::PassPeeper(760); // if
         enqueueUsers(I);
       } else {
         // Otherwise the operand to the PHI/select is dead, and we can replace
         // it with undef.
-        PassPrediction::PassPeeper(__FILE__, 761); // else
+        PassPrediction::PassPeeper(761); // else
         AS.DeadOperands.push_back(U);
       }
 
@@ -1037,7 +1037,7 @@ private:
     }
 
     if (!IsOffsetKnown) {
-      PassPrediction::PassPeeper(__FILE__, 762); // if
+      PassPrediction::PassPeeper(762); // if
       return PI.setAborted(&I);
     }
 
@@ -1045,9 +1045,9 @@ private:
     uint64_t &Size = PHIOrSelectSizes[&I];
     if (!Size) {
       // This is a new PHI/Select, check for an unsafe use of it.
-      PassPrediction::PassPeeper(__FILE__, 763); // if
+      PassPrediction::PassPeeper(763); // if
       if (Instruction *UnsafeI = hasUnsafePHIOrSelectUse(&I, Size)) {
-        PassPrediction::PassPeeper(__FILE__, 764); // if
+        PassPrediction::PassPeeper(764); // if
         return PI.setAborted(UnsafeI);
       }
     }
@@ -1059,7 +1059,7 @@ private:
     // FIXME: This should instead be escaped in the event we're instrumenting
     // for address sanitization.
     if (Offset.uge(AllocSize)) {
-      PassPrediction::PassPeeper(__FILE__, 765); // if
+      PassPrediction::PassPeeper(765); // if
       AS.DeadOperands.push_back(U);
       return;
     }
@@ -1086,7 +1086,7 @@ AllocaSlices::AllocaSlices(const DataLayout &DL, AllocaInst &AI)
   if (PtrI.isEscaped() || PtrI.isAborted()) {
     // FIXME: We should sink the escape vs. abort info into the caller nicely,
     // possibly by just storing the PtrInfo in the AllocaSlices.
-    PassPrediction::PassPeeper(__FILE__, 766); // if
+    PassPrediction::PassPeeper(766); // if
     PointerEscapingInstr = PtrI.getEscapingInst() ? PtrI.getEscapingInst()
                                                   : PtrI.getAbortingInst();
     assert(PointerEscapingInstr && "Did not track a bad instruction");
@@ -1098,7 +1098,7 @@ AllocaSlices::AllocaSlices(const DataLayout &DL, AllocaInst &AI)
 
 #ifndef NDEBUG
   if (SROARandomShuffleSlices) {
-    PassPrediction::PassPeeper(__FILE__, 767); // if
+    PassPrediction::PassPeeper(767); // if
     std::mt19937 MT(static_cast<unsigned>(
         std::chrono::system_clock::now().time_since_epoch().count()));
     std::shuffle(Slices.begin(), Slices.end(), MT);
@@ -1133,7 +1133,7 @@ void AllocaSlices::printUse(raw_ostream &OS, const_iterator I,
 
 void AllocaSlices::print(raw_ostream &OS) const {
   if (PointerEscapingInstr) {
-    PassPrediction::PassPeeper(__FILE__, 768); // if
+    PassPrediction::PassPeeper(768); // if
     OS << "Can't analyze slices for alloca: " << AI << "\n"
        << "  A pointer to this alloca escaped by:\n"
        << "  " << *PointerEscapingInstr << "\n";
@@ -1142,7 +1142,7 @@ void AllocaSlices::print(raw_ostream &OS) const {
 
   OS << "Slices of alloca: " << AI << "\n";
   for (const_iterator I = begin(), E = end(); I != E; ++I) {
-    PassPrediction::PassPeeper(__FILE__, 769); // for
+    PassPrediction::PassPeeper(769); // for
     print(OS, I);
   }
 }
@@ -1166,23 +1166,23 @@ static Type *findCommonType(AllocaSlices::const_iterator B,
   // Note that we need to look at *every* alloca slice's Use to ensure we
   // always get consistent results regardless of the order of slices.
   for (AllocaSlices::const_iterator I = B; I != E; ++I) {
-    PassPrediction::PassPeeper(__FILE__, 770); // for
+    PassPrediction::PassPeeper(770); // for
     Use *U = I->getUse();
     if (isa<IntrinsicInst>(*U->getUser())) {
-      PassPrediction::PassPeeper(__FILE__, 771); // if
+      PassPrediction::PassPeeper(771); // if
       continue;
     }
     if (I->beginOffset() != B->beginOffset() || I->endOffset() != EndOffset) {
-      PassPrediction::PassPeeper(__FILE__, 772); // if
+      PassPrediction::PassPeeper(772); // if
       continue;
     }
 
     Type *UserTy = nullptr;
     if (LoadInst *LI = dyn_cast<LoadInst>(U->getUser())) {
-      PassPrediction::PassPeeper(__FILE__, 773); // if
+      PassPrediction::PassPeeper(773); // if
       UserTy = LI->getType();
     } else if (StoreInst *SI = dyn_cast<StoreInst>(U->getUser())) {
-      PassPrediction::PassPeeper(__FILE__, 774); // if
+      PassPrediction::PassPeeper(774); // if
       UserTy = SI->getValueOperand()->getType();
     }
 
@@ -1191,17 +1191,17 @@ static Type *findCommonType(AllocaSlices::const_iterator B,
       // this for split integer operations where we want to use the type of the
       // entity causing the split. Also skip if the type is not a byte width
       // multiple.
-      PassPrediction::PassPeeper(__FILE__, 775); // if
+      PassPrediction::PassPeeper(775); // if
       if (UserITy->getBitWidth() % 8 != 0 ||
           UserITy->getBitWidth() / 8 > (EndOffset - B->beginOffset())) {
-        PassPrediction::PassPeeper(__FILE__, 776); // if
+        PassPrediction::PassPeeper(776); // if
         continue;
       }
 
       // Track the largest bitwidth integer type used in this way in case there
       // is no common type.
       if (!ITy || ITy->getBitWidth() < UserITy->getBitWidth()) {
-        PassPrediction::PassPeeper(__FILE__, 777); // if
+        PassPrediction::PassPeeper(777); // if
         ITy = UserITy;
       }
     }
@@ -1209,10 +1209,10 @@ static Type *findCommonType(AllocaSlices::const_iterator B,
     // To avoid depending on the order of slices, Ty and TyIsCommon must not
     // depend on types skipped above.
     if (!UserTy || (Ty && Ty != UserTy)) {
-      PassPrediction::PassPeeper(__FILE__, 778); // if
-      TyIsCommon = false; // Give up on anything but an iN type.
+      PassPrediction::PassPeeper(778); // if
+      TyIsCommon = false;              // Give up on anything but an iN type.
     } else {
-      PassPrediction::PassPeeper(__FILE__, 779); // else
+      PassPrediction::PassPeeper(779); // else
       Ty = UserTy;
     }
   }
@@ -1247,10 +1247,10 @@ static bool isSafePHIToSpeculate(PHINode &PN) {
   unsigned MaxAlign = 0;
   bool HaveLoad = false;
   for (User *U : PN.users()) {
-    PassPrediction::PassPeeper(__FILE__, 780); // for-range
+    PassPrediction::PassPeeper(780); // for-range
     LoadInst *LI = dyn_cast<LoadInst>(U);
     if (!LI || !LI->isSimple()) {
-      PassPrediction::PassPeeper(__FILE__, 781); // if
+      PassPrediction::PassPeeper(781); // if
       return false;
     }
 
@@ -1258,16 +1258,16 @@ static bool isSafePHIToSpeculate(PHINode &PN) {
     // a common case that happens when instcombine merges two loads through
     // a PHI.
     if (LI->getParent() != BB) {
-      PassPrediction::PassPeeper(__FILE__, 782); // if
+      PassPrediction::PassPeeper(782); // if
       return false;
     }
 
     // Ensure that there are no instructions between the PHI and the load that
     // could store.
     for (BasicBlock::iterator BBI(PN); &*BBI != LI; ++BBI) {
-      PassPrediction::PassPeeper(__FILE__, 783); // for
+      PassPrediction::PassPeeper(783); // for
       if (BBI->mayWriteToMemory()) {
-        PassPrediction::PassPeeper(__FILE__, 784); // if
+        PassPrediction::PassPeeper(784); // if
         return false;
       }
     }
@@ -1277,7 +1277,7 @@ static bool isSafePHIToSpeculate(PHINode &PN) {
   }
 
   if (!HaveLoad) {
-    PassPrediction::PassPeeper(__FILE__, 785); // if
+    PassPrediction::PassPeeper(785); // if
     return false;
   }
 
@@ -1287,7 +1287,7 @@ static bool isSafePHIToSpeculate(PHINode &PN) {
   // predecessor blocks. The only thing to watch out for is that we can't put
   // a possibly trapping load in the predecessor if it is a critical edge.
   for (unsigned Idx = 0, Num = PN.getNumIncomingValues(); Idx != Num; ++Idx) {
-    PassPrediction::PassPeeper(__FILE__, 786); // for
+    PassPrediction::PassPeeper(786); // for
     TerminatorInst *TI = PN.getIncomingBlock(Idx)->getTerminator();
     Value *InVal = PN.getIncomingValue(Idx);
 
@@ -1295,14 +1295,14 @@ static bool isSafePHIToSpeculate(PHINode &PN) {
     // invoke) or it has side-effects, there is no valid place to put a load
     // in the predecessor.
     if (TI == InVal || TI->mayHaveSideEffects()) {
-      PassPrediction::PassPeeper(__FILE__, 787); // if
+      PassPrediction::PassPeeper(787); // if
       return false;
     }
 
     // If the predecessor has a single successor, then the edge isn't
     // critical.
     if (TI->getNumSuccessors() == 1) {
-      PassPrediction::PassPeeper(__FILE__, 788); // if
+      PassPrediction::PassPeeper(788); // if
       continue;
     }
 
@@ -1310,7 +1310,7 @@ static bool isSafePHIToSpeculate(PHINode &PN) {
     // is already a load in the block, then we can move the load to the pred
     // block.
     if (isSafeToLoadUnconditionally(InVal, MaxAlign, DL, TI)) {
-      PassPrediction::PassPeeper(__FILE__, 789); // if
+      PassPrediction::PassPeeper(789); // if
       continue;
     }
 
@@ -1338,7 +1338,7 @@ static void speculatePHINodeLoads(PHINode &PN) {
 
   // Rewrite all loads of the PN to use the new PHI.
   while (!PN.use_empty()) {
-    PassPrediction::PassPeeper(__FILE__, 790); // while
+    PassPrediction::PassPeeper(790); // while
     LoadInst *LI = cast<LoadInst>(PN.user_back());
     LI->replaceAllUsesWith(NewPN);
     LI->eraseFromParent();
@@ -1346,7 +1346,7 @@ static void speculatePHINodeLoads(PHINode &PN) {
 
   // Inject loads into all of the pred blocks.
   for (unsigned Idx = 0, Num = PN.getNumIncomingValues(); Idx != Num; ++Idx) {
-    PassPrediction::PassPeeper(__FILE__, 791); // for
+    PassPrediction::PassPeeper(791); // for
     BasicBlock *Pred = PN.getIncomingBlock(Idx);
     TerminatorInst *TI = Pred->getTerminator();
     Value *InVal = PN.getIncomingValue(Idx);
@@ -1357,7 +1357,7 @@ static void speculatePHINodeLoads(PHINode &PN) {
     ++NumLoadsSpeculated;
     Load->setAlignment(Align);
     if (AATags) {
-      PassPrediction::PassPeeper(__FILE__, 792); // if
+      PassPrediction::PassPeeper(792); // if
       Load->setAAMetadata(AATags);
     }
     NewPN->addIncoming(Load, Pred);
@@ -1386,10 +1386,10 @@ static bool isSafeSelectToSpeculate(SelectInst &SI) {
   const DataLayout &DL = SI.getModule()->getDataLayout();
 
   for (User *U : SI.users()) {
-    PassPrediction::PassPeeper(__FILE__, 793); // for-range
+    PassPrediction::PassPeeper(793); // for-range
     LoadInst *LI = dyn_cast<LoadInst>(U);
     if (!LI || !LI->isSimple()) {
-      PassPrediction::PassPeeper(__FILE__, 794); // if
+      PassPrediction::PassPeeper(794); // if
       return false;
     }
 
@@ -1397,11 +1397,11 @@ static bool isSafeSelectToSpeculate(SelectInst &SI) {
     // absolutely (e.g. allocas) or at this point because we can see other
     // accesses to it.
     if (!isSafeToLoadUnconditionally(TValue, LI->getAlignment(), DL, LI)) {
-      PassPrediction::PassPeeper(__FILE__, 795); // if
+      PassPrediction::PassPeeper(795); // if
       return false;
     }
     if (!isSafeToLoadUnconditionally(FValue, LI->getAlignment(), DL, LI)) {
-      PassPrediction::PassPeeper(__FILE__, 796); // if
+      PassPrediction::PassPeeper(796); // if
       return false;
     }
   }
@@ -1417,7 +1417,7 @@ static void speculateSelectInstLoads(SelectInst &SI) {
   Value *FV = SI.getFalseValue();
   // Replace the loads of the select with a select of two loads.
   while (!SI.use_empty()) {
-    PassPrediction::PassPeeper(__FILE__, 797); // while
+    PassPrediction::PassPeeper(797); // while
     LoadInst *LI = cast<LoadInst>(SI.user_back());
     assert(LI->isSimple() && "We only speculate simple loads");
 
@@ -1435,7 +1435,7 @@ static void speculateSelectInstLoads(SelectInst &SI) {
     AAMDNodes Tags;
     LI->getAAMetadata(Tags);
     if (Tags) {
-      PassPrediction::PassPeeper(__FILE__, 798); // if
+      PassPrediction::PassPeeper(798); // if
       TL->setAAMetadata(Tags);
       FL->setAAMetadata(Tags);
     }
@@ -1457,14 +1457,14 @@ static void speculateSelectInstLoads(SelectInst &SI) {
 static Value *buildGEP(IRBuilderTy &IRB, Value *BasePtr,
                        SmallVectorImpl<Value *> &Indices, Twine NamePrefix) {
   if (Indices.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 799); // if
+    PassPrediction::PassPeeper(799); // if
     return BasePtr;
   }
 
   // A single zero index is a no-op, so check for this and avoid building a GEP
   // in that case.
   if (Indices.size() == 1 && cast<ConstantInt>(Indices.back())->isZero()) {
-    PassPrediction::PassPeeper(__FILE__, 800); // if
+    PassPrediction::PassPeeper(800); // if
     return BasePtr;
   }
 
@@ -1486,7 +1486,7 @@ static Value *getNaturalGEPWithType(IRBuilderTy &IRB, const DataLayout &DL,
                                     SmallVectorImpl<Value *> &Indices,
                                     Twine NamePrefix) {
   if (Ty == TargetTy) {
-    PassPrediction::PassPeeper(__FILE__, 801); // if
+    PassPrediction::PassPeeper(801); // if
     return buildGEP(IRB, BasePtr, Indices, NamePrefix);
   }
 
@@ -1498,36 +1498,36 @@ static Value *getNaturalGEPWithType(IRBuilderTy &IRB, const DataLayout &DL,
   unsigned NumLayers = 0;
   Type *ElementTy = Ty;
   do {
-    PassPrediction::PassPeeper(__FILE__, 802); // do-while
+    PassPrediction::PassPeeper(802); // do-while
     if (ElementTy->isPointerTy()) {
-      PassPrediction::PassPeeper(__FILE__, 803); // if
+      PassPrediction::PassPeeper(803); // if
       break;
     }
 
     if (ArrayType *ArrayTy = dyn_cast<ArrayType>(ElementTy)) {
-      PassPrediction::PassPeeper(__FILE__, 804); // if
+      PassPrediction::PassPeeper(804); // if
       ElementTy = ArrayTy->getElementType();
       Indices.push_back(IRB.getIntN(PtrSize, 0));
     } else if (VectorType *VectorTy = dyn_cast<VectorType>(ElementTy)) {
-      PassPrediction::PassPeeper(__FILE__, 805); // if
+      PassPrediction::PassPeeper(805); // if
       ElementTy = VectorTy->getElementType();
       Indices.push_back(IRB.getInt32(0));
     } else if (StructType *STy = dyn_cast<StructType>(ElementTy)) {
-      PassPrediction::PassPeeper(__FILE__, 806); // if
+      PassPrediction::PassPeeper(806); // if
       if (STy->element_begin() == STy->element_end()) {
-        PassPrediction::PassPeeper(__FILE__, 808); // if
-        break; // Nothing left to descend into.
+        PassPrediction::PassPeeper(808); // if
+        break;                           // Nothing left to descend into.
       }
       ElementTy = *STy->element_begin();
       Indices.push_back(IRB.getInt32(0));
     } else {
-      PassPrediction::PassPeeper(__FILE__, 807); // else
+      PassPrediction::PassPeeper(807); // else
       break;
     }
     ++NumLayers;
   } while (ElementTy != TargetTy);
   if (ElementTy != TargetTy) {
-    PassPrediction::PassPeeper(__FILE__, 809); // if
+    PassPrediction::PassPeeper(809); // if
     Indices.erase(Indices.end() - NumLayers, Indices.end());
   }
 
@@ -1544,14 +1544,14 @@ static Value *getNaturalGEPRecursively(IRBuilderTy &IRB, const DataLayout &DL,
                                        SmallVectorImpl<Value *> &Indices,
                                        Twine NamePrefix) {
   if (Offset == 0) {
-    PassPrediction::PassPeeper(__FILE__, 810); // if
+    PassPrediction::PassPeeper(810); // if
     return getNaturalGEPWithType(IRB, DL, Ptr, Ty, TargetTy, Indices,
                                  NamePrefix);
   }
 
   // We can't recurse through pointer types.
   if (Ty->isPointerTy()) {
-    PassPrediction::PassPeeper(__FILE__, 811); // if
+    PassPrediction::PassPeeper(811); // if
     return nullptr;
   }
 
@@ -1559,17 +1559,17 @@ static Value *getNaturalGEPRecursively(IRBuilderTy &IRB, const DataLayout &DL,
   // extremely poorly defined currently. The long-term goal is to remove GEPing
   // over a vector from the IR completely.
   if (VectorType *VecTy = dyn_cast<VectorType>(Ty)) {
-    PassPrediction::PassPeeper(__FILE__, 812); // if
+    PassPrediction::PassPeeper(812); // if
     unsigned ElementSizeInBits = DL.getTypeSizeInBits(VecTy->getScalarType());
     if (ElementSizeInBits % 8 != 0) {
       // GEPs over non-multiple of 8 size vector elements are invalid.
-      PassPrediction::PassPeeper(__FILE__, 813); // if
+      PassPrediction::PassPeeper(813); // if
       return nullptr;
     }
     APInt ElementSize(Offset.getBitWidth(), ElementSizeInBits / 8);
     APInt NumSkippedElements = Offset.sdiv(ElementSize);
     if (NumSkippedElements.ugt(VecTy->getNumElements())) {
-      PassPrediction::PassPeeper(__FILE__, 814); // if
+      PassPrediction::PassPeeper(814); // if
       return nullptr;
     }
     Offset -= NumSkippedElements * ElementSize;
@@ -1579,12 +1579,12 @@ static Value *getNaturalGEPRecursively(IRBuilderTy &IRB, const DataLayout &DL,
   }
 
   if (ArrayType *ArrTy = dyn_cast<ArrayType>(Ty)) {
-    PassPrediction::PassPeeper(__FILE__, 815); // if
+    PassPrediction::PassPeeper(815); // if
     Type *ElementTy = ArrTy->getElementType();
     APInt ElementSize(Offset.getBitWidth(), DL.getTypeAllocSize(ElementTy));
     APInt NumSkippedElements = Offset.sdiv(ElementSize);
     if (NumSkippedElements.ugt(ArrTy->getNumElements())) {
-      PassPrediction::PassPeeper(__FILE__, 816); // if
+      PassPrediction::PassPeeper(816); // if
       return nullptr;
     }
 
@@ -1596,21 +1596,21 @@ static Value *getNaturalGEPRecursively(IRBuilderTy &IRB, const DataLayout &DL,
 
   StructType *STy = dyn_cast<StructType>(Ty);
   if (!STy) {
-    PassPrediction::PassPeeper(__FILE__, 817); // if
+    PassPrediction::PassPeeper(817); // if
     return nullptr;
   }
 
   const StructLayout *SL = DL.getStructLayout(STy);
   uint64_t StructOffset = Offset.getZExtValue();
   if (StructOffset >= SL->getSizeInBytes()) {
-    PassPrediction::PassPeeper(__FILE__, 818); // if
+    PassPrediction::PassPeeper(818); // if
     return nullptr;
   }
   unsigned Index = SL->getElementContainingOffset(StructOffset);
   Offset -= APInt(Offset.getBitWidth(), SL->getElementOffset(Index));
   Type *ElementTy = STy->getElementType(Index);
   if (Offset.uge(DL.getTypeAllocSize(ElementTy))) {
-    PassPrediction::PassPeeper(__FILE__, 819); // if
+    PassPrediction::PassPeeper(819); // if
     return nullptr; // The offset points into alignment padding.
   }
 
@@ -1639,18 +1639,18 @@ static Value *getNaturalGEPWithOffset(IRBuilderTy &IRB, const DataLayout &DL,
   // an i8.
   if (Ty == IRB.getInt8PtrTy(Ty->getAddressSpace()) &&
       TargetTy->isIntegerTy(8)) {
-    PassPrediction::PassPeeper(__FILE__, 820); // if
+    PassPrediction::PassPeeper(820); // if
     return nullptr;
   }
 
   Type *ElementTy = Ty->getElementType();
   if (!ElementTy->isSized()) {
-    PassPrediction::PassPeeper(__FILE__, 821); // if
-    return nullptr; // We can't GEP through an unsized element.
+    PassPrediction::PassPeeper(821); // if
+    return nullptr;                  // We can't GEP through an unsized element.
   }
   APInt ElementSize(Offset.getBitWidth(), DL.getTypeAllocSize(ElementTy));
   if (ElementSize == 0) {
-    PassPrediction::PassPeeper(__FILE__, 822); // if
+    PassPrediction::PassPeeper(822); // if
     return nullptr; // Zero-length arrays can't help us build a natural GEP.
   }
   APInt NumSkippedElements = Offset.sdiv(ElementSize);
@@ -1699,18 +1699,18 @@ static Value *getAdjustedPtr(IRBuilderTy &IRB, const DataLayout &DL, Value *Ptr,
 
   do {
     // First fold any existing GEPs into the offset.
-    PassPrediction::PassPeeper(__FILE__, 823); // do-while
+    PassPrediction::PassPeeper(823); // do-while
     while (GEPOperator *GEP = dyn_cast<GEPOperator>(Ptr)) {
-      PassPrediction::PassPeeper(__FILE__, 824); // while
+      PassPrediction::PassPeeper(824); // while
       APInt GEPOffset(Offset.getBitWidth(), 0);
       if (!GEP->accumulateConstantOffset(DL, GEPOffset)) {
-        PassPrediction::PassPeeper(__FILE__, 825); // if
+        PassPrediction::PassPeeper(825); // if
         break;
       }
       Offset += GEPOffset;
       Ptr = GEP->getPointerOperand();
       if (!Visited.insert(Ptr).second) {
-        PassPrediction::PassPeeper(__FILE__, 826); // if
+        PassPrediction::PassPeeper(826); // if
         break;
       }
     }
@@ -1722,9 +1722,9 @@ static Value *getAdjustedPtr(IRBuilderTy &IRB, const DataLayout &DL, Value *Ptr,
       // If we have a new natural pointer at the offset, clear out any old
       // offset pointer we computed. Unless it is the base pointer or
       // a non-instruction, we built a GEP we don't need. Zap it.
-      PassPrediction::PassPeeper(__FILE__, 827); // if
+      PassPrediction::PassPeeper(827); // if
       if (OffsetPtr && OffsetPtr != OffsetBasePtr) {
-        PassPrediction::PassPeeper(__FILE__, 828); // if
+        PassPrediction::PassPeeper(828); // if
         if (Instruction *I = dyn_cast<Instruction>(OffsetPtr)) {
           assert(I->use_empty() && "Built a GEP with uses some how!");
           I->eraseFromParent();
@@ -1734,40 +1734,40 @@ static Value *getAdjustedPtr(IRBuilderTy &IRB, const DataLayout &DL, Value *Ptr,
       OffsetBasePtr = Ptr;
       // If we also found a pointer of the right type, we're done.
       if (P->getType() == PointerTy) {
-        PassPrediction::PassPeeper(__FILE__, 829); // if
+        PassPrediction::PassPeeper(829); // if
         return P;
       }
     }
 
     // Stash this pointer if we've found an i8*.
     if (Ptr->getType()->isIntegerTy(8)) {
-      PassPrediction::PassPeeper(__FILE__, 830); // if
+      PassPrediction::PassPeeper(830); // if
       Int8Ptr = Ptr;
       Int8PtrOffset = Offset;
     }
 
     // Peel off a layer of the pointer and update the offset appropriately.
     if (Operator::getOpcode(Ptr) == Instruction::BitCast) {
-      PassPrediction::PassPeeper(__FILE__, 831); // if
+      PassPrediction::PassPeeper(831); // if
       Ptr = cast<Operator>(Ptr)->getOperand(0);
     } else if (GlobalAlias *GA = dyn_cast<GlobalAlias>(Ptr)) {
-      PassPrediction::PassPeeper(__FILE__, 832); // if
+      PassPrediction::PassPeeper(832); // if
       if (GA->isInterposable()) {
-        PassPrediction::PassPeeper(__FILE__, 834); // if
+        PassPrediction::PassPeeper(834); // if
         break;
       }
       Ptr = GA->getAliasee();
     } else {
-      PassPrediction::PassPeeper(__FILE__, 833); // else
+      PassPrediction::PassPeeper(833); // else
       break;
     }
     assert(Ptr->getType()->isPointerTy() && "Unexpected operand type!");
   } while (Visited.insert(Ptr).second);
 
   if (!OffsetPtr) {
-    PassPrediction::PassPeeper(__FILE__, 835); // if
+    PassPrediction::PassPeeper(835); // if
     if (!Int8Ptr) {
-      PassPrediction::PassPeeper(__FILE__, 836); // if
+      PassPrediction::PassPeeper(836); // if
       Int8Ptr = IRB.CreateBitCast(
           Ptr, IRB.getInt8PtrTy(PointerTy->getPointerAddressSpace()),
           NamePrefix + "sroa_raw_cast");
@@ -1784,7 +1784,7 @@ static Value *getAdjustedPtr(IRBuilderTy &IRB, const DataLayout &DL, Value *Ptr,
 
   // On the off chance we were targeting i8*, guard the bitcast here.
   if (Ptr->getType() != PointerTy) {
-    PassPrediction::PassPeeper(__FILE__, 837); // if
+    PassPrediction::PassPeeper(837); // if
     Ptr = IRB.CreateBitCast(Ptr, PointerTy, NamePrefix + "sroa_cast");
   }
 
@@ -1797,11 +1797,11 @@ static unsigned getAdjustedAlignment(Instruction *I, uint64_t Offset,
   unsigned Alignment;
   Type *Ty;
   if (auto *LI = dyn_cast<LoadInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 838); // if
+    PassPrediction::PassPeeper(838); // if
     Alignment = LI->getAlignment();
     Ty = LI->getType();
   } else if (auto *SI = dyn_cast<StoreInst>(I)) {
-    PassPrediction::PassPeeper(__FILE__, 839); // if
+    PassPrediction::PassPeeper(839); // if
     Alignment = SI->getAlignment();
     Ty = SI->getValueOperand()->getType();
   } else {
@@ -1809,7 +1809,7 @@ static unsigned getAdjustedAlignment(Instruction *I, uint64_t Offset,
   }
 
   if (!Alignment) {
-    PassPrediction::PassPeeper(__FILE__, 840); // if
+    PassPrediction::PassPeeper(840); // if
     Alignment = DL.getABITypeAlignment(Ty);
   }
 
@@ -1824,7 +1824,7 @@ static unsigned getAdjustedAlignment(Instruction *I, uint64_t Offset,
 /// underlying value, and convert that value.
 static bool canConvertValue(const DataLayout &DL, Type *OldTy, Type *NewTy) {
   if (OldTy == NewTy) {
-    PassPrediction::PassPeeper(__FILE__, 841); // if
+    PassPrediction::PassPeeper(841); // if
     return true;
   }
 
@@ -1839,11 +1839,11 @@ static bool canConvertValue(const DataLayout &DL, Type *OldTy, Type *NewTy) {
   }
 
   if (DL.getTypeSizeInBits(NewTy) != DL.getTypeSizeInBits(OldTy)) {
-    PassPrediction::PassPeeper(__FILE__, 842); // if
+    PassPrediction::PassPeeper(842); // if
     return false;
   }
   if (!NewTy->isSingleValueType() || !OldTy->isSingleValueType()) {
-    PassPrediction::PassPeeper(__FILE__, 843); // if
+    PassPrediction::PassPeeper(843); // if
     return false;
   }
 
@@ -1852,9 +1852,9 @@ static bool canConvertValue(const DataLayout &DL, Type *OldTy, Type *NewTy) {
   OldTy = OldTy->getScalarType();
   NewTy = NewTy->getScalarType();
   if (NewTy->isPointerTy() || OldTy->isPointerTy()) {
-    PassPrediction::PassPeeper(__FILE__, 844); // if
+    PassPrediction::PassPeeper(844); // if
     if (NewTy->isPointerTy() && OldTy->isPointerTy()) {
-      PassPrediction::PassPeeper(__FILE__, 845); // if
+      PassPrediction::PassPeeper(845); // if
       return cast<PointerType>(NewTy)->getPointerAddressSpace() ==
              cast<PointerType>(OldTy)->getPointerAddressSpace();
     }
@@ -1862,14 +1862,14 @@ static bool canConvertValue(const DataLayout &DL, Type *OldTy, Type *NewTy) {
     // We can convert integers to integral pointers, but not to non-integral
     // pointers.
     if (OldTy->isIntegerTy()) {
-      PassPrediction::PassPeeper(__FILE__, 846); // if
+      PassPrediction::PassPeeper(846); // if
       return !DL.isNonIntegralPointerType(NewTy);
     }
 
     // We can convert integral pointers to integers, but non-integral pointers
     // need to remain pointers.
     if (!DL.isNonIntegralPointerType(OldTy)) {
-      PassPrediction::PassPeeper(__FILE__, 847); // if
+      PassPrediction::PassPeeper(847); // if
       return NewTy->isIntegerTy();
     }
 
@@ -1891,7 +1891,7 @@ static Value *convertValue(const DataLayout &DL, IRBuilderTy &IRB, Value *V,
   assert(canConvertValue(DL, OldTy, NewTy) && "Value not convertable to type");
 
   if (OldTy == NewTy) {
-    PassPrediction::PassPeeper(__FILE__, 848); // if
+    PassPrediction::PassPeeper(848); // if
     return V;
   }
 
@@ -1902,16 +1902,16 @@ static Value *convertValue(const DataLayout &DL, IRBuilderTy &IRB, Value *V,
   // and vectors requires and additional bitcast.
   if (OldTy->isIntOrIntVectorTy() && NewTy->isPtrOrPtrVectorTy()) {
     // Expand <2 x i32> to i8* --> <2 x i32> to i64 to i8*
-    PassPrediction::PassPeeper(__FILE__, 849); // if
+    PassPrediction::PassPeeper(849); // if
     if (OldTy->isVectorTy() && !NewTy->isVectorTy()) {
-      PassPrediction::PassPeeper(__FILE__, 850); // if
+      PassPrediction::PassPeeper(850); // if
       return IRB.CreateIntToPtr(IRB.CreateBitCast(V, DL.getIntPtrType(NewTy)),
                                 NewTy);
     }
 
     // Expand i128 to <2 x i8*> --> i128 to <2 x i64> to <2 x i8*>
     if (!OldTy->isVectorTy() && NewTy->isVectorTy()) {
-      PassPrediction::PassPeeper(__FILE__, 851); // if
+      PassPrediction::PassPeeper(851); // if
       return IRB.CreateIntToPtr(IRB.CreateBitCast(V, DL.getIntPtrType(NewTy)),
                                 NewTy);
     }
@@ -1923,16 +1923,16 @@ static Value *convertValue(const DataLayout &DL, IRBuilderTy &IRB, Value *V,
   // and vectors requires and additional bitcast.
   if (OldTy->isPtrOrPtrVectorTy() && NewTy->isIntOrIntVectorTy()) {
     // Expand <2 x i8*> to i128 --> <2 x i8*> to <2 x i64> to i128
-    PassPrediction::PassPeeper(__FILE__, 852); // if
+    PassPrediction::PassPeeper(852); // if
     if (OldTy->isVectorTy() && !NewTy->isVectorTy()) {
-      PassPrediction::PassPeeper(__FILE__, 853); // if
+      PassPrediction::PassPeeper(853); // if
       return IRB.CreateBitCast(IRB.CreatePtrToInt(V, DL.getIntPtrType(OldTy)),
                                NewTy);
     }
 
     // Expand i8* to <2 x i32> --> i8* to i64 to <2 x i32>
     if (!OldTy->isVectorTy() && NewTy->isVectorTy()) {
-      PassPrediction::PassPeeper(__FILE__, 854); // if
+      PassPrediction::PassPeeper(854); // if
       return IRB.CreateBitCast(IRB.CreatePtrToInt(V, DL.getIntPtrType(OldTy)),
                                NewTy);
     }
@@ -1957,13 +1957,13 @@ static bool isVectorPromotionViableForSlice(Partition &P, const Slice &S,
   uint64_t BeginIndex = BeginOffset / ElementSize;
   if (BeginIndex * ElementSize != BeginOffset ||
       BeginIndex >= Ty->getNumElements()) {
-    PassPrediction::PassPeeper(__FILE__, 855); // if
+    PassPrediction::PassPeeper(855); // if
     return false;
   }
   uint64_t EndOffset = std::min(S.endOffset(), P.endOffset()) - P.beginOffset();
   uint64_t EndIndex = EndOffset / ElementSize;
   if (EndIndex * ElementSize != EndOffset || EndIndex > Ty->getNumElements()) {
-    PassPrediction::PassPeeper(__FILE__, 856); // if
+    PassPrediction::PassPeeper(856); // if
     return false;
   }
 
@@ -1979,30 +1979,30 @@ static bool isVectorPromotionViableForSlice(Partition &P, const Slice &S,
   Use *U = S.getUse();
 
   if (MemIntrinsic *MI = dyn_cast<MemIntrinsic>(U->getUser())) {
-    PassPrediction::PassPeeper(__FILE__, 857); // if
+    PassPrediction::PassPeeper(857); // if
     if (MI->isVolatile()) {
-      PassPrediction::PassPeeper(__FILE__, 858); // if
+      PassPrediction::PassPeeper(858); // if
       return false;
     }
     if (!S.isSplittable()) {
-      PassPrediction::PassPeeper(__FILE__, 859); // if
-      return false; // Skip any unsplittable intrinsics.
+      PassPrediction::PassPeeper(859); // if
+      return false;                    // Skip any unsplittable intrinsics.
     }
   } else if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(U->getUser())) {
-    PassPrediction::PassPeeper(__FILE__, 860); // if
+    PassPrediction::PassPeeper(860); // if
     if (II->getIntrinsicID() != Intrinsic::lifetime_start &&
         II->getIntrinsicID() != Intrinsic::lifetime_end) {
-      PassPrediction::PassPeeper(__FILE__, 861); // if
+      PassPrediction::PassPeeper(861); // if
       return false;
     }
   } else if (U->get()->getType()->getPointerElementType()->isStructTy()) {
     // Disable vector promotion when there are loads or stores of an FCA.
-    PassPrediction::PassPeeper(__FILE__, 862); // if
+    PassPrediction::PassPeeper(862); // if
     return false;
   } else if (LoadInst *LI = dyn_cast<LoadInst>(U->getUser())) {
-    PassPrediction::PassPeeper(__FILE__, 863); // if
+    PassPrediction::PassPeeper(863); // if
     if (LI->isVolatile()) {
-      PassPrediction::PassPeeper(__FILE__, 864); // if
+      PassPrediction::PassPeeper(864); // if
       return false;
     }
     Type *LTy = LI->getType();
@@ -2011,13 +2011,13 @@ static bool isVectorPromotionViableForSlice(Partition &P, const Slice &S,
       LTy = SplitIntTy;
     }
     if (!canConvertValue(DL, SliceTy, LTy)) {
-      PassPrediction::PassPeeper(__FILE__, 865); // if
+      PassPrediction::PassPeeper(865); // if
       return false;
     }
   } else if (StoreInst *SI = dyn_cast<StoreInst>(U->getUser())) {
-    PassPrediction::PassPeeper(__FILE__, 866); // if
+    PassPrediction::PassPeeper(866); // if
     if (SI->isVolatile()) {
-      PassPrediction::PassPeeper(__FILE__, 868); // if
+      PassPrediction::PassPeeper(868); // if
       return false;
     }
     Type *STy = SI->getValueOperand()->getType();
@@ -2026,11 +2026,11 @@ static bool isVectorPromotionViableForSlice(Partition &P, const Slice &S,
       STy = SplitIntTy;
     }
     if (!canConvertValue(DL, STy, SliceTy)) {
-      PassPrediction::PassPeeper(__FILE__, 869); // if
+      PassPrediction::PassPeeper(869); // if
       return false;
     }
   } else {
-    PassPrediction::PassPeeper(__FILE__, 867); // else
+    PassPrediction::PassPeeper(867); // else
     return false;
   }
 
@@ -2054,27 +2054,27 @@ static VectorType *isVectorPromotionViable(Partition &P, const DataLayout &DL) {
   bool HaveCommonEltTy = true;
   auto CheckCandidateType = [&](Type *Ty) {
     if (auto *VTy = dyn_cast<VectorType>(Ty)) {
-      PassPrediction::PassPeeper(__FILE__, 870); // if
+      PassPrediction::PassPeeper(870); // if
       CandidateTys.push_back(VTy);
       if (!CommonEltTy) {
-        PassPrediction::PassPeeper(__FILE__, 871); // if
+        PassPrediction::PassPeeper(871); // if
         CommonEltTy = VTy->getElementType();
       } else if (CommonEltTy != VTy->getElementType()) {
-        PassPrediction::PassPeeper(__FILE__, 872); // if
+        PassPrediction::PassPeeper(872); // if
         HaveCommonEltTy = false;
       }
     }
   };
   // Consider any loads or stores that are the exact size of the slice.
   for (const Slice &S : P) {
-    PassPrediction::PassPeeper(__FILE__, 873); // for-range
+    PassPrediction::PassPeeper(873); // for-range
     if (S.beginOffset() == P.beginOffset() && S.endOffset() == P.endOffset()) {
-      PassPrediction::PassPeeper(__FILE__, 874); // if
+      PassPrediction::PassPeeper(874); // if
       if (auto *LI = dyn_cast<LoadInst>(S.getUse()->getUser())) {
-        PassPrediction::PassPeeper(__FILE__, 875); // if
+        PassPrediction::PassPeeper(875); // if
         CheckCandidateType(LI->getType());
       } else if (auto *SI = dyn_cast<StoreInst>(S.getUse()->getUser())) {
-        PassPrediction::PassPeeper(__FILE__, 876); // if
+        PassPrediction::PassPeeper(876); // if
         CheckCandidateType(SI->getValueOperand()->getType());
       }
     }
@@ -2082,7 +2082,7 @@ static VectorType *isVectorPromotionViable(Partition &P, const DataLayout &DL) {
 
   // If we didn't find a vector type, nothing to do here.
   if (CandidateTys.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 877); // if
+    PassPrediction::PassPeeper(877); // if
     return nullptr;
   }
 
@@ -2091,7 +2091,7 @@ static VectorType *isVectorPromotionViable(Partition &P, const DataLayout &DL) {
   // do that until all the backends are known to produce good code for all
   // integer vector types.
   if (!HaveCommonEltTy) {
-    PassPrediction::PassPeeper(__FILE__, 878); // if
+    PassPrediction::PassPeeper(878); // if
     CandidateTys.erase(remove_if(CandidateTys,
                                  [](VectorType *VTy) {
                                    return !VTy->getElementType()->isIntegerTy();
@@ -2100,7 +2100,7 @@ static VectorType *isVectorPromotionViable(Partition &P, const DataLayout &DL) {
 
     // If there were no integer vector types, give up.
     if (CandidateTys.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 880); // if
+      PassPrediction::PassPeeper(880); // if
       return nullptr;
     }
 
@@ -2124,7 +2124,7 @@ static VectorType *isVectorPromotionViable(Partition &P, const DataLayout &DL) {
 // The only way to have the same element type in every vector type is to
 // have the same vector type. Check that and remove all but one.
 #ifndef NDEBUG
-    PassPrediction::PassPeeper(__FILE__, 879); // else
+    PassPrediction::PassPeeper(879); // else
     for (VectorType *VTy : CandidateTys) {
       assert(VTy->getElementType() == CommonEltTy &&
              "Unaccounted for element type!");
@@ -2142,7 +2142,7 @@ static VectorType *isVectorPromotionViable(Partition &P, const DataLayout &DL) {
     // While the definition of LLVM vectors is bitpacked, we don't support sizes
     // that aren't byte sized.
     if (ElementSize % 8) {
-      PassPrediction::PassPeeper(__FILE__, 881); // if
+      PassPrediction::PassPeeper(881); // if
       return false;
     }
     assert((DL.getTypeSizeInBits(VTy) % 8) == 0 &&
@@ -2150,17 +2150,17 @@ static VectorType *isVectorPromotionViable(Partition &P, const DataLayout &DL) {
     ElementSize /= 8;
 
     for (const Slice &S : P) {
-      PassPrediction::PassPeeper(__FILE__, 882); // for-range
+      PassPrediction::PassPeeper(882); // for-range
       if (!isVectorPromotionViableForSlice(P, S, VTy, ElementSize, DL)) {
-        PassPrediction::PassPeeper(__FILE__, 883); // if
+        PassPrediction::PassPeeper(883); // if
         return false;
       }
     }
 
     for (const Slice *S : P.splitSliceTails()) {
-      PassPrediction::PassPeeper(__FILE__, 884); // for-range
+      PassPrediction::PassPeeper(884); // for-range
       if (!isVectorPromotionViableForSlice(P, *S, VTy, ElementSize, DL)) {
-        PassPrediction::PassPeeper(__FILE__, 885); // if
+        PassPrediction::PassPeeper(885); // if
         return false;
       }
     }
@@ -2168,9 +2168,9 @@ static VectorType *isVectorPromotionViable(Partition &P, const DataLayout &DL) {
     return true;
   };
   for (VectorType *VTy : CandidateTys) {
-    PassPrediction::PassPeeper(__FILE__, 886); // for-range
+    PassPrediction::PassPeeper(886); // for-range
     if (CheckVectorTypeForPromotion(VTy)) {
-      PassPrediction::PassPeeper(__FILE__, 887); // if
+      PassPrediction::PassPeeper(887); // if
       return VTy;
     }
   }
@@ -2195,94 +2195,94 @@ static bool isIntegerWideningViableForSlice(const Slice &S,
   // We can't reasonably handle cases where the load or store extends past
   // the end of the alloca's type and into its padding.
   if (RelEnd > Size) {
-    PassPrediction::PassPeeper(__FILE__, 888); // if
+    PassPrediction::PassPeeper(888); // if
     return false;
   }
 
   Use *U = S.getUse();
 
   if (LoadInst *LI = dyn_cast<LoadInst>(U->getUser())) {
-    PassPrediction::PassPeeper(__FILE__, 889); // if
+    PassPrediction::PassPeeper(889); // if
     if (LI->isVolatile()) {
-      PassPrediction::PassPeeper(__FILE__, 890); // if
+      PassPrediction::PassPeeper(890); // if
       return false;
     }
     // We can't handle loads that extend past the allocated memory.
     if (DL.getTypeStoreSize(LI->getType()) > Size) {
-      PassPrediction::PassPeeper(__FILE__, 891); // if
+      PassPrediction::PassPeeper(891); // if
       return false;
     }
     // Note that we don't count vector loads or stores as whole-alloca
     // operations which enable integer widening because we would prefer to use
     // vector widening instead.
     if (!isa<VectorType>(LI->getType()) && RelBegin == 0 && RelEnd == Size) {
-      PassPrediction::PassPeeper(__FILE__, 892); // if
+      PassPrediction::PassPeeper(892); // if
       WholeAllocaOp = true;
     }
     if (IntegerType *ITy = dyn_cast<IntegerType>(LI->getType())) {
-      PassPrediction::PassPeeper(__FILE__, 893); // if
+      PassPrediction::PassPeeper(893); // if
       if (ITy->getBitWidth() < DL.getTypeStoreSizeInBits(ITy)) {
-        PassPrediction::PassPeeper(__FILE__, 894); // if
+        PassPrediction::PassPeeper(894); // if
         return false;
       }
     } else if (RelBegin != 0 || RelEnd != Size ||
                !canConvertValue(DL, AllocaTy, LI->getType())) {
       // Non-integer loads need to be convertible from the alloca type so that
       // they are promotable.
-      PassPrediction::PassPeeper(__FILE__, 895); // if
+      PassPrediction::PassPeeper(895); // if
       return false;
     }
   } else if (StoreInst *SI = dyn_cast<StoreInst>(U->getUser())) {
-    PassPrediction::PassPeeper(__FILE__, 896); // if
+    PassPrediction::PassPeeper(896); // if
     Type *ValueTy = SI->getValueOperand()->getType();
     if (SI->isVolatile()) {
-      PassPrediction::PassPeeper(__FILE__, 897); // if
+      PassPrediction::PassPeeper(897); // if
       return false;
     }
     // We can't handle stores that extend past the allocated memory.
     if (DL.getTypeStoreSize(ValueTy) > Size) {
-      PassPrediction::PassPeeper(__FILE__, 898); // if
+      PassPrediction::PassPeeper(898); // if
       return false;
     }
     // Note that we don't count vector loads or stores as whole-alloca
     // operations which enable integer widening because we would prefer to use
     // vector widening instead.
     if (!isa<VectorType>(ValueTy) && RelBegin == 0 && RelEnd == Size) {
-      PassPrediction::PassPeeper(__FILE__, 899); // if
+      PassPrediction::PassPeeper(899); // if
       WholeAllocaOp = true;
     }
     if (IntegerType *ITy = dyn_cast<IntegerType>(ValueTy)) {
-      PassPrediction::PassPeeper(__FILE__, 900); // if
+      PassPrediction::PassPeeper(900); // if
       if (ITy->getBitWidth() < DL.getTypeStoreSizeInBits(ITy)) {
-        PassPrediction::PassPeeper(__FILE__, 901); // if
+        PassPrediction::PassPeeper(901); // if
         return false;
       }
     } else if (RelBegin != 0 || RelEnd != Size ||
                !canConvertValue(DL, ValueTy, AllocaTy)) {
       // Non-integer stores need to be convertible to the alloca type so that
       // they are promotable.
-      PassPrediction::PassPeeper(__FILE__, 902); // if
+      PassPrediction::PassPeeper(902); // if
       return false;
     }
   } else if (MemIntrinsic *MI = dyn_cast<MemIntrinsic>(U->getUser())) {
-    PassPrediction::PassPeeper(__FILE__, 903); // if
+    PassPrediction::PassPeeper(903); // if
     if (MI->isVolatile() || !isa<Constant>(MI->getLength())) {
-      PassPrediction::PassPeeper(__FILE__, 904); // if
+      PassPrediction::PassPeeper(904); // if
       return false;
     }
     if (!S.isSplittable()) {
-      PassPrediction::PassPeeper(__FILE__, 905); // if
-      return false; // Skip any unsplittable intrinsics.
+      PassPrediction::PassPeeper(905); // if
+      return false;                    // Skip any unsplittable intrinsics.
     }
   } else if (IntrinsicInst *II = dyn_cast<IntrinsicInst>(U->getUser())) {
-    PassPrediction::PassPeeper(__FILE__, 906); // if
+    PassPrediction::PassPeeper(906); // if
     if (II->getIntrinsicID() != Intrinsic::lifetime_start &&
         II->getIntrinsicID() != Intrinsic::lifetime_end) {
-      PassPrediction::PassPeeper(__FILE__, 908); // if
+      PassPrediction::PassPeeper(908); // if
       return false;
     }
   } else {
-    PassPrediction::PassPeeper(__FILE__, 907); // else
+    PassPrediction::PassPeeper(907); // else
     return false;
   }
 
@@ -2300,13 +2300,13 @@ static bool isIntegerWideningViable(Partition &P, Type *AllocaTy,
   uint64_t SizeInBits = DL.getTypeSizeInBits(AllocaTy);
   // Don't create integer types larger than the maximum bitwidth.
   if (SizeInBits > IntegerType::MAX_INT_BITS) {
-    PassPrediction::PassPeeper(__FILE__, 909); // if
+    PassPrediction::PassPeeper(909); // if
     return false;
   }
 
   // Don't try to handle allocas with bit-padding.
   if (SizeInBits != DL.getTypeStoreSizeInBits(AllocaTy)) {
-    PassPrediction::PassPeeper(__FILE__, 910); // if
+    PassPrediction::PassPeeper(910); // if
     return false;
   }
 
@@ -2316,7 +2316,7 @@ static bool isIntegerWideningViable(Partition &P, Type *AllocaTy,
   Type *IntTy = Type::getIntNTy(AllocaTy->getContext(), SizeInBits);
   if (!canConvertValue(DL, AllocaTy, IntTy) ||
       !canConvertValue(DL, IntTy, AllocaTy)) {
-    PassPrediction::PassPeeper(__FILE__, 911); // if
+    PassPrediction::PassPeeper(911); // if
     return false;
   }
 
@@ -2331,19 +2331,19 @@ static bool isIntegerWideningViable(Partition &P, Type *AllocaTy,
       P.begin() != P.end() ? false : DL.isLegalInteger(SizeInBits);
 
   for (const Slice &S : P) {
-    PassPrediction::PassPeeper(__FILE__, 912); // for-range
+    PassPrediction::PassPeeper(912); // for-range
     if (!isIntegerWideningViableForSlice(S, P.beginOffset(), AllocaTy, DL,
                                          WholeAllocaOp)) {
-      PassPrediction::PassPeeper(__FILE__, 913); // if
+      PassPrediction::PassPeeper(913); // if
       return false;
     }
   }
 
   for (const Slice *S : P.splitSliceTails()) {
-    PassPrediction::PassPeeper(__FILE__, 914); // for-range
+    PassPrediction::PassPeeper(914); // for-range
     if (!isIntegerWideningViableForSlice(*S, P.beginOffset(), AllocaTy, DL,
                                          WholeAllocaOp)) {
-      PassPrediction::PassPeeper(__FILE__, 915); // if
+      PassPrediction::PassPeeper(915); // if
       return false;
     }
   }
@@ -2360,18 +2360,18 @@ static Value *extractInteger(const DataLayout &DL, IRBuilderTy &IRB, Value *V,
          "Element extends past full value");
   uint64_t ShAmt = 8 * Offset;
   if (DL.isBigEndian()) {
-    PassPrediction::PassPeeper(__FILE__, 916); // if
+    PassPrediction::PassPeeper(916); // if
     ShAmt = 8 * (DL.getTypeStoreSize(IntTy) - DL.getTypeStoreSize(Ty) - Offset);
   }
   if (ShAmt) {
-    PassPrediction::PassPeeper(__FILE__, 917); // if
+    PassPrediction::PassPeeper(917); // if
     V = IRB.CreateLShr(V, ShAmt, Name + ".shift");
     DEBUG(dbgs() << "     shifted: " << *V << "\n");
   }
   assert(Ty->getBitWidth() <= IntTy->getBitWidth() &&
          "Cannot extract to a larger integer!");
   if (Ty != IntTy) {
-    PassPrediction::PassPeeper(__FILE__, 918); // if
+    PassPrediction::PassPeeper(918); // if
     V = IRB.CreateTrunc(V, Ty, Name + ".trunc");
     DEBUG(dbgs() << "     trunced: " << *V << "\n");
   }
@@ -2386,7 +2386,7 @@ static Value *insertInteger(const DataLayout &DL, IRBuilderTy &IRB, Value *Old,
          "Cannot insert a larger integer!");
   DEBUG(dbgs() << "       start: " << *V << "\n");
   if (Ty != IntTy) {
-    PassPrediction::PassPeeper(__FILE__, 919); // if
+    PassPrediction::PassPeeper(919); // if
     V = IRB.CreateZExt(V, IntTy, Name + ".ext");
     DEBUG(dbgs() << "    extended: " << *V << "\n");
   }
@@ -2394,17 +2394,17 @@ static Value *insertInteger(const DataLayout &DL, IRBuilderTy &IRB, Value *Old,
          "Element store outside of alloca store");
   uint64_t ShAmt = 8 * Offset;
   if (DL.isBigEndian()) {
-    PassPrediction::PassPeeper(__FILE__, 920); // if
+    PassPrediction::PassPeeper(920); // if
     ShAmt = 8 * (DL.getTypeStoreSize(IntTy) - DL.getTypeStoreSize(Ty) - Offset);
   }
   if (ShAmt) {
-    PassPrediction::PassPeeper(__FILE__, 921); // if
+    PassPrediction::PassPeeper(921); // if
     V = IRB.CreateShl(V, ShAmt, Name + ".shift");
     DEBUG(dbgs() << "     shifted: " << *V << "\n");
   }
 
   if (ShAmt || Ty->getBitWidth() < IntTy->getBitWidth()) {
-    PassPrediction::PassPeeper(__FILE__, 922); // if
+    PassPrediction::PassPeeper(922); // if
     APInt Mask = ~Ty->getMask().zext(IntTy->getBitWidth()).shl(ShAmt);
     Old = IRB.CreateAnd(Old, Mask, Name + ".mask");
     DEBUG(dbgs() << "      masked: " << *Old << "\n");
@@ -2421,12 +2421,12 @@ static Value *extractVector(IRBuilderTy &IRB, Value *V, unsigned BeginIndex,
   assert(NumElements <= VecTy->getNumElements() && "Too many elements!");
 
   if (NumElements == VecTy->getNumElements()) {
-    PassPrediction::PassPeeper(__FILE__, 923); // if
+    PassPrediction::PassPeeper(923); // if
     return V;
   }
 
   if (NumElements == 1) {
-    PassPrediction::PassPeeper(__FILE__, 924); // if
+    PassPrediction::PassPeeper(924); // if
     V = IRB.CreateExtractElement(V, IRB.getInt32(BeginIndex),
                                  Name + ".extract");
     DEBUG(dbgs() << "     extract: " << *V << "\n");
@@ -2436,7 +2436,7 @@ static Value *extractVector(IRBuilderTy &IRB, Value *V, unsigned BeginIndex,
   SmallVector<Constant *, 8> Mask;
   Mask.reserve(NumElements);
   for (unsigned i = BeginIndex; i != EndIndex; ++i) {
-    PassPrediction::PassPeeper(__FILE__, 925); // for
+    PassPrediction::PassPeeper(925); // for
     Mask.push_back(IRB.getInt32(i));
   }
   V = IRB.CreateShuffleVector(V, UndefValue::get(V->getType()),
@@ -2453,7 +2453,7 @@ static Value *insertVector(IRBuilderTy &IRB, Value *Old, Value *V,
   VectorType *Ty = dyn_cast<VectorType>(V->getType());
   if (!Ty) {
     // Single element to insert.
-    PassPrediction::PassPeeper(__FILE__, 926); // if
+    PassPrediction::PassPeeper(926); // if
     V = IRB.CreateInsertElement(Old, V, IRB.getInt32(BeginIndex),
                                 Name + ".insert");
     DEBUG(dbgs() << "     insert: " << *V << "\n");
@@ -2475,12 +2475,12 @@ static Value *insertVector(IRBuilderTy &IRB, Value *Old, Value *V,
   SmallVector<Constant *, 8> Mask;
   Mask.reserve(VecTy->getNumElements());
   for (unsigned i = 0; i != VecTy->getNumElements(); ++i) {
-    PassPrediction::PassPeeper(__FILE__, 927); // for
+    PassPrediction::PassPeeper(927); // for
     if (i >= BeginIndex && i < EndIndex) {
-      PassPrediction::PassPeeper(__FILE__, 928); // if
+      PassPrediction::PassPeeper(928); // if
       Mask.push_back(IRB.getInt32(i - BeginIndex));
     } else {
-      PassPrediction::PassPeeper(__FILE__, 929); // else
+      PassPrediction::PassPeeper(929); // else
       Mask.push_back(UndefValue::get(IRB.getInt32Ty()));
     }
   }
@@ -2490,7 +2490,7 @@ static Value *insertVector(IRBuilderTy &IRB, Value *Old, Value *V,
 
   Mask.clear();
   for (unsigned i = 0; i != VecTy->getNumElements(); ++i) {
-    PassPrediction::PassPeeper(__FILE__, 930); // for
+    PassPrediction::PassPeeper(930); // for
     Mask.push_back(IRB.getInt1(i >= BeginIndex && i < EndIndex));
   }
 
@@ -2645,18 +2645,18 @@ private:
     // Skip through the last '.sroa.' component of the name.
     size_t LastSROAPrefix = OldName.rfind(".sroa.");
     if (LastSROAPrefix != StringRef::npos) {
-      PassPrediction::PassPeeper(__FILE__, 931); // if
+      PassPrediction::PassPeeper(931); // if
       OldName = OldName.substr(LastSROAPrefix + strlen(".sroa."));
       // Look for an SROA slice index.
       size_t IndexEnd = OldName.find_first_not_of("0123456789");
       if (IndexEnd != StringRef::npos && OldName[IndexEnd] == '.') {
         // Strip the index and look for the offset.
-        PassPrediction::PassPeeper(__FILE__, 932); // if
+        PassPrediction::PassPeeper(932); // if
         OldName = OldName.substr(IndexEnd + 1);
         size_t OffsetEnd = OldName.find_first_not_of("0123456789");
         if (OffsetEnd != StringRef::npos && OldName[OffsetEnd] == '.') {
           // Strip the offset.
-          PassPrediction::PassPeeper(__FILE__, 933); // if
+          PassPrediction::PassPeeper(933); // if
           OldName = OldName.substr(OffsetEnd + 1);
         }
       }
@@ -2684,7 +2684,7 @@ private:
   unsigned getSliceAlign(Type *Ty = nullptr) {
     unsigned NewAIAlign = NewAI.getAlignment();
     if (!NewAIAlign) {
-      PassPrediction::PassPeeper(__FILE__, 934); // if
+      PassPrediction::PassPeeper(934); // if
       NewAIAlign = DL.getABITypeAlignment(NewAI.getAllocatedType());
     }
     unsigned Align =
@@ -2704,7 +2704,7 @@ private:
   void deleteIfTriviallyDead(Value *V) {
     Instruction *I = cast<Instruction>(V);
     if (isInstructionTriviallyDead(I)) {
-      PassPrediction::PassPeeper(__FILE__, 935); // if
+      PassPrediction::PassPeeper(935); // if
       Pass.DeadInsts.insert(I);
     }
   }
@@ -2726,7 +2726,7 @@ private:
     assert(NewBeginOffset >= NewAllocaBeginOffset && "Out of bounds offset");
     uint64_t Offset = NewBeginOffset - NewAllocaBeginOffset;
     if (Offset > 0 || NewEndOffset < NewAllocaEndOffset) {
-      PassPrediction::PassPeeper(__FILE__, 936); // if
+      PassPrediction::PassPeeper(936); // if
       IntegerType *ExtractTy = Type::getIntNTy(LI.getContext(), SliceSize * 8);
       V = extractInteger(DL, IRB, V, ExtractTy, Offset, "extract");
     }
@@ -2738,7 +2738,7 @@ private:
     assert(cast<IntegerType>(LI.getType())->getBitWidth() >= SliceSize * 8 &&
            "Can only handle an extract for an overly wide load");
     if (cast<IntegerType>(LI.getType())->getBitWidth() > SliceSize * 8) {
-      PassPrediction::PassPeeper(__FILE__, 937); // if
+      PassPrediction::PassPeeper(937); // if
       V = IRB.CreateZExt(V, LI.getType());
     }
     return V;
@@ -2757,21 +2757,21 @@ private:
     bool IsPtrAdjusted = false;
     Value *V;
     if (VecTy) {
-      PassPrediction::PassPeeper(__FILE__, 938); // if
+      PassPrediction::PassPeeper(938); // if
       V = rewriteVectorizedLoadInst();
     } else if (IntTy && LI.getType()->isIntegerTy()) {
-      PassPrediction::PassPeeper(__FILE__, 939); // if
+      PassPrediction::PassPeeper(939); // if
       V = rewriteIntegerLoad(LI);
     } else if (NewBeginOffset == NewAllocaBeginOffset &&
                NewEndOffset == NewAllocaEndOffset &&
                (canConvertValue(DL, NewAllocaTy, TargetTy) ||
                 (IsLoadPastEnd && NewAllocaTy->isIntegerTy() &&
                  TargetTy->isIntegerTy()))) {
-      PassPrediction::PassPeeper(__FILE__, 940); // if
+      PassPrediction::PassPeeper(940); // if
       LoadInst *NewLI = IRB.CreateAlignedLoad(&NewAI, NewAI.getAlignment(),
                                               LI.isVolatile(), LI.getName());
       if (LI.isVolatile()) {
-        PassPrediction::PassPeeper(__FILE__, 942); // if
+        PassPrediction::PassPeeper(942); // if
         NewLI->setAtomic(LI.getOrdering(), LI.getSyncScopeID());
       }
 
@@ -2786,7 +2786,7 @@ private:
       // correctly, and don't have any support for mapping ranges as the
       // integer type becomes winder or narrower.
       if (MDNode *N = LI.getMetadata(LLVMContext::MD_nonnull)) {
-        PassPrediction::PassPeeper(__FILE__, 943); // if
+        PassPrediction::PassPeeper(943); // if
         copyNonnullMetadata(LI, N, *NewLI);
       }
 
@@ -2797,14 +2797,14 @@ private:
       // bytes outside the slice are undef or this load is dead) just forcibly
       // fix the integer size with correct handling of endianness.
       if (auto *AITy = dyn_cast<IntegerType>(NewAllocaTy)) {
-        PassPrediction::PassPeeper(__FILE__, 944); // if
+        PassPrediction::PassPeeper(944); // if
         if (auto *TITy = dyn_cast<IntegerType>(TargetTy)) {
-          PassPrediction::PassPeeper(__FILE__, 945); // if
+          PassPrediction::PassPeeper(945); // if
           if (AITy->getBitWidth() < TITy->getBitWidth()) {
-            PassPrediction::PassPeeper(__FILE__, 946); // if
+            PassPrediction::PassPeeper(946); // if
             V = IRB.CreateZExt(V, TITy, "load.ext");
             if (DL.isBigEndian()) {
-              PassPrediction::PassPeeper(__FILE__, 947); // if
+              PassPrediction::PassPeeper(947); // if
               V = IRB.CreateShl(V, TITy->getBitWidth() - AITy->getBitWidth(),
                                 "endian_shift");
             }
@@ -2812,13 +2812,13 @@ private:
         }
       }
     } else {
-      PassPrediction::PassPeeper(__FILE__, 941); // else
+      PassPrediction::PassPeeper(941); // else
       Type *LTy = TargetTy->getPointerTo(AS);
       LoadInst *NewLI = IRB.CreateAlignedLoad(getNewAllocaSlicePtr(IRB, LTy),
                                               getSliceAlign(TargetTy),
                                               LI.isVolatile(), LI.getName());
       if (LI.isVolatile()) {
-        PassPrediction::PassPeeper(__FILE__, 948); // if
+        PassPrediction::PassPeeper(948); // if
         NewLI->setAtomic(LI.getOrdering(), LI.getSyncScopeID());
       }
 
@@ -2850,7 +2850,7 @@ private:
       Placeholder->replaceAllUsesWith(&LI);
       Placeholder->deleteValue();
     } else {
-      PassPrediction::PassPeeper(__FILE__, 949); // else
+      PassPrediction::PassPeeper(949); // else
       LI.replaceAllUsesWith(V);
     }
 
@@ -2862,7 +2862,7 @@ private:
 
   bool rewriteVectorizedStoreInst(Value *V, StoreInst &SI, Value *OldOp) {
     if (V->getType() != VecTy) {
-      PassPrediction::PassPeeper(__FILE__, 950); // if
+      PassPrediction::PassPeeper(950); // if
       unsigned BeginIndex = getIndex(NewBeginOffset);
       unsigned EndIndex = getIndex(NewEndOffset);
       assert(EndIndex > BeginIndex && "Empty vector!");
@@ -2872,7 +2872,7 @@ private:
                           ? ElementTy
                           : VectorType::get(ElementTy, NumElements);
       if (V->getType() != SliceTy) {
-        PassPrediction::PassPeeper(__FILE__, 951); // if
+        PassPrediction::PassPeeper(951); // if
         V = convertValue(DL, IRB, V, SliceTy);
       }
 
@@ -2892,7 +2892,7 @@ private:
     assert(IntTy && "We cannot extract an integer from the alloca");
     assert(!SI.isVolatile());
     if (DL.getTypeSizeInBits(V->getType()) != IntTy->getBitWidth()) {
-      PassPrediction::PassPeeper(__FILE__, 952); // if
+      PassPrediction::PassPeeper(952); // if
       Value *Old =
           IRB.CreateAlignedLoad(&NewAI, NewAI.getAlignment(), "oldload");
       Old = convertValue(DL, IRB, Old, IntTy);
@@ -2918,9 +2918,9 @@ private:
     // Strip all inbounds GEPs and pointer casts to try to dig out any root
     // alloca that should be re-examined after promoting this alloca.
     if (V->getType()->isPointerTy()) {
-      PassPrediction::PassPeeper(__FILE__, 953); // if
+      PassPrediction::PassPeeper(953); // if
       if (AllocaInst *AI = dyn_cast<AllocaInst>(V->stripInBoundsOffsets())) {
-        PassPrediction::PassPeeper(__FILE__, 954); // if
+        PassPrediction::PassPeeper(954); // if
         Pass.PostPromotionWorklist.insert(AI);
       }
     }
@@ -2938,11 +2938,11 @@ private:
     }
 
     if (VecTy) {
-      PassPrediction::PassPeeper(__FILE__, 955); // if
+      PassPrediction::PassPeeper(955); // if
       return rewriteVectorizedStoreInst(V, SI, OldOp);
     }
     if (IntTy && V->getType()->isIntegerTy()) {
-      PassPrediction::PassPeeper(__FILE__, 956); // if
+      PassPrediction::PassPeeper(956); // if
       return rewriteIntegerStore(V, SI);
     }
 
@@ -2956,15 +2956,15 @@ private:
       // If this is an integer store past the end of slice (and thus the bytes
       // past that point are irrelevant or this is unreachable), truncate the
       // value prior to storing.
-      PassPrediction::PassPeeper(__FILE__, 957); // if
+      PassPrediction::PassPeeper(957); // if
       if (auto *VITy = dyn_cast<IntegerType>(V->getType())) {
-        PassPrediction::PassPeeper(__FILE__, 959); // if
+        PassPrediction::PassPeeper(959); // if
         if (auto *AITy = dyn_cast<IntegerType>(NewAllocaTy)) {
-          PassPrediction::PassPeeper(__FILE__, 960); // if
+          PassPrediction::PassPeeper(960); // if
           if (VITy->getBitWidth() > AITy->getBitWidth()) {
-            PassPrediction::PassPeeper(__FILE__, 961); // if
+            PassPrediction::PassPeeper(961); // if
             if (DL.isBigEndian()) {
-              PassPrediction::PassPeeper(__FILE__, 962); // if
+              PassPrediction::PassPeeper(962); // if
               V = IRB.CreateLShr(V, VITy->getBitWidth() - AITy->getBitWidth(),
                                  "endian_shift");
             }
@@ -2977,7 +2977,7 @@ private:
       NewSI = IRB.CreateAlignedStore(V, &NewAI, NewAI.getAlignment(),
                                      SI.isVolatile());
     } else {
-      PassPrediction::PassPeeper(__FILE__, 958); // else
+      PassPrediction::PassPeeper(958); // else
       unsigned AS = SI.getPointerAddressSpace();
       Value *NewPtr = getNewAllocaSlicePtr(IRB, V->getType()->getPointerTo(AS));
       NewSI = IRB.CreateAlignedStore(V, NewPtr, getSliceAlign(V->getType()),
@@ -2985,7 +2985,7 @@ private:
     }
     NewSI->copyMetadata(SI, LLVMContext::MD_mem_parallel_loop_access);
     if (SI.isVolatile()) {
-      PassPrediction::PassPeeper(__FILE__, 963); // if
+      PassPrediction::PassPeeper(963); // if
       NewSI->setAtomic(SI.getOrdering(), SI.getSyncScopeID());
     }
     Pass.DeadInsts.insert(&SI);
@@ -3009,7 +3009,7 @@ private:
     IntegerType *VTy = cast<IntegerType>(V->getType());
     assert(VTy->getBitWidth() == 8 && "Expected an i8 value for the byte");
     if (Size == 1) {
-      PassPrediction::PassPeeper(__FILE__, 964); // if
+      PassPrediction::PassPeeper(964); // if
       return V;
     }
 
@@ -3062,7 +3062,7 @@ private:
          !AllocaTy->isSingleValueType() ||
          !DL.isLegalInteger(DL.getTypeSizeInBits(ScalarTy)) ||
          DL.getTypeSizeInBits(ScalarTy) % 8 != 0)) {
-      PassPrediction::PassPeeper(__FILE__, 965); // if
+      PassPrediction::PassPeeper(965); // if
       Type *SizeTy = II.getLength()->getType();
       Constant *Size = ConstantInt::get(SizeTy, NewEndOffset - NewBeginOffset);
       CallInst *New = IRB.CreateMemSet(
@@ -3094,7 +3094,7 @@ private:
           getIntegerSplat(II.getValue(), DL.getTypeSizeInBits(ElementTy) / 8);
       Splat = convertValue(DL, IRB, Splat, ElementTy);
       if (NumElements > 1) {
-        PassPrediction::PassPeeper(__FILE__, 966); // if
+        PassPrediction::PassPeeper(966); // if
         Splat = getVectorSplat(Splat, NumElements);
       }
 
@@ -3111,7 +3111,7 @@ private:
 
       if (IntTy && (BeginOffset != NewAllocaBeginOffset ||
                     EndOffset != NewAllocaBeginOffset)) {
-        PassPrediction::PassPeeper(__FILE__, 967); // if
+        PassPrediction::PassPeeper(967); // if
         Value *Old =
             IRB.CreateAlignedLoad(&NewAI, NewAI.getAlignment(), "oldload");
         Old = convertValue(DL, IRB, Old, IntTy);
@@ -3129,7 +3129,7 @@ private:
 
       V = getIntegerSplat(II.getValue(), DL.getTypeSizeInBits(ScalarTy) / 8);
       if (VectorType *AllocaVecTy = dyn_cast<VectorType>(AllocaTy)) {
-        PassPrediction::PassPeeper(__FILE__, 968); // if
+        PassPrediction::PassPeeper(968); // if
         V = getVectorSplat(V, AllocaVecTy->getNumElements());
       }
 
@@ -3163,18 +3163,18 @@ private:
     // memcpy, and so simply updating the pointers is the necessary for us to
     // update both source and dest of a single call.
     if (!IsSplittable) {
-      PassPrediction::PassPeeper(__FILE__, 969); // if
+      PassPrediction::PassPeeper(969); // if
       Value *AdjustedPtr = getNewAllocaSlicePtr(IRB, OldPtr->getType());
       if (IsDest) {
-        PassPrediction::PassPeeper(__FILE__, 970); // if
+        PassPrediction::PassPeeper(970); // if
         II.setDest(AdjustedPtr);
       } else {
-        PassPrediction::PassPeeper(__FILE__, 971); // else
+        PassPrediction::PassPeeper(971); // else
         II.setSource(AdjustedPtr);
       }
 
       if (II.getAlignment() > SliceAlign) {
-        PassPrediction::PassPeeper(__FILE__, 972); // if
+        PassPrediction::PassPeeper(972); // if
         Type *CstTy = II.getAlignmentCst()->getType();
         II.setAlignment(
             ConstantInt::get(CstTy, MinAlign(II.getAlignment(), SliceAlign)));
@@ -3207,7 +3207,7 @@ private:
 
       // Rewrite the size as needed.
       if (NewEndOffset != EndOffset) {
-        PassPrediction::PassPeeper(__FILE__, 973); // if
+        PassPrediction::PassPeeper(973); // if
         II.setLength(ConstantInt::get(II.getLength()->getType(),
                                       NewEndOffset - NewBeginOffset));
       }
@@ -3238,7 +3238,7 @@ private:
     if (EmitMemCpy) {
       // Compute the other pointer, folding as much as possible to produce
       // a single, simple GEP in most cases.
-      PassPrediction::PassPeeper(__FILE__, 974); // if
+      PassPrediction::PassPeeper(974); // if
       OtherPtr = getAdjustedPtr(IRB, DL, OtherPtr, OtherOffset, OtherPtrTy,
                                 OtherPtr->getName() + ".");
 
@@ -3266,21 +3266,21 @@ private:
     // Reset the other pointer type to match the register type we're going to
     // use, but using the address space of the original other pointer.
     if (VecTy && !IsWholeAlloca) {
-      PassPrediction::PassPeeper(__FILE__, 975); // if
+      PassPrediction::PassPeeper(975); // if
       if (NumElements == 1) {
-        PassPrediction::PassPeeper(__FILE__, 976); // if
+        PassPrediction::PassPeeper(976); // if
         OtherPtrTy = VecTy->getElementType();
       } else {
-        PassPrediction::PassPeeper(__FILE__, 977); // else
+        PassPrediction::PassPeeper(977); // else
         OtherPtrTy = VectorType::get(VecTy->getElementType(), NumElements);
       }
 
       OtherPtrTy = OtherPtrTy->getPointerTo(OtherAS);
     } else if (IntTy && !IsWholeAlloca) {
-      PassPrediction::PassPeeper(__FILE__, 978); // if
+      PassPrediction::PassPeeper(978); // if
       OtherPtrTy = SubIntTy->getPointerTo(OtherAS);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 979); // else
+      PassPrediction::PassPeeper(979); // else
       OtherPtrTy = NewAllocaTy->getPointerTo(OtherAS);
     }
 
@@ -3290,35 +3290,35 @@ private:
     Value *DstPtr = &NewAI;
     unsigned DstAlign = SliceAlign;
     if (!IsDest) {
-      PassPrediction::PassPeeper(__FILE__, 980); // if
+      PassPrediction::PassPeeper(980); // if
       std::swap(SrcPtr, DstPtr);
       std::swap(SrcAlign, DstAlign);
     }
 
     Value *Src;
     if (VecTy && !IsWholeAlloca && !IsDest) {
-      PassPrediction::PassPeeper(__FILE__, 981); // if
+      PassPrediction::PassPeeper(981); // if
       Src = IRB.CreateAlignedLoad(&NewAI, NewAI.getAlignment(), "load");
       Src = extractVector(IRB, Src, BeginIndex, EndIndex, "vec");
     } else if (IntTy && !IsWholeAlloca && !IsDest) {
-      PassPrediction::PassPeeper(__FILE__, 982); // if
+      PassPrediction::PassPeeper(982); // if
       Src = IRB.CreateAlignedLoad(&NewAI, NewAI.getAlignment(), "load");
       Src = convertValue(DL, IRB, Src, IntTy);
       uint64_t Offset = NewBeginOffset - NewAllocaBeginOffset;
       Src = extractInteger(DL, IRB, Src, SubIntTy, Offset, "extract");
     } else {
-      PassPrediction::PassPeeper(__FILE__, 983); // else
+      PassPrediction::PassPeeper(983); // else
       Src =
           IRB.CreateAlignedLoad(SrcPtr, SrcAlign, II.isVolatile(), "copyload");
     }
 
     if (VecTy && !IsWholeAlloca && IsDest) {
-      PassPrediction::PassPeeper(__FILE__, 984); // if
+      PassPrediction::PassPeeper(984); // if
       Value *Old =
           IRB.CreateAlignedLoad(&NewAI, NewAI.getAlignment(), "oldload");
       Src = insertVector(IRB, Old, Src, BeginIndex, "vec");
     } else if (IntTy && !IsWholeAlloca && IsDest) {
-      PassPrediction::PassPeeper(__FILE__, 985); // if
+      PassPrediction::PassPeeper(985); // if
       Value *Old =
           IRB.CreateAlignedLoad(&NewAI, NewAI.getAlignment(), "oldload");
       Old = convertValue(DL, IRB, Old, IntTy);
@@ -3352,7 +3352,7 @@ private:
     // lifetime intrinsics?
     if (NewBeginOffset != NewAllocaBeginOffset ||
         NewEndOffset != NewAllocaEndOffset) {
-      PassPrediction::PassPeeper(__FILE__, 986); // if
+      PassPrediction::PassPeeper(986); // if
       return true;
     }
 
@@ -3362,10 +3362,10 @@ private:
     Value *Ptr = getNewAllocaSlicePtr(IRB, OldPtr->getType());
     Value *New;
     if (II.getIntrinsicID() == Intrinsic::lifetime_start) {
-      PassPrediction::PassPeeper(__FILE__, 987); // if
+      PassPrediction::PassPeeper(987); // if
       New = IRB.CreateLifetimeStart(Ptr, Size);
     } else {
-      PassPrediction::PassPeeper(__FILE__, 988); // else
+      PassPrediction::PassPeeper(988); // else
       New = IRB.CreateLifetimeEnd(Ptr, Size);
     }
 
@@ -3386,10 +3386,10 @@ private:
     // dominate the PHI.
     IRBuilderTy PtrBuilder(IRB);
     if (isa<PHINode>(OldPtr)) {
-      PassPrediction::PassPeeper(__FILE__, 989); // if
+      PassPrediction::PassPeeper(989); // if
       PtrBuilder.SetInsertPoint(&*OldPtr->getParent()->getFirstInsertionPt());
     } else {
-      PassPrediction::PassPeeper(__FILE__, 990); // else
+      PassPrediction::PassPeeper(990); // else
       PtrBuilder.SetInsertPoint(OldPtr);
     }
     PtrBuilder.SetCurrentDebugLocation(OldPtr->getDebugLoc());
@@ -3418,11 +3418,11 @@ private:
     Value *NewPtr = getNewAllocaSlicePtr(IRB, OldPtr->getType());
     // Replace the operands which were using the old pointer.
     if (SI.getOperand(1) == OldPtr) {
-      PassPrediction::PassPeeper(__FILE__, 991); // if
+      PassPrediction::PassPeeper(991); // if
       SI.setOperand(1, NewPtr);
     }
     if (SI.getOperand(2) == OldPtr) {
-      PassPrediction::PassPeeper(__FILE__, 992); // if
+      PassPrediction::PassPeeper(992); // if
       SI.setOperand(2, NewPtr);
     }
 
@@ -3465,7 +3465,7 @@ public:
     enqueueUsers(I);
     bool Changed = false;
     while (!Queue.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 993); // while
+      PassPrediction::PassPeeper(993); // while
       U = Queue.pop_back_val();
       Changed |= visit(cast<Instruction>(U->getUser()));
     }
@@ -3477,9 +3477,9 @@ private:
   /// This uses a set to de-duplicate users.
   void enqueueUsers(Instruction &I) {
     for (Use &U : I.uses()) {
-      PassPrediction::PassPeeper(__FILE__, 994); // for-range
+      PassPrediction::PassPeeper(994); // for-range
       if (Visited.insert(U.getUser()).second) {
-        PassPrediction::PassPeeper(__FILE__, 995); // if
+        PassPrediction::PassPeeper(995); // if
         Queue.push_back(&U);
       }
     }
@@ -3524,12 +3524,12 @@ private:
     /// whether this is splitting a load or a store respectively.
     void emitSplitOps(Type *Ty, Value *&Agg, const Twine &Name) {
       if (Ty->isSingleValueType()) {
-        PassPrediction::PassPeeper(__FILE__, 996); // if
+        PassPrediction::PassPeeper(996); // if
         return static_cast<Derived *>(this)->emitFunc(Ty, Agg, Name);
       }
 
       if (ArrayType *ATy = dyn_cast<ArrayType>(Ty)) {
-        PassPrediction::PassPeeper(__FILE__, 997); // if
+        PassPrediction::PassPeeper(997); // if
         unsigned OldSize = Indices.size();
         (void)OldSize;
         for (unsigned Idx = 0, Size = ATy->getNumElements(); Idx != Size;
@@ -3545,7 +3545,7 @@ private:
       }
 
       if (StructType *STy = dyn_cast<StructType>(Ty)) {
-        PassPrediction::PassPeeper(__FILE__, 998); // if
+        PassPrediction::PassPeeper(998); // if
         unsigned OldSize = Indices.size();
         (void)OldSize;
         for (unsigned Idx = 0, Size = STy->getNumElements(); Idx != Size;
@@ -3584,7 +3584,7 @@ private:
   bool visitLoadInst(LoadInst &LI) {
     assert(LI.getPointerOperand() == *U);
     if (!LI.isSimple() || LI.getType()->isSingleValueType()) {
-      PassPrediction::PassPeeper(__FILE__, 999); // if
+      PassPrediction::PassPeeper(999); // if
       return false;
     }
 
@@ -3622,12 +3622,12 @@ private:
 
   bool visitStoreInst(StoreInst &SI) {
     if (!SI.isSimple() || SI.getPointerOperand() != *U) {
-      PassPrediction::PassPeeper(__FILE__, 1000); // if
+      PassPrediction::PassPeeper(1000); // if
       return false;
     }
     Value *V = SI.getValueOperand();
     if (V->getType()->isSingleValueType()) {
-      PassPrediction::PassPeeper(__FILE__, 1001); // if
+      PassPrediction::PassPeeper(1001); // if
       return false;
     }
 
@@ -3668,7 +3668,7 @@ private:
 /// size or the allocated size.
 static Type *stripAggregateTypeWrapping(const DataLayout &DL, Type *Ty) {
   if (Ty->isSingleValueType()) {
-    PassPrediction::PassPeeper(__FILE__, 1002); // if
+    PassPrediction::PassPeeper(1002); // if
     return Ty;
   }
 
@@ -3677,21 +3677,21 @@ static Type *stripAggregateTypeWrapping(const DataLayout &DL, Type *Ty) {
 
   Type *InnerTy;
   if (ArrayType *ArrTy = dyn_cast<ArrayType>(Ty)) {
-    PassPrediction::PassPeeper(__FILE__, 1003); // if
+    PassPrediction::PassPeeper(1003); // if
     InnerTy = ArrTy->getElementType();
   } else if (StructType *STy = dyn_cast<StructType>(Ty)) {
-    PassPrediction::PassPeeper(__FILE__, 1004); // if
+    PassPrediction::PassPeeper(1004); // if
     const StructLayout *SL = DL.getStructLayout(STy);
     unsigned Index = SL->getElementContainingOffset(0);
     InnerTy = STy->getElementType(Index);
   } else {
-    PassPrediction::PassPeeper(__FILE__, 1005); // else
+    PassPrediction::PassPeeper(1005); // else
     return Ty;
   }
 
   if (AllocSize > DL.getTypeAllocSize(InnerTy) ||
       TypeSize > DL.getTypeSizeInBits(InnerTy)) {
-    PassPrediction::PassPeeper(__FILE__, 1006); // if
+    PassPrediction::PassPeeper(1006); // if
     return Ty;
   }
 
@@ -3714,22 +3714,22 @@ static Type *stripAggregateTypeWrapping(const DataLayout &DL, Type *Ty) {
 static Type *getTypePartition(const DataLayout &DL, Type *Ty, uint64_t Offset,
                               uint64_t Size) {
   if (Offset == 0 && DL.getTypeAllocSize(Ty) == Size) {
-    PassPrediction::PassPeeper(__FILE__, 1007); // if
+    PassPrediction::PassPeeper(1007); // if
     return stripAggregateTypeWrapping(DL, Ty);
   }
   if (Offset > DL.getTypeAllocSize(Ty) ||
       (DL.getTypeAllocSize(Ty) - Offset) < Size) {
-    PassPrediction::PassPeeper(__FILE__, 1008); // if
+    PassPrediction::PassPeeper(1008); // if
     return nullptr;
   }
 
   if (SequentialType *SeqTy = dyn_cast<SequentialType>(Ty)) {
-    PassPrediction::PassPeeper(__FILE__, 1009); // if
+    PassPrediction::PassPeeper(1009); // if
     Type *ElementTy = SeqTy->getElementType();
     uint64_t ElementSize = DL.getTypeAllocSize(ElementTy);
     uint64_t NumSkippedElements = Offset / ElementSize;
     if (NumSkippedElements >= SeqTy->getNumElements()) {
-      PassPrediction::PassPeeper(__FILE__, 1010); // if
+      PassPrediction::PassPeeper(1010); // if
       return nullptr;
     }
     Offset -= NumSkippedElements * ElementSize;
@@ -3737,9 +3737,9 @@ static Type *getTypePartition(const DataLayout &DL, Type *Ty, uint64_t Offset,
     // First check if we need to recurse.
     if (Offset > 0 || Size < ElementSize) {
       // Bail if the partition ends in a different array element.
-      PassPrediction::PassPeeper(__FILE__, 1011); // if
+      PassPrediction::PassPeeper(1011); // if
       if ((Offset + Size) > ElementSize) {
-        PassPrediction::PassPeeper(__FILE__, 1012); // if
+        PassPrediction::PassPeeper(1012); // if
         return nullptr;
       }
       // Recurse through the element type trying to peel off offset bytes.
@@ -3748,13 +3748,13 @@ static Type *getTypePartition(const DataLayout &DL, Type *Ty, uint64_t Offset,
     assert(Offset == 0);
 
     if (Size == ElementSize) {
-      PassPrediction::PassPeeper(__FILE__, 1013); // if
+      PassPrediction::PassPeeper(1013); // if
       return stripAggregateTypeWrapping(DL, ElementTy);
     }
     assert(Size > ElementSize);
     uint64_t NumElements = Size / ElementSize;
     if (NumElements * ElementSize != Size) {
-      PassPrediction::PassPeeper(__FILE__, 1014); // if
+      PassPrediction::PassPeeper(1014); // if
       return nullptr;
     }
     return ArrayType::get(ElementTy, NumElements);
@@ -3762,18 +3762,18 @@ static Type *getTypePartition(const DataLayout &DL, Type *Ty, uint64_t Offset,
 
   StructType *STy = dyn_cast<StructType>(Ty);
   if (!STy) {
-    PassPrediction::PassPeeper(__FILE__, 1015); // if
+    PassPrediction::PassPeeper(1015); // if
     return nullptr;
   }
 
   const StructLayout *SL = DL.getStructLayout(STy);
   if (Offset >= SL->getSizeInBytes()) {
-    PassPrediction::PassPeeper(__FILE__, 1016); // if
+    PassPrediction::PassPeeper(1016); // if
     return nullptr;
   }
   uint64_t EndOffset = Offset + Size;
   if (EndOffset > SL->getSizeInBytes()) {
-    PassPrediction::PassPeeper(__FILE__, 1017); // if
+    PassPrediction::PassPeeper(1017); // if
     return nullptr;
   }
 
@@ -3783,15 +3783,15 @@ static Type *getTypePartition(const DataLayout &DL, Type *Ty, uint64_t Offset,
   Type *ElementTy = STy->getElementType(Index);
   uint64_t ElementSize = DL.getTypeAllocSize(ElementTy);
   if (Offset >= ElementSize) {
-    PassPrediction::PassPeeper(__FILE__, 1018); // if
+    PassPrediction::PassPeeper(1018); // if
     return nullptr; // The offset points into alignment padding.
   }
 
   // See if any partition must be contained by the element.
   if (Offset > 0 || Size < ElementSize) {
-    PassPrediction::PassPeeper(__FILE__, 1019); // if
+    PassPrediction::PassPeeper(1019); // if
     if ((Offset + Size) > ElementSize) {
-      PassPrediction::PassPeeper(__FILE__, 1020); // if
+      PassPrediction::PassPeeper(1020); // if
       return nullptr;
     }
     return getTypePartition(DL, ElementTy, Offset, Size);
@@ -3799,17 +3799,17 @@ static Type *getTypePartition(const DataLayout &DL, Type *Ty, uint64_t Offset,
   assert(Offset == 0);
 
   if (Size == ElementSize) {
-    PassPrediction::PassPeeper(__FILE__, 1021); // if
+    PassPrediction::PassPeeper(1021); // if
     return stripAggregateTypeWrapping(DL, ElementTy);
   }
 
   StructType::element_iterator EI = STy->element_begin() + Index,
                                EE = STy->element_end();
   if (EndOffset < SL->getSizeInBytes()) {
-    PassPrediction::PassPeeper(__FILE__, 1022); // if
+    PassPrediction::PassPeeper(1022); // if
     unsigned EndIndex = SL->getElementContainingOffset(EndOffset);
     if (Index == EndIndex) {
-      PassPrediction::PassPeeper(__FILE__, 1023); // if
+      PassPrediction::PassPeeper(1023); // if
       return nullptr; // Within a single element and its padding.
     }
 
@@ -3818,7 +3818,7 @@ static Type *getTypePartition(const DataLayout &DL, Type *Ty, uint64_t Offset,
     // FIXME: We could potentially recurse down through the last element in the
     // sub-struct to find a natural end point.
     if (SL->getElementOffset(EndIndex) != EndOffset) {
-      PassPrediction::PassPeeper(__FILE__, 1024); // if
+      PassPrediction::PassPeeper(1024); // if
       return nullptr;
     }
 
@@ -3831,7 +3831,7 @@ static Type *getTypePartition(const DataLayout &DL, Type *Ty, uint64_t Offset,
       StructType::get(STy->getContext(), makeArrayRef(EI, EE), STy->isPacked());
   const StructLayout *SubSL = DL.getStructLayout(SubTy);
   if (Size != SubSL->getSizeInBytes()) {
-    PassPrediction::PassPeeper(__FILE__, 1025); // if
+    PassPrediction::PassPeeper(1025); // if
     return nullptr; // The sub-struct doesn't have quite the size needed.
   }
 
@@ -3903,22 +3903,22 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
 
   DEBUG(dbgs() << "  Searching for candidate loads and stores\n");
   for (auto &P : AS.partitions()) {
-    PassPrediction::PassPeeper(__FILE__, 1026); // for-range
+    PassPrediction::PassPeeper(1026); // for-range
     for (Slice &S : P) {
-      PassPrediction::PassPeeper(__FILE__, 1027); // for-range
+      PassPrediction::PassPeeper(1027); // for-range
       Instruction *I = cast<Instruction>(S.getUse()->getUser());
       if (!S.isSplittable() || S.endOffset() <= P.endOffset()) {
         // If this is a load we have to track that it can't participate in any
         // pre-splitting. If this is a store of a load we have to track that
         // that load also can't participate in any pre-splitting.
-        PassPrediction::PassPeeper(__FILE__, 1028); // if
+        PassPrediction::PassPeeper(1028); // if
         if (auto *LI = dyn_cast<LoadInst>(I)) {
-          PassPrediction::PassPeeper(__FILE__, 1029); // if
+          PassPrediction::PassPeeper(1029); // if
           UnsplittableLoads.insert(LI);
         } else if (auto *SI = dyn_cast<StoreInst>(I)) {
-          PassPrediction::PassPeeper(__FILE__, 1030); // if
+          PassPrediction::PassPeeper(1030); // if
           if (auto *LI = dyn_cast<LoadInst>(SI->getValueOperand())) {
-            PassPrediction::PassPeeper(__FILE__, 1031); // if
+            PassPrediction::PassPeeper(1031); // if
             UnsplittableLoads.insert(LI);
           }
         }
@@ -3936,32 +3936,32 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
         // simple to avoid changing semantics.
         auto IsLoadSimplyStored = [](LoadInst *LI) {
           for (User *LU : LI->users()) {
-            PassPrediction::PassPeeper(__FILE__, 1032); // for-range
+            PassPrediction::PassPeeper(1032); // for-range
             auto *SI = dyn_cast<StoreInst>(LU);
             if (!SI || !SI->isSimple()) {
-              PassPrediction::PassPeeper(__FILE__, 1033); // if
+              PassPrediction::PassPeeper(1033); // if
               return false;
             }
           }
           return true;
         };
         if (!IsLoadSimplyStored(LI)) {
-          PassPrediction::PassPeeper(__FILE__, 1034); // if
+          PassPrediction::PassPeeper(1034); // if
           UnsplittableLoads.insert(LI);
           continue;
         }
 
         Loads.push_back(LI);
       } else if (auto *SI = dyn_cast<StoreInst>(I)) {
-        PassPrediction::PassPeeper(__FILE__, 1035); // if
+        PassPrediction::PassPeeper(1035); // if
         if (S.getUse() != &SI->getOperandUse(SI->getPointerOperandIndex())) {
           // Skip stores *of* pointers. FIXME: This shouldn't even be possible!
-          PassPrediction::PassPeeper(__FILE__, 1037); // if
+          PassPrediction::PassPeeper(1037); // if
           continue;
         }
         auto *StoredLoad = dyn_cast<LoadInst>(SI->getValueOperand());
         if (!StoredLoad || !StoredLoad->isSimple()) {
-          PassPrediction::PassPeeper(__FILE__, 1038); // if
+          PassPrediction::PassPeeper(1038); // if
           continue;
         }
         assert(!SI->isVolatile() && "Cannot split volatile stores!");
@@ -3969,7 +3969,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
         Stores.push_back(SI);
       } else {
         // Other uses cannot be pre-split.
-        PassPrediction::PassPeeper(__FILE__, 1036); // else
+        PassPrediction::PassPeeper(1036); // else
         continue;
       }
 
@@ -3985,11 +3985,11 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
     // Now scan the already split slices, and add a split for any of them which
     // we're going to pre-split.
     for (Slice *S : P.splitSliceTails()) {
-      PassPrediction::PassPeeper(__FILE__, 1039); // for-range
+      PassPrediction::PassPeeper(1039); // for-range
       auto SplitOffsetsMapI =
           SplitOffsetsMap.find(cast<Instruction>(S->getUse()->getUser()));
       if (SplitOffsetsMapI == SplitOffsetsMap.end()) {
-        PassPrediction::PassPeeper(__FILE__, 1040); // if
+        PassPrediction::PassPeeper(1040); // if
         continue;
       }
       auto &Offsets = SplitOffsetsMapI->second;
@@ -4004,7 +4004,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
       // Record each split. The last partition's end isn't needed as the size
       // of the slice dictates that.
       if (S->endOffset() > P.endOffset()) {
-        PassPrediction::PassPeeper(__FILE__, 1041); // if
+        PassPrediction::PassPeeper(1041); // if
         Offsets.Splits.push_back(P.endOffset() - Offsets.S->beginOffset());
       }
     }
@@ -4023,13 +4023,13 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
                   // If it was completely unsplittable, then we're done,
                   // and this store can't be pre-split.
                   if (UnsplittableLoads.count(LI)) {
-                    PassPrediction::PassPeeper(__FILE__, 1042); // if
+                    PassPrediction::PassPeeper(1042); // if
                     return true;
                   }
 
                   auto LoadOffsetsI = SplitOffsetsMap.find(LI);
                   if (LoadOffsetsI == SplitOffsetsMap.end()) {
-                    PassPrediction::PassPeeper(__FILE__, 1043); // if
+                    PassPrediction::PassPeeper(1043); // if
                     return false; // Unrelated loads are definitely safe.
                   }
                   auto &LoadOffsets = LoadOffsetsI->second;
@@ -4041,7 +4041,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
                   // store match exactly, then we can split them and we
                   // don't need to remove them here.
                   if (LoadOffsets.Splits == StoreOffsets.Splits) {
-                    PassPrediction::PassPeeper(__FILE__, 1044); // if
+                    PassPrediction::PassPeeper(1044); // if
                     return false;
                   }
 
@@ -4078,7 +4078,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
   // If no loads or stores are left, there is no pre-splitting to be done for
   // this alloca.
   if (Loads.empty() && Stores.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 1045); // if
+    PassPrediction::PassPeeper(1045); // if
     return false;
   }
 
@@ -4105,7 +4105,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
   std::vector<LoadInst *> SplitLoads;
   const DataLayout &DL = AI.getModule()->getDataLayout();
   for (LoadInst *LI : Loads) {
-    PassPrediction::PassPeeper(__FILE__, 1046); // for-range
+    PassPrediction::PassPeeper(1046); // for-range
     SplitLoads.clear();
 
     IntegerType *Ty = cast<IntegerType>(LI->getType());
@@ -4127,7 +4127,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
     uint64_t PartOffset = 0, PartSize = Offsets.Splits.front();
     int Idx = 0, Size = Offsets.Splits.size();
     for (;;) {
-      PassPrediction::PassPeeper(__FILE__, 1047); // for
+      PassPrediction::PassPeeper(1047); // for
       auto *PartTy = Type::getIntNTy(Ty->getContext(), PartSize * 8);
       auto AS = LI->getPointerAddressSpace();
       auto *PartPtrTy = PartTy->getPointerTo(AS);
@@ -4154,7 +4154,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
 
       // See if we've handled all the splits.
       if (Idx >= Size) {
-        PassPrediction::PassPeeper(__FILE__, 1048); // if
+        PassPrediction::PassPeeper(1048); // if
         break;
       }
 
@@ -4169,10 +4169,10 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
     // below if the store is going to be split there anyways.
     bool DeferredStores = false;
     for (User *LU : LI->users()) {
-      PassPrediction::PassPeeper(__FILE__, 1049); // for-range
+      PassPrediction::PassPeeper(1049); // for-range
       StoreInst *SI = cast<StoreInst>(LU);
       if (!Stores.empty() && SplitOffsetsMap.count(SI)) {
-        PassPrediction::PassPeeper(__FILE__, 1050); // if
+        PassPrediction::PassPeeper(1050); // if
         DeferredStores = true;
         DEBUG(dbgs() << "    Deferred splitting of store: " << *SI << "\n");
         continue;
@@ -4184,7 +4184,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
       DEBUG(dbgs() << "    Splitting store of load: " << *SI << "\n");
 
       for (int Idx = 0, Size = SplitLoads.size(); Idx < Size; ++Idx) {
-        PassPrediction::PassPeeper(__FILE__, 1051); // for
+        PassPrediction::PassPeeper(1051); // for
         LoadInst *PLoad = SplitLoads[Idx];
         uint64_t PartOffset = Idx == 0 ? 0 : Offsets.Splits[Idx - 1];
         auto *PartPtrTy =
@@ -4206,12 +4206,12 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
       // a direct store) as needing to be resplit because it is no longer
       // promotable.
       if (AllocaInst *OtherAI = dyn_cast<AllocaInst>(StoreBasePtr)) {
-        PassPrediction::PassPeeper(__FILE__, 1052); // if
+        PassPrediction::PassPeeper(1052); // if
         ResplitPromotableAllocas.insert(OtherAI);
         Worklist.insert(OtherAI);
       } else if (AllocaInst *OtherAI = dyn_cast<AllocaInst>(
                      StoreBasePtr->stripInBoundsOffsets())) {
-        PassPrediction::PassPeeper(__FILE__, 1053); // if
+        PassPrediction::PassPeeper(1053); // if
         Worklist.insert(OtherAI);
       }
 
@@ -4221,7 +4221,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
 
     // Save the split loads if there are deferred stores among the users.
     if (DeferredStores) {
-      PassPrediction::PassPeeper(__FILE__, 1054); // if
+      PassPrediction::PassPeeper(1054); // if
       SplitLoadsMap.insert(std::make_pair(LI, std::move(SplitLoads)));
     }
 
@@ -4236,7 +4236,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
   // other loads, we split those loads first and then write split stores of
   // them.
   for (StoreInst *SI : Stores) {
-    PassPrediction::PassPeeper(__FILE__, 1055); // for-range
+    PassPrediction::PassPeeper(1055); // for-range
     auto *LI = cast<LoadInst>(SI->getValueOperand());
     IntegerType *Ty = cast<IntegerType>(LI->getType());
     uint64_t StoreSize = Ty->getBitWidth() / 8;
@@ -4258,7 +4258,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
     auto SplitLoadsMapI = SplitLoadsMap.find(LI);
     std::vector<LoadInst *> *SplitLoads = nullptr;
     if (SplitLoadsMapI != SplitLoadsMap.end()) {
-      PassPrediction::PassPeeper(__FILE__, 1056); // if
+      PassPrediction::PassPeeper(1056); // if
       SplitLoads = &SplitLoadsMapI->second;
       assert(SplitLoads->size() == Offsets.Splits.size() + 1 &&
              "Too few split loads for the number of splits in the store!");
@@ -4269,7 +4269,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
     uint64_t PartOffset = 0, PartSize = Offsets.Splits.front();
     int Idx = 0, Size = Offsets.Splits.size();
     for (;;) {
-      PassPrediction::PassPeeper(__FILE__, 1057); // for
+      PassPrediction::PassPeeper(1057); // for
       auto *PartTy = Type::getIntNTy(Ty->getContext(), PartSize * 8);
       auto *LoadPartPtrTy = PartTy->getPointerTo(LI->getPointerAddressSpace());
       auto *StorePartPtrTy = PartTy->getPointerTo(SI->getPointerAddressSpace());
@@ -4277,10 +4277,10 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
       // Either lookup a split load or create one.
       LoadInst *PLoad;
       if (SplitLoads) {
-        PassPrediction::PassPeeper(__FILE__, 1058); // if
+        PassPrediction::PassPeeper(1058); // if
         PLoad = (*SplitLoads)[Idx];
       } else {
-        PassPrediction::PassPeeper(__FILE__, 1059); // else
+        PassPrediction::PassPeeper(1059); // else
         IRB.SetInsertPoint(LI);
         auto AS = LI->getPointerAddressSpace();
         PLoad = IRB.CreateAlignedLoad(
@@ -4315,7 +4315,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
 
       // See if we've finished all the splits.
       if (Idx >= Size) {
-        PassPrediction::PassPeeper(__FILE__, 1060); // if
+        PassPrediction::PassPeeper(1060); // if
         break;
       }
 
@@ -4331,7 +4331,7 @@ bool SROA::presplitLoadsAndStores(AllocaInst &AI, AllocaSlices &AS) {
     // of any promotable allocas we split loads on as they can no longer be
     // promoted.
     if (!SplitLoads) {
-      PassPrediction::PassPeeper(__FILE__, 1061); // if
+      PassPrediction::PassPeeper(1061); // if
       if (AllocaInst *OtherAI = dyn_cast<AllocaInst>(LoadBasePtr)) {
         assert(OtherAI != &AI && "We can't re-split our own alloca!");
         ResplitPromotableAllocas.insert(OtherAI);
@@ -4403,28 +4403,28 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
   Type *SliceTy = nullptr;
   const DataLayout &DL = AI.getModule()->getDataLayout();
   if (Type *CommonUseTy = findCommonType(P.begin(), P.end(), P.endOffset())) {
-    PassPrediction::PassPeeper(__FILE__, 1062); // if
+    PassPrediction::PassPeeper(1062); // if
     if (DL.getTypeAllocSize(CommonUseTy) >= P.size()) {
-      PassPrediction::PassPeeper(__FILE__, 1063); // if
+      PassPrediction::PassPeeper(1063); // if
       SliceTy = CommonUseTy;
     }
   }
   if (!SliceTy) {
-    PassPrediction::PassPeeper(__FILE__, 1064); // if
+    PassPrediction::PassPeeper(1064); // if
     if (Type *TypePartitionTy = getTypePartition(DL, AI.getAllocatedType(),
                                                  P.beginOffset(), P.size())) {
-      PassPrediction::PassPeeper(__FILE__, 1065); // if
+      PassPrediction::PassPeeper(1065); // if
       SliceTy = TypePartitionTy;
     }
   }
   if ((!SliceTy || (SliceTy->isArrayTy() &&
                     SliceTy->getArrayElementType()->isIntegerTy())) &&
       DL.isLegalInteger(P.size() * 8)) {
-    PassPrediction::PassPeeper(__FILE__, 1066); // if
+    PassPrediction::PassPeeper(1066); // if
     SliceTy = Type::getIntNTy(*C, P.size() * 8);
   }
   if (!SliceTy) {
-    PassPrediction::PassPeeper(__FILE__, 1067); // if
+    PassPrediction::PassPeeper(1067); // if
     SliceTy = ArrayType::get(Type::getInt8Ty(*C), P.size());
   }
   assert(DL.getTypeAllocSize(SliceTy) >= P.size());
@@ -4434,7 +4434,7 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
   VectorType *VecTy =
       IsIntegerPromotable ? nullptr : isVectorPromotionViable(P, DL);
   if (VecTy) {
-    PassPrediction::PassPeeper(__FILE__, 1068); // if
+    PassPrediction::PassPeeper(1068); // if
     SliceTy = VecTy;
   }
 
@@ -4451,20 +4451,20 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
     // FIXME: We might want to defer PHI speculation until after here.
     // FIXME: return nullptr;
   } else {
-    PassPrediction::PassPeeper(__FILE__, 1069); // else
+    PassPrediction::PassPeeper(1069); // else
     unsigned Alignment = AI.getAlignment();
     if (!Alignment) {
       // The minimum alignment which users can rely on when the explicit
       // alignment is omitted or zero is that required by the ABI for this
       // type.
-      PassPrediction::PassPeeper(__FILE__, 1070); // if
+      PassPrediction::PassPeeper(1070); // if
       Alignment = DL.getABITypeAlignment(AI.getAllocatedType());
     }
     Alignment = MinAlign(Alignment, P.beginOffset());
     // If we will get at least this much alignment from the type alone, leave
     // the alloca's alignment unconstrained.
     if (Alignment <= DL.getABITypeAlignment(SliceTy)) {
-      PassPrediction::PassPeeper(__FILE__, 1071); // if
+      PassPrediction::PassPeeper(1071); // if
       Alignment = 0;
     }
     NewAI = new AllocaInst(
@@ -4490,12 +4490,12 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
                                PHIUsers, SelectUsers);
   bool Promotable = true;
   for (Slice *S : P.splitSliceTails()) {
-    PassPrediction::PassPeeper(__FILE__, 1072); // for-range
+    PassPrediction::PassPeeper(1072); // for-range
     Promotable &= Rewriter.visit(S);
     ++NumUses;
   }
   for (Slice &S : P) {
-    PassPrediction::PassPeeper(__FILE__, 1073); // for-range
+    PassPrediction::PassPeeper(1073); // for-range
     Promotable &= Rewriter.visit(&S);
     ++NumUses;
   }
@@ -4506,62 +4506,62 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
   // Now that we've processed all the slices in the new partition, check if any
   // PHIs or Selects would block promotion.
   for (PHINode *PHI : PHIUsers) {
-    PassPrediction::PassPeeper(__FILE__, 1074); // for-range
+    PassPrediction::PassPeeper(1074); // for-range
     if (!isSafePHIToSpeculate(*PHI)) {
-      PassPrediction::PassPeeper(__FILE__, 1075); // if
+      PassPrediction::PassPeeper(1075); // if
       Promotable = false;
       PHIUsers.clear();
       SelectUsers.clear();
-      PassPrediction::PassPeeper(__FILE__, 1076); // break
+      PassPrediction::PassPeeper(1076); // break
       break;
     }
   }
 
   for (SelectInst *Sel : SelectUsers) {
-    PassPrediction::PassPeeper(__FILE__, 1077); // for-range
+    PassPrediction::PassPeeper(1077); // for-range
     if (!isSafeSelectToSpeculate(*Sel)) {
-      PassPrediction::PassPeeper(__FILE__, 1078); // if
+      PassPrediction::PassPeeper(1078); // if
       Promotable = false;
       PHIUsers.clear();
       SelectUsers.clear();
-      PassPrediction::PassPeeper(__FILE__, 1079); // break
+      PassPrediction::PassPeeper(1079); // break
       break;
     }
   }
 
   if (Promotable) {
-    PassPrediction::PassPeeper(__FILE__, 1080); // if
+    PassPrediction::PassPeeper(1080); // if
     if (PHIUsers.empty() && SelectUsers.empty()) {
       // Promote the alloca.
-      PassPrediction::PassPeeper(__FILE__, 1082); // if
+      PassPrediction::PassPeeper(1082); // if
       PromotableAllocas.push_back(NewAI);
     } else {
       // If we have either PHIs or Selects to speculate, add them to those
       // worklists and re-queue the new alloca so that we promote in on the
       // next iteration.
-      PassPrediction::PassPeeper(__FILE__, 1083); // else
+      PassPrediction::PassPeeper(1083); // else
       for (PHINode *PHIUser : PHIUsers) {
-        PassPrediction::PassPeeper(__FILE__, 1084); // for-range
+        PassPrediction::PassPeeper(1084); // for-range
         SpeculatablePHIs.insert(PHIUser);
       }
       for (SelectInst *SelectUser : SelectUsers) {
-        PassPrediction::PassPeeper(__FILE__, 1085); // for-range
+        PassPrediction::PassPeeper(1085); // for-range
         SpeculatableSelects.insert(SelectUser);
       }
       Worklist.insert(NewAI);
     }
   } else {
     // Drop any post-promotion work items if promotion didn't happen.
-    PassPrediction::PassPeeper(__FILE__, 1081); // else
+    PassPrediction::PassPeeper(1081); // else
     while (PostPromotionWorklist.size() > PPWOldSize) {
-      PassPrediction::PassPeeper(__FILE__, 1086); // while
+      PassPrediction::PassPeeper(1086); // while
       PostPromotionWorklist.pop_back();
     }
 
     // We couldn't promote and we didn't create a new partition, nothing
     // happened.
     if (NewAI == &AI) {
-      PassPrediction::PassPeeper(__FILE__, 1087); // if
+      PassPrediction::PassPeeper(1087); // if
       return nullptr;
     }
 
@@ -4578,7 +4578,7 @@ AllocaInst *SROA::rewritePartition(AllocaInst &AI, AllocaSlices &AS,
 /// rewriting each of their uses.
 bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
   if (AS.begin() == AS.end()) {
-    PassPrediction::PassPeeper(__FILE__, 1088); // if
+    PassPrediction::PassPeeper(1088); // if
     return false;
   }
 
@@ -4595,9 +4595,9 @@ bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
   // rewritten into a partition.
   bool IsSorted = true;
   for (Slice &S : AS) {
-    PassPrediction::PassPeeper(__FILE__, 1089); // for-range
+    PassPrediction::PassPeeper(1089); // for-range
     if (!S.isSplittable()) {
-      PassPrediction::PassPeeper(__FILE__, 1090); // if
+      PassPrediction::PassPeeper(1090); // if
       continue;
     }
     // FIXME: We currently leave whole-alloca splittable loads and stores. This
@@ -4606,18 +4606,18 @@ bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
     // completely sufficient before we forcibly disable the remaining handling.
     if (S.beginOffset() == 0 &&
         S.endOffset() >= DL.getTypeAllocSize(AI.getAllocatedType())) {
-      PassPrediction::PassPeeper(__FILE__, 1091); // if
+      PassPrediction::PassPeeper(1091); // if
       continue;
     }
     if (isa<LoadInst>(S.getUse()->getUser()) ||
         isa<StoreInst>(S.getUse()->getUser())) {
-      PassPrediction::PassPeeper(__FILE__, 1092); // if
+      PassPrediction::PassPeeper(1092); // if
       S.makeUnsplittable();
       IsSorted = false;
     }
   }
   if (!IsSorted) {
-    PassPrediction::PassPeeper(__FILE__, 1093); // if
+    PassPrediction::PassPeeper(1093); // if
     std::sort(AS.begin(), AS.end());
   }
 
@@ -4634,12 +4634,12 @@ bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
 
   // Rewrite each partition.
   for (auto &P : AS.partitions()) {
-    PassPrediction::PassPeeper(__FILE__, 1094); // for-range
+    PassPrediction::PassPeeper(1094); // for-range
     if (AllocaInst *NewAI = rewritePartition(AI, AS, P)) {
-      PassPrediction::PassPeeper(__FILE__, 1095); // if
+      PassPrediction::PassPeeper(1095); // if
       Changed = true;
       if (NewAI != &AI) {
-        PassPrediction::PassPeeper(__FILE__, 1096); // if
+        PassPrediction::PassPeeper(1096); // if
         uint64_t SizeOfByte = 8;
         uint64_t AllocaSize = DL.getTypeSizeInBits(NewAI->getAllocatedType());
         // Don't include any padding.
@@ -4657,7 +4657,7 @@ bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
   // Migrate debug information from the old alloca to the new alloca(s)
   // and the individual partitions.
   if (DbgDeclareInst *DbgDecl = FindAllocaDbgDeclare(&AI)) {
-    PassPrediction::PassPeeper(__FILE__, 1097); // if
+    PassPrediction::PassPeeper(1097); // if
     auto *Var = DbgDecl->getVariable();
     auto *Expr = DbgDecl->getExpression();
     DIBuilder DIB(*AI.getModule(), /*AllowUnresolved*/ false);
@@ -4665,23 +4665,23 @@ bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
     for (auto Fragment : Fragments) {
       // Create a fragment expression describing the new partition or reuse AI's
       // expression if there is only one partition.
-      PassPrediction::PassPeeper(__FILE__, 1098); // for-range
+      PassPrediction::PassPeeper(1098); // for-range
       auto *FragmentExpr = Expr;
       if (Fragment.Size < AllocaSize || Expr->isFragment()) {
         // If this alloca is already a scalar replacement of a larger aggregate,
         // Fragment.Offset describes the offset inside the scalar.
-        PassPrediction::PassPeeper(__FILE__, 1099); // if
+        PassPrediction::PassPeeper(1099); // if
         auto ExprFragment = Expr->getFragmentInfo();
         uint64_t Offset = ExprFragment ? ExprFragment->OffsetInBits : 0;
         uint64_t Start = Offset + Fragment.Offset;
         uint64_t Size = Fragment.Size;
         if (ExprFragment) {
-          PassPrediction::PassPeeper(__FILE__, 1100); // if
+          PassPrediction::PassPeeper(1100); // if
           uint64_t AbsEnd =
               ExprFragment->OffsetInBits + ExprFragment->SizeInBits;
           if (Start >= AbsEnd) {
             // No need to describe a SROAed padding.
-            PassPrediction::PassPeeper(__FILE__, 1101); // if
+            PassPrediction::PassPeeper(1101); // if
             continue;
           }
           Size = std::min(Size, AbsEnd - Start);
@@ -4691,7 +4691,7 @@ bool SROA::splitAlloca(AllocaInst &AI, AllocaSlices &AS) {
 
       // Remove any existing dbg.declare intrinsic describing the same alloca.
       if (DbgDeclareInst *OldDDI = FindAllocaDbgDeclare(Fragment.Alloca)) {
-        PassPrediction::PassPeeper(__FILE__, 1102); // if
+        PassPrediction::PassPeeper(1102); // if
         OldDDI->eraseFromParent();
       }
 
@@ -4712,9 +4712,9 @@ void SROA::clobberUse(Use &U) {
   // all the dead instructions to ensure the uses of any alloca end up being
   // minimal.
   if (Instruction *OldI = dyn_cast<Instruction>(OldV)) {
-    PassPrediction::PassPeeper(__FILE__, 1103); // if
+    PassPrediction::PassPeeper(1103); // if
     if (isInstructionTriviallyDead(OldI)) {
-      PassPrediction::PassPeeper(__FILE__, 1104); // if
+      PassPrediction::PassPeeper(1104); // if
       DeadInsts.insert(OldI);
     }
   }
@@ -4731,7 +4731,7 @@ bool SROA::runOnAlloca(AllocaInst &AI) {
 
   // Special case dead allocas, as they're trivial.
   if (AI.use_empty()) {
-    PassPrediction::PassPeeper(__FILE__, 1105); // if
+    PassPrediction::PassPeeper(1105); // if
     AI.eraseFromParent();
     return true;
   }
@@ -4740,7 +4740,7 @@ bool SROA::runOnAlloca(AllocaInst &AI) {
   // Skip alloca forms that this analysis can't handle.
   if (AI.isArrayAllocation() || !AI.getAllocatedType()->isSized() ||
       DL.getTypeAllocSize(AI.getAllocatedType()) == 0) {
-    PassPrediction::PassPeeper(__FILE__, 1106); // if
+    PassPrediction::PassPeeper(1106); // if
     return false;
   }
 
@@ -4755,16 +4755,16 @@ bool SROA::runOnAlloca(AllocaInst &AI) {
   AllocaSlices AS(DL, AI);
   DEBUG(AS.print(dbgs()));
   if (AS.isEscaped()) {
-    PassPrediction::PassPeeper(__FILE__, 1107); // if
+    PassPrediction::PassPeeper(1107); // if
     return Changed;
   }
 
   // Delete all the dead users of this alloca before splitting and rewriting it.
   for (Instruction *DeadUser : AS.getDeadUsers()) {
     // Free up everything used by this instruction.
-    PassPrediction::PassPeeper(__FILE__, 1108); // for-range
+    PassPrediction::PassPeeper(1108); // for-range
     for (Use &DeadOp : DeadUser->operands()) {
-      PassPrediction::PassPeeper(__FILE__, 1109); // for-range
+      PassPrediction::PassPeeper(1109); // for-range
       clobberUse(DeadOp);
     }
 
@@ -4776,14 +4776,14 @@ bool SROA::runOnAlloca(AllocaInst &AI) {
     Changed = true;
   }
   for (Use *DeadOp : AS.getDeadOperands()) {
-    PassPrediction::PassPeeper(__FILE__, 1110); // for-range
+    PassPrediction::PassPeeper(1110); // for-range
     clobberUse(*DeadOp);
     Changed = true;
   }
 
   // No slices to split. Leave the dead alloca for a later pass to clean up.
   if (AS.begin() == AS.end()) {
-    PassPrediction::PassPeeper(__FILE__, 1111); // if
+    PassPrediction::PassPeeper(1111); // if
     return Changed;
   }
 
@@ -4791,13 +4791,13 @@ bool SROA::runOnAlloca(AllocaInst &AI) {
 
   DEBUG(dbgs() << "  Speculating PHIs\n");
   while (!SpeculatablePHIs.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 1112); // while
+    PassPrediction::PassPeeper(1112); // while
     speculatePHINodeLoads(*SpeculatablePHIs.pop_back_val());
   }
 
   DEBUG(dbgs() << "  Speculating Selects\n");
   while (!SpeculatableSelects.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 1113); // while
+    PassPrediction::PassPeeper(1113); // while
     speculateSelectInstLoads(*SpeculatableSelects.pop_back_val());
   }
 
@@ -4816,30 +4816,30 @@ bool SROA::runOnAlloca(AllocaInst &AI) {
 void SROA::deleteDeadInstructions(
     SmallPtrSetImpl<AllocaInst *> &DeletedAllocas) {
   while (!DeadInsts.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 1114); // while
+    PassPrediction::PassPeeper(1114); // while
     Instruction *I = DeadInsts.pop_back_val();
     DEBUG(dbgs() << "Deleting dead instruction: " << *I << "\n");
 
     I->replaceAllUsesWith(UndefValue::get(I->getType()));
 
     for (Use &Operand : I->operands()) {
-      PassPrediction::PassPeeper(__FILE__, 1115); // for-range
+      PassPrediction::PassPeeper(1115); // for-range
       if (Instruction *U = dyn_cast<Instruction>(Operand)) {
         // Zero out the operand and see if it becomes trivially dead.
-        PassPrediction::PassPeeper(__FILE__, 1116); // if
+        PassPrediction::PassPeeper(1116); // if
         Operand = nullptr;
         if (isInstructionTriviallyDead(U)) {
-          PassPrediction::PassPeeper(__FILE__, 1117); // if
+          PassPrediction::PassPeeper(1117); // if
           DeadInsts.insert(U);
         }
       }
     }
 
     if (AllocaInst *AI = dyn_cast<AllocaInst>(I)) {
-      PassPrediction::PassPeeper(__FILE__, 1118); // if
+      PassPrediction::PassPeeper(1118); // if
       DeletedAllocas.insert(AI);
       if (DbgDeclareInst *DbgDecl = FindAllocaDbgDeclare(AI)) {
-        PassPrediction::PassPeeper(__FILE__, 1119); // if
+        PassPrediction::PassPeeper(1119); // if
         DbgDecl->eraseFromParent();
       }
     }
@@ -4856,7 +4856,7 @@ void SROA::deleteDeadInstructions(
 /// This function returns whether any promotion occurred.
 bool SROA::promoteAllocas(Function &F) {
   if (PromotableAllocas.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 1120); // if
+    PassPrediction::PassPeeper(1120); // if
     return false;
   }
 
@@ -4878,9 +4878,9 @@ PreservedAnalyses SROA::runImpl(Function &F, DominatorTree &RunDT,
   BasicBlock &EntryBB = F.getEntryBlock();
   for (BasicBlock::iterator I = EntryBB.begin(), E = std::prev(EntryBB.end());
        I != E; ++I) {
-    PassPrediction::PassPeeper(__FILE__, 1121); // for
+    PassPrediction::PassPeeper(1121); // for
     if (AllocaInst *AI = dyn_cast<AllocaInst>(I)) {
-      PassPrediction::PassPeeper(__FILE__, 1122); // if
+      PassPrediction::PassPeeper(1122); // if
       Worklist.insert(AI);
     }
   }
@@ -4891,16 +4891,16 @@ PreservedAnalyses SROA::runImpl(Function &F, DominatorTree &RunDT,
   SmallPtrSet<AllocaInst *, 4> DeletedAllocas;
 
   do {
-    PassPrediction::PassPeeper(__FILE__, 1123); // do-while
+    PassPrediction::PassPeeper(1123); // do-while
     while (!Worklist.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 1124); // while
+      PassPrediction::PassPeeper(1124); // while
       Changed |= runOnAlloca(*Worklist.pop_back_val());
       deleteDeadInstructions(DeletedAllocas);
 
       // Remove the deleted allocas from various lists so that we don't try to
       // continue processing them.
       if (!DeletedAllocas.empty()) {
-        PassPrediction::PassPeeper(__FILE__, 1125); // if
+        PassPrediction::PassPeeper(1125); // if
         auto IsInSet = [&](AllocaInst *AI) { return DeletedAllocas.count(AI); };
         Worklist.remove_if(IsInSet);
         PostPromotionWorklist.remove_if(IsInSet);
@@ -4917,7 +4917,7 @@ PreservedAnalyses SROA::runImpl(Function &F, DominatorTree &RunDT,
   } while (!Worklist.empty());
 
   if (!Changed) {
-    PassPrediction::PassPeeper(__FILE__, 1126); // if
+    PassPrediction::PassPeeper(1126); // if
     return PreservedAnalyses::all();
   }
 
@@ -4946,7 +4946,7 @@ public:
   }
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 1127); // if
+      PassPrediction::PassPeeper(1127); // if
       return false;
     }
 

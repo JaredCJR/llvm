@@ -136,7 +136,7 @@ FunctionPass *llvm::createNaryReassociatePass() {
 
 bool NaryReassociateLegacyPass::runOnFunction(Function &F) {
   if (skipFunction(F)) {
-    PassPrediction::PassPeeper(__FILE__, 1965); // if
+    PassPrediction::PassPeeper(1965); // if
     return false;
   }
 
@@ -158,7 +158,7 @@ PreservedAnalyses NaryReassociatePass::run(Function &F,
   auto *TTI = &AM.getResult<TargetIRAnalysis>(F);
 
   if (!runImpl(F, AC, DT, SE, TLI, TTI)) {
-    PassPrediction::PassPeeper(__FILE__, 1966); // if
+    PassPrediction::PassPeeper(1966); // if
     return PreservedAnalyses::all();
   }
 
@@ -181,7 +181,7 @@ bool NaryReassociatePass::runImpl(Function &F, AssumptionCache *AC_,
 
   bool Changed = false, ChangedInThisIteration;
   do {
-    PassPrediction::PassPeeper(__FILE__, 1967); // do-while
+    PassPrediction::PassPeeper(1967); // do-while
     ChangedInThisIteration = doOneIteration(F);
     Changed |= ChangedInThisIteration;
   } while (ChangedInThisIteration);
@@ -192,13 +192,13 @@ bool NaryReassociatePass::runImpl(Function &F, AssumptionCache *AC_,
 static bool isPotentiallyNaryReassociable(Instruction *I) {
   switch (I->getOpcode()) {
   case Instruction::Add:
-    PassPrediction::PassPeeper(__FILE__, 1968); // case
+    PassPrediction::PassPeeper(1968); // case
 
   case Instruction::GetElementPtr:
-    PassPrediction::PassPeeper(__FILE__, 1969); // case
+    PassPrediction::PassPeeper(1969); // case
 
   case Instruction::Mul:
-    PassPrediction::PassPeeper(__FILE__, 1970); // case
+    PassPrediction::PassPeeper(1970); // case
 
     return true;
   default:
@@ -213,15 +213,15 @@ bool NaryReassociatePass::doOneIteration(Function &F) {
   // tree. This order ensures that all bases of a candidate are in Candidates
   // when we process it.
   for (const auto Node : depth_first(DT)) {
-    PassPrediction::PassPeeper(__FILE__, 1971); // for-range
+    PassPrediction::PassPeeper(1971); // for-range
     BasicBlock *BB = Node->getBlock();
     for (auto I = BB->begin(); I != BB->end(); ++I) {
-      PassPrediction::PassPeeper(__FILE__, 1972); // for
+      PassPrediction::PassPeeper(1972); // for
       if (SE->isSCEVable(I->getType()) && isPotentiallyNaryReassociable(&*I)) {
-        PassPrediction::PassPeeper(__FILE__, 1973); // if
+        PassPrediction::PassPeeper(1973); // if
         const SCEV *OldSCEV = SE->getSCEV(&*I);
         if (Instruction *NewI = tryReassociate(&*I)) {
-          PassPrediction::PassPeeper(__FILE__, 1974); // if
+          PassPrediction::PassPeeper(1974); // if
           Changed = true;
           SE->forgetValue(&*I);
           I->replaceAllUsesWith(NewI);
@@ -254,7 +254,7 @@ bool NaryReassociatePass::doOneIteration(Function &F) {
         //
         // This improvement is exercised in @reassociate_gep_nsw in nary-gep.ll.
         if (NewSCEV != OldSCEV) {
-          PassPrediction::PassPeeper(__FILE__, 1975); // if
+          PassPrediction::PassPeeper(1975); // if
           SeenExprs[OldSCEV].push_back(WeakTrackingVH(&*I));
         }
       }
@@ -266,14 +266,14 @@ bool NaryReassociatePass::doOneIteration(Function &F) {
 Instruction *NaryReassociatePass::tryReassociate(Instruction *I) {
   switch (I->getOpcode()) {
   case Instruction::Add:
-    PassPrediction::PassPeeper(__FILE__, 1976); // case
+    PassPrediction::PassPeeper(1976); // case
 
   case Instruction::Mul:
-    PassPrediction::PassPeeper(__FILE__, 1977); // case
+    PassPrediction::PassPeeper(1977); // case
 
     return tryReassociateBinaryOp(cast<BinaryOperator>(I));
   case Instruction::GetElementPtr:
-    PassPrediction::PassPeeper(__FILE__, 1978); // case
+    PassPrediction::PassPeeper(1978); // case
 
     return tryReassociateGEP(cast<GetElementPtrInst>(I));
   default:
@@ -285,7 +285,7 @@ static bool isGEPFoldable(GetElementPtrInst *GEP,
                           const TargetTransformInfo *TTI) {
   SmallVector<const Value *, 4> Indices;
   for (auto I = GEP->idx_begin(); I != GEP->idx_end(); ++I) {
-    PassPrediction::PassPeeper(__FILE__, 1979); // for
+    PassPrediction::PassPeeper(1979); // for
     Indices.push_back(*I);
   }
   return TTI->getGEPCost(GEP->getSourceElementType(), GEP->getPointerOperand(),
@@ -295,18 +295,18 @@ static bool isGEPFoldable(GetElementPtrInst *GEP,
 Instruction *NaryReassociatePass::tryReassociateGEP(GetElementPtrInst *GEP) {
   // Not worth reassociating GEP if it is foldable.
   if (isGEPFoldable(GEP, TTI)) {
-    PassPrediction::PassPeeper(__FILE__, 1980); // if
+    PassPrediction::PassPeeper(1980); // if
     return nullptr;
   }
 
   gep_type_iterator GTI = gep_type_begin(*GEP);
   for (unsigned I = 1, E = GEP->getNumOperands(); I != E; ++I, ++GTI) {
-    PassPrediction::PassPeeper(__FILE__, 1981); // for
+    PassPrediction::PassPeeper(1981); // for
     if (GTI.isSequential()) {
-      PassPrediction::PassPeeper(__FILE__, 1982); // if
+      PassPrediction::PassPeeper(1982); // if
       if (auto *NewGEP =
               tryReassociateGEPAtIndex(GEP, I - 1, GTI.getIndexedType())) {
-        PassPrediction::PassPeeper(__FILE__, 1983); // if
+        PassPrediction::PassPeeper(1983); // if
         return NewGEP;
       }
     }
@@ -326,13 +326,13 @@ NaryReassociatePass::tryReassociateGEPAtIndex(GetElementPtrInst *GEP,
                                               unsigned I, Type *IndexedType) {
   Value *IndexToSplit = GEP->getOperand(I + 1);
   if (SExtInst *SExt = dyn_cast<SExtInst>(IndexToSplit)) {
-    PassPrediction::PassPeeper(__FILE__, 1984); // if
+    PassPrediction::PassPeeper(1984); // if
     IndexToSplit = SExt->getOperand(0);
   } else if (ZExtInst *ZExt = dyn_cast<ZExtInst>(IndexToSplit)) {
     // zext can be treated as sext if the source is non-negative.
-    PassPrediction::PassPeeper(__FILE__, 1985); // if
+    PassPrediction::PassPeeper(1985); // if
     if (isKnownNonNegative(ZExt->getOperand(0), *DL, 0, AC, GEP, DT)) {
-      PassPrediction::PassPeeper(__FILE__, 1986); // if
+      PassPrediction::PassPeeper(1986); // if
       IndexToSplit = ZExt->getOperand(0);
     }
   }
@@ -341,11 +341,11 @@ NaryReassociatePass::tryReassociateGEPAtIndex(GetElementPtrInst *GEP,
     // If the I-th index needs sext and the underlying add is not equipped with
     // nsw, we cannot split the add because
     //   sext(LHS + RHS) != sext(LHS) + sext(RHS).
-    PassPrediction::PassPeeper(__FILE__, 1987); // if
+    PassPrediction::PassPeeper(1987); // if
     if (requiresSignExtension(IndexToSplit, GEP) &&
         computeOverflowForSignedAdd(AO, *DL, AC, GEP, DT) !=
             OverflowResult::NeverOverflows) {
-      PassPrediction::PassPeeper(__FILE__, 1988); // if
+      PassPrediction::PassPeeper(1988); // if
       return nullptr;
     }
 
@@ -353,15 +353,15 @@ NaryReassociatePass::tryReassociateGEPAtIndex(GetElementPtrInst *GEP,
     // IndexToSplit = LHS + RHS.
     if (auto *NewGEP =
             tryReassociateGEPAtIndex(GEP, I, LHS, RHS, IndexedType)) {
-      PassPrediction::PassPeeper(__FILE__, 1989); // if
+      PassPrediction::PassPeeper(1989); // if
       return NewGEP;
     }
     // Symmetrically, try IndexToSplit = RHS + LHS.
     if (LHS != RHS) {
-      PassPrediction::PassPeeper(__FILE__, 1990); // if
+      PassPrediction::PassPeeper(1990); // if
       if (auto *NewGEP =
               tryReassociateGEPAtIndex(GEP, I, RHS, LHS, IndexedType)) {
-        PassPrediction::PassPeeper(__FILE__, 1991); // if
+        PassPrediction::PassPeeper(1991); // if
         return NewGEP;
       }
     }
@@ -377,7 +377,7 @@ NaryReassociatePass::tryReassociateGEPAtIndex(GetElementPtrInst *GEP,
   // the I-th index is replaced with LHS.
   SmallVector<const SCEV *, 4> IndexExprs;
   for (auto Index = GEP->idx_begin(); Index != GEP->idx_end(); ++Index) {
-    PassPrediction::PassPeeper(__FILE__, 1992); // for
+    PassPrediction::PassPeeper(1992); // for
     IndexExprs.push_back(SE->getSCEV(*Index));
   }
   // Replace the I-th index with LHS.
@@ -389,7 +389,7 @@ NaryReassociatePass::tryReassociateGEPAtIndex(GetElementPtrInst *GEP,
     // zext if the source operand is proved non-negative. We should do that
     // consistently so that CandidateExpr more likely appears before. See
     // @reassociate_gep_assume for an example of this canonicalization.
-    PassPrediction::PassPeeper(__FILE__, 1993); // if
+    PassPrediction::PassPeeper(1993); // if
     IndexExprs[I] =
         SE->getZeroExtendExpr(IndexExprs[I], GEP->getOperand(I)->getType());
   }
@@ -398,7 +398,7 @@ NaryReassociatePass::tryReassociateGEPAtIndex(GetElementPtrInst *GEP,
 
   Value *Candidate = findClosestMatchingDominator(CandidateExpr, GEP);
   if (Candidate == nullptr) {
-    PassPrediction::PassPeeper(__FILE__, 1994); // if
+    PassPrediction::PassPeeper(1994); // if
     return nullptr;
   }
 
@@ -428,18 +428,18 @@ NaryReassociatePass::tryReassociateGEPAtIndex(GetElementPtrInst *GEP,
   //
   // TODO: bail out on this case for now. We could emit uglygep.
   if (IndexedSize % ElementSize != 0) {
-    PassPrediction::PassPeeper(__FILE__, 1995); // if
+    PassPrediction::PassPeeper(1995); // if
     return nullptr;
   }
 
   // NewGEP = &Candidate[RHS * (sizeof(IndexedType) / sizeof(Candidate[0])));
   Type *IntPtrTy = DL->getIntPtrType(GEP->getType());
   if (RHS->getType() != IntPtrTy) {
-    PassPrediction::PassPeeper(__FILE__, 1996); // if
+    PassPrediction::PassPeeper(1996); // if
     RHS = Builder.CreateSExtOrTrunc(RHS, IntPtrTy);
   }
   if (IndexedSize != ElementSize) {
-    PassPrediction::PassPeeper(__FILE__, 1997); // if
+    PassPrediction::PassPeeper(1997); // if
     RHS = Builder.CreateMul(
         RHS, ConstantInt::get(IntPtrTy, IndexedSize / ElementSize));
   }
@@ -453,11 +453,11 @@ NaryReassociatePass::tryReassociateGEPAtIndex(GetElementPtrInst *GEP,
 Instruction *NaryReassociatePass::tryReassociateBinaryOp(BinaryOperator *I) {
   Value *LHS = I->getOperand(0), *RHS = I->getOperand(1);
   if (auto *NewI = tryReassociateBinaryOp(LHS, RHS, I)) {
-    PassPrediction::PassPeeper(__FILE__, 1998); // if
+    PassPrediction::PassPeeper(1998); // if
     return NewI;
   }
   if (auto *NewI = tryReassociateBinaryOp(RHS, LHS, I)) {
-    PassPrediction::PassPeeper(__FILE__, 1999); // if
+    PassPrediction::PassPeeper(1999); // if
     return NewI;
   }
   return nullptr;
@@ -471,22 +471,22 @@ Instruction *NaryReassociatePass::tryReassociateBinaryOp(Value *LHS, Value *RHS,
   if (LHS->hasOneUse() && matchTernaryOp(I, LHS, A, B)) {
     // I = (A op B) op RHS
     //   = (A op RHS) op B or (B op RHS) op A
-    PassPrediction::PassPeeper(__FILE__, 2000); // if
+    PassPrediction::PassPeeper(2000); // if
     const SCEV *AExpr = SE->getSCEV(A), *BExpr = SE->getSCEV(B);
     const SCEV *RHSExpr = SE->getSCEV(RHS);
     if (BExpr != RHSExpr) {
-      PassPrediction::PassPeeper(__FILE__, 2001); // if
+      PassPrediction::PassPeeper(2001); // if
       if (auto *NewI =
               tryReassociatedBinaryOp(getBinarySCEV(I, AExpr, RHSExpr), B, I)) {
-        PassPrediction::PassPeeper(__FILE__, 2002); // if
+        PassPrediction::PassPeeper(2002); // if
         return NewI;
       }
     }
     if (AExpr != RHSExpr) {
-      PassPrediction::PassPeeper(__FILE__, 2003); // if
+      PassPrediction::PassPeeper(2003); // if
       if (auto *NewI =
               tryReassociatedBinaryOp(getBinarySCEV(I, BExpr, RHSExpr), A, I)) {
-        PassPrediction::PassPeeper(__FILE__, 2004); // if
+        PassPrediction::PassPeeper(2004); // if
         return NewI;
       }
     }
@@ -501,23 +501,23 @@ Instruction *NaryReassociatePass::tryReassociatedBinaryOp(const SCEV *LHSExpr,
   // I with LHS op RHS.
   auto *LHS = findClosestMatchingDominator(LHSExpr, I);
   if (LHS == nullptr) {
-    PassPrediction::PassPeeper(__FILE__, 2005); // if
+    PassPrediction::PassPeeper(2005); // if
     return nullptr;
   }
 
   Instruction *NewI = nullptr;
   switch (I->getOpcode()) {
   case Instruction::Add:
-    PassPrediction::PassPeeper(__FILE__, 2006); // case
+    PassPrediction::PassPeeper(2006); // case
 
     NewI = BinaryOperator::CreateAdd(LHS, RHS, "", I);
-    PassPrediction::PassPeeper(__FILE__, 2007); // break
+    PassPrediction::PassPeeper(2007); // break
     break;
   case Instruction::Mul:
-    PassPrediction::PassPeeper(__FILE__, 2008); // case
+    PassPrediction::PassPeeper(2008); // case
 
     NewI = BinaryOperator::CreateMul(LHS, RHS, "", I);
-    PassPrediction::PassPeeper(__FILE__, 2009); // break
+    PassPrediction::PassPeeper(2009); // break
     break;
   default:
     llvm_unreachable("Unexpected instruction.");
@@ -530,11 +530,11 @@ bool NaryReassociatePass::matchTernaryOp(BinaryOperator *I, Value *V,
                                          Value *&Op1, Value *&Op2) {
   switch (I->getOpcode()) {
   case Instruction::Add:
-    PassPrediction::PassPeeper(__FILE__, 2010); // case
+    PassPrediction::PassPeeper(2010); // case
 
     return match(V, m_Add(m_Value(Op1), m_Value(Op2)));
   case Instruction::Mul:
-    PassPrediction::PassPeeper(__FILE__, 2011); // case
+    PassPrediction::PassPeeper(2011); // case
 
     return match(V, m_Mul(m_Value(Op1), m_Value(Op2)));
   default:
@@ -548,11 +548,11 @@ const SCEV *NaryReassociatePass::getBinarySCEV(BinaryOperator *I,
                                                const SCEV *RHS) {
   switch (I->getOpcode()) {
   case Instruction::Add:
-    PassPrediction::PassPeeper(__FILE__, 2012); // case
+    PassPrediction::PassPeeper(2012); // case
 
     return SE->getAddExpr(LHS, RHS);
   case Instruction::Mul:
-    PassPrediction::PassPeeper(__FILE__, 2013); // case
+    PassPrediction::PassPeeper(2013); // case
 
     return SE->getMulExpr(LHS, RHS);
   default:
@@ -566,7 +566,7 @@ NaryReassociatePass::findClosestMatchingDominator(const SCEV *CandidateExpr,
                                                   Instruction *Dominatee) {
   auto Pos = SeenExprs.find(CandidateExpr);
   if (Pos == SeenExprs.end()) {
-    PassPrediction::PassPeeper(__FILE__, 2014); // if
+    PassPrediction::PassPeeper(2014); // if
     return nullptr;
   }
 
@@ -579,12 +579,12 @@ NaryReassociatePass::findClosestMatchingDominator(const SCEV *CandidateExpr,
     // Candidates stores WeakTrackingVHs, so a candidate can be nullptr if it's
     // removed
     // during rewriting.
-    PassPrediction::PassPeeper(__FILE__, 2015); // while
+    PassPrediction::PassPeeper(2015); // while
     if (Value *Candidate = Candidates.back()) {
-      PassPrediction::PassPeeper(__FILE__, 2016); // if
+      PassPrediction::PassPeeper(2016); // if
       Instruction *CandidateInstruction = cast<Instruction>(Candidate);
       if (DT->dominates(CandidateInstruction, Dominatee)) {
-        PassPrediction::PassPeeper(__FILE__, 2017); // if
+        PassPrediction::PassPeeper(2017); // if
         return CandidateInstruction;
       }
     }

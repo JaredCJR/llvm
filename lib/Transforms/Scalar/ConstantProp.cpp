@@ -64,14 +64,14 @@ FunctionPass *llvm::createConstantPropagationPass() {
 
 bool ConstantPropagation::runOnFunction(Function &F) {
   if (skipFunction(F)) {
-    PassPrediction::PassPeeper(__FILE__, 3622); // if
+    PassPrediction::PassPeeper(3622); // if
     return false;
   }
 
   // Initialize the worklist to all of the instructions ready to process...
   std::set<Instruction *> WorkList;
   for (Instruction &I : instructions(&F)) {
-    PassPrediction::PassPeeper(__FILE__, 3623); // for-range
+    PassPrediction::PassPeeper(3623); // for-range
     WorkList.insert(&I);
   }
 
@@ -81,18 +81,18 @@ bool ConstantPropagation::runOnFunction(Function &F) {
       &getAnalysis<TargetLibraryInfoWrapperPass>().getTLI();
 
   while (!WorkList.empty()) {
-    PassPrediction::PassPeeper(__FILE__, 3624); // while
+    PassPrediction::PassPeeper(3624); // while
     Instruction *I = *WorkList.begin();
     WorkList.erase(WorkList.begin()); // Get an element from the worklist...
 
-    if (!I->use_empty()) { // Don't muck with dead instructions...
-      PassPrediction::PassPeeper(__FILE__, 3625); // if
+    if (!I->use_empty()) {              // Don't muck with dead instructions...
+      PassPrediction::PassPeeper(3625); // if
       if (Constant *C = ConstantFoldInstruction(I, DL, TLI)) {
         // Add all of the users of this instruction to the worklist, they might
         // be constant propagatable now...
-        PassPrediction::PassPeeper(__FILE__, 3626); // if
+        PassPrediction::PassPeeper(3626); // if
         for (User *U : I->users()) {
-          PassPrediction::PassPeeper(__FILE__, 3627); // for-range
+          PassPrediction::PassPeeper(3627); // for-range
           WorkList.insert(cast<Instruction>(U));
         }
 
@@ -102,7 +102,7 @@ bool ConstantPropagation::runOnFunction(Function &F) {
         // Remove the dead instruction.
         WorkList.erase(I);
         if (isInstructionTriviallyDead(I, TLI)) {
-          PassPrediction::PassPeeper(__FILE__, 3628); // if
+          PassPrediction::PassPeeper(3628); // if
           I->eraseFromParent();
           ++NumInstKilled;
         }

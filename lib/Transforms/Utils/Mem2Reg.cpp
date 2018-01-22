@@ -35,24 +35,24 @@ static bool promoteMemoryToRegister(Function &F, DominatorTree &DT,
   bool Changed = false;
 
   while (1) {
-    PassPrediction::PassPeeper(__FILE__, 573); // while
+    PassPrediction::PassPeeper(573); // while
     Allocas.clear();
 
     // Find allocas that are safe to promote, by looking at all instructions in
     // the entry node
     for (BasicBlock::iterator I = BB.begin(), E = --BB.end(); I != E; ++I) {
-      PassPrediction::PassPeeper(__FILE__, 574);      // for
+      PassPrediction::PassPeeper(574);                // for
       if (AllocaInst *AI = dyn_cast<AllocaInst>(I)) { // Is it an alloca?
-        PassPrediction::PassPeeper(__FILE__, 575);    // if
+        PassPrediction::PassPeeper(575);              // if
         if (isAllocaPromotable(AI)) {
-          PassPrediction::PassPeeper(__FILE__, 576); // if
+          PassPrediction::PassPeeper(576); // if
           Allocas.push_back(AI);
         }
       }
     }
 
     if (Allocas.empty()) {
-      PassPrediction::PassPeeper(__FILE__, 577); // if
+      PassPrediction::PassPeeper(577); // if
       break;
     }
 
@@ -67,7 +67,7 @@ PreservedAnalyses PromotePass::run(Function &F, FunctionAnalysisManager &AM) {
   auto &DT = AM.getResult<DominatorTreeAnalysis>(F);
   auto &AC = AM.getResult<AssumptionAnalysis>(F);
   if (!promoteMemoryToRegister(F, DT, AC)) {
-    PassPrediction::PassPeeper(__FILE__, 578); // if
+    PassPrediction::PassPeeper(578); // if
     return PreservedAnalyses::all();
   }
 
@@ -88,7 +88,7 @@ struct PromoteLegacyPass : public FunctionPass {
   //
   bool runOnFunction(Function &F) override {
     if (skipFunction(F)) {
-      PassPrediction::PassPeeper(__FILE__, 579); // if
+      PassPrediction::PassPeeper(579); // if
       return false;
     }
 
