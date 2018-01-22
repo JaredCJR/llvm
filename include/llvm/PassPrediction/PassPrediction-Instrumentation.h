@@ -12,7 +12,7 @@
 namespace PassPrediction {
   std::string getDemangledFunctionName(std::string mangledName);
   bool isWorthToExtract(std::string &FuncName);
-  void PassPeeper(const std::string& file, unsigned FeatureId);
+  void PassPeeper(unsigned FeatureId);
   void BuildWorkerDestMap(
             std::unordered_map<std::string, std::pair<std::string, std::string> > &WorkerDestMap);
   class FeatureRecorder {

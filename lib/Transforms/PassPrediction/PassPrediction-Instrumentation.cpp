@@ -48,7 +48,7 @@ namespace PassPrediction {
     return true;
   }
 
-  void PassPeeper(const std::string& file, unsigned FeatureId) {
+  void PassPeeper(unsigned FeatureId) {
     // Get the feature object, which is a singleton
     FeatureRecorder &InstrumentRec = FeatureRecorder::getInstance();
     // if instrumentation is enabled, record it.
@@ -74,7 +74,7 @@ namespace PassPrediction {
     if (!env_p) {
       exit(EXIT_FAILURE);
     }
-    std::string ConnectionInfoLoc = std::string(env_p) + std::string("/training/ClangConnectInfo");
+    std::string ConnectionInfoLoc = std::string(env_p) + std::string("/Connection/ClangConnectInfo");
     std::ifstream stream(ConnectionInfoLoc);
     std::string line, workerEntry, tcpIP, tcpPort;
     std::getline(stream, line); //skip the first line
