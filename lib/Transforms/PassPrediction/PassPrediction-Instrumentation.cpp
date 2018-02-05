@@ -102,9 +102,10 @@ namespace PassPrediction {
 
   void FeatureRecorder::writeAllFeatures(std::string Path) {
     std::ofstream file;
-    file.open(Path, std::ofstream::out);
+    // append the feature file, you should delete it manually.
+    file.open(Path, std::ofstream::app);
 		for (auto it : FeatureMap) {
-		  file << it.first << " @ ";
+		  file << getDemangledFunctionName(it.first) << " @ "; // record as demangled function name
       file << getFeatureAsString(it.first, std::string(", "));
 			file << "\n";
 		}
