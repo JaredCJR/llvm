@@ -101,8 +101,9 @@ namespace PassPrediction {
   }
 
   void FeatureRecorder::writeAllFeatures(std::string Path) {
-    std::ofstream file;
     // append the feature file, you should delete it manually.
+    // Multi-threaded build(e.g. make -jN) will need lock to protect the file.
+    std::ofstream file;
     file.open(Path, std::ofstream::app);
 		for (auto it : FeatureMap) {
 		  file << getDemangledFunctionName(it.first) << " @ "; // record as demangled function name
